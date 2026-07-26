@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { calculatePayout } from '../utils/payout';
-import { getGameConfig } from '../utils/gameConfig';
-import { isCheckable, toLocalDateKey } from '../utils/drawSchedule';
+import { calculatePayout } from '../utils/payout.js';
+import { getGameConfig } from '../utils/gameConfig.js';
+import { isCheckable, toLocalDateKey } from '../utils/drawSchedule.js';
 const STORAGE_KEY='primy_history_v3';
 function sanitize(raw){
   const arr=Array.isArray(raw)?raw:Array.isArray(raw?.tickets)?raw.tickets:[];
@@ -16,6 +16,7 @@ export function useGameHistory(){
   useEffect(()=>setHistory(load()),[]);
   const update=(producer)=>setHistory(current=>{const next=producer(current);try{localStorage.setItem(STORAGE_KEY,JSON.stringify({version:3,tickets:next}))}catch{setError('Impossibile salvare lo storico sul dispositivo.')}return next;});
   const saveDraft=t=>update(h=>[t,...h]);
+  const saveDrafts=tickets=>update(h=>[...(Array.isArray(tickets)?tickets:[]),...h]);
   const markPurchased=id=>update(h=>h.map(t=>t.id===id?{...t,purchased:true,status:'scheduled'}:t));
   const removeTicket=id=>update(h=>h.filter(t=>t.id!==id));
   const clearHistory=()=>update(()=>[]);
@@ -38,5 +39,5 @@ export function useGameHistory(){
   };
   const statsByGame=useMemo(()=>{const out={};for(const t of history){if(!t.purchased)continue;const id=t.gameId;out[id]??={totalSpent:0,totalWon:0,unknownPrizes:0};out[id].totalSpent+=getGameConfig(id).price;if(t.status==='checked'&&typeof t.officialPrize==='number')out[id].totalWon+=t.officialPrize;else if(t.status==='checked'&&t.prizeCategory)out[id].unknownPrizes++;}for(const v of Object.values(out))v.balance=v.totalWon-v.totalSpent;return out;},[history]);
   const enriched=useMemo(()=>history.map(t=>({...t,computedStatus:t.status==='checked'?t.status:(!t.purchased?'draft':isCheckable(t)?'awaiting_check':'scheduled')})),[history]);
-  return {history:enriched,statsByGame,error,saveDraft,markPurchased,removeTicket,clearHistory,setOfficialPrize,checkResults};
+  return {history:enriched,statsByGame,error,saveDraft,saveDrafts,markPurchased,removeTicket,clearHistory,setOfficialPrize,checkResults};
 }

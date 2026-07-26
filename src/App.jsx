@@ -1,16 +1,17 @@
 import React,{useRef,useState}from'react';
-import{useGameHistory}from'./hooks/useStorage';
-import{generateTicket,generateTicketFromPool}from'./utils/engine';
-import{GAMES,getGameConfig}from'./utils/gameConfig';
-import{formatDrawDate}from'./utils/drawSchedule';
-import MonteCarloLab from'./components/MonteCarloLab';
+import{useGameHistory}from'./hooks/useStorage.js';
+import{generateTicket,generateTicketFromPool}from'./utils/engine.js';
+import{GAMES,getGameConfig}from'./utils/gameConfig.js';
+import{formatDrawDate}from'./utils/drawSchedule.js';
+import MonteCarloLab from'./components/MonteCarloLab.jsx';
+import HistoryLab from'./components/HistoryLab.jsx';
 const MC=20000;
 const eur=new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'});
 function Ball({children,extra=false,hit=false}){return <span className={`w-10 h-10 rounded-full border flex items-center justify-center font-bold ${extra?'bg-amber-300 border-amber-400':hit?'bg-emerald-100 border-emerald-400 text-emerald-800':'bg-slate-100 border-slate-200'}`}>{children}</span>}
 function Status({s}){const m={draft:['Bozza','bg-slate-100 text-slate-600'],scheduled:['In attesa','bg-blue-50 text-blue-700'],awaiting_check:['Da verificare','bg-amber-50 text-amber-700'],checked:['Verificata','bg-emerald-50 text-emerald-700']}[s]||['Stato',''];return <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${m[1]}`}>{m[0]}</span>}
 export default function App(){
  const [active,setActive]=useState('eurodreams'),[method,setMethod]=useState('pure'),[latest,setLatest]=useState(null),[busy,setBusy]=useState(false),[checking,setChecking]=useState(false);const worker=useRef();
- const {history,statsByGame,error,saveDraft,markPurchased,removeTicket,clearHistory,setOfficialPrize,checkResults}=useGameHistory(); const game=getGameConfig(active),items=history.filter(t=>t.gameId===active),stats=statsByGame[active]||{totalSpent:0,totalWon:0,balance:0,unknownPrizes:0};
+ const {history,statsByGame,error,saveDraft,saveDrafts,markPurchased,removeTicket,clearHistory,setOfficialPrize,checkResults}=useGameHistory(); const game=getGameConfig(active),items=history.filter(t=>t.gameId===active),stats=statsByGame[active]||{totalSpent:0,totalWon:0,balance:0,unknownPrizes:0};
  const generate=()=>{if(method!=='montecarlo'){const t=generateTicket(active,{antiPattern:method==='antipattern'});saveDraft(t);setLatest(t);return;}setBusy(true);const w=new Worker(new URL('./workers/monteCarlo.worker.js',import.meta.url),{type:'module'});worker.current=w;w.onmessage=({data})=>{if(data.type==='done'){const t=generateTicketFromPool(active,data.hotNumbers);saveDraft(t);setLatest(t);setBusy(false);w.terminate();}};w.postMessage({mode:'hot',totalDraws:MC,poolMax:game.numberPoolMax,pick:game.numbersToPick,topK:game.numbersToPick*3});};
  const check=async()=>{setChecking(true);await checkResults(active);setChecking(false)};
  return <main className="min-h-screen bg-slate-50 text-slate-800 p-4 md:p-8"><div className="max-w-xl mx-auto space-y-6">
@@ -22,6 +23,7 @@ export default function App(){
   {latest&&<section className="bg-white p-6 rounded-2xl border"><div className="flex justify-between"><h2 className="text-sm font-bold text-slate-400 uppercase">Anteprima</h2><Status s={latest.purchased?'scheduled':'draft'}/></div><div className="flex flex-wrap gap-2 justify-center my-4">{latest.ticket.map(n=><Ball key={n}>{n}</Ball>)}<Ball extra>{latest.extra}</Ball></div><p className="text-xs text-center">Estrazione: {formatDrawDate(latest.drawDateISO)}</p>{!latest.purchased&&<button onClick={()=>{markPurchased(latest.id);setLatest({...latest,purchased:true,status:'scheduled'})}} className="w-full mt-4 bg-emerald-600 text-white py-3 rounded-xl font-bold">Segna come acquistata · {eur.format(game.price)}</button>}<p className="text-[11px] text-slate-400 text-center mt-2">La spesa viene conteggiata solo dopo questa conferma.</p></section>}
   <button onClick={check} disabled={checking} className="w-full bg-emerald-100 text-emerald-800 font-bold py-4 rounded-xl disabled:opacity-50">{checking?'Verifica in corso…':'Verifica estrazioni dovute'}</button>
   <section className="bg-white p-5 rounded-2xl border"><div className="flex justify-between items-center mb-4"><h2 className="font-bold">Storico</h2>{items.length>0&&<button onClick={()=>confirm('Cancellare tutto lo storico?')&&clearHistory()} className="text-xs text-rose-600">Cancella tutto</button>}</div>{items.length===0?<p className="text-sm text-slate-400">Nessuna combinazione salvata.</p>:<div className="space-y-3">{items.map(t=>{const wins=new Set(t.result?.winningNumbers||[]);return <article key={t.id} className="border rounded-xl p-4"><div className="flex justify-between items-center"><p className="text-xs font-semibold">{formatDrawDate(t.drawDateISO)}</p><Status s={t.computedStatus}/></div><div className="flex flex-wrap gap-1.5 my-3">{t.ticket.map(n=><Ball key={n} hit={t.status==='checked'&&wins.has(n)}>{n}</Ball>)}<Ball extra>{t.extra}</Ball></div>{t.status==='checked'&&<div className="text-sm bg-slate-50 rounded-lg p-3"><p><strong>{t.prizeCategory||'Nessun premio'}</strong> · {t.matches} numeri</p><p>{t.prizeDisplay}</p>{t.prizeCategory&&t.officialPrize==null&&<label className="block mt-2 text-xs">Inserisci premio ufficiale (€)<input type="number" min="0" step="0.01" className="w-full border rounded p-2 mt-1" onBlur={e=>e.target.value&&setOfficialPrize(t.id,e.target.value)}/></label>}<p className="text-[10px] text-slate-400 mt-2">Fonte risultati: {t.result?.source}</p></div>}<div className="flex gap-2 mt-3">{!t.purchased&&<button onClick={()=>markPurchased(t.id)} className="text-xs bg-emerald-100 px-3 py-2 rounded">Acquistata</button>}<button onClick={()=>removeTicket(t.id)} className="text-xs text-rose-600 px-3 py-2">Elimina</button></div></article>})}</div>}</section>
+  <HistoryLab gameId={active} onGenerated={t=>{saveDraft(t);setLatest(t)}} onPortfolio={tickets=>{saveDrafts(tickets);setLatest(tickets[0]||null)}}/>
   <MonteCarloLab gameId={active}/><footer className="text-center text-[11px] text-slate-400 pb-8">Solo per maggiorenni. Nessun metodo aumenta le probabilità di vincita. Gioca responsabilmente.</footer>
  </div></main>;
 }
