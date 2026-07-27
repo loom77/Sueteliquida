@@ -6,7 +6,7 @@ export default function GameSwitch({ active, onChange, label = 'Gioco' }) {
     <fieldset>
       <legend className="mb-2 text-sm font-bold text-primary">{label}</legend>
       <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted-strong p-1.5">
-        {Object.values(GAMES).map(game => (
+        {['primitiva', 'eurodreams'].map(gameId => GAMES[gameId]).filter(Boolean).map(game => (
           <button
             type="button"
             aria-pressed={active === game.id}

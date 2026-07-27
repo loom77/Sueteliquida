@@ -1,8 +1,8 @@
-# Primy v11 — Production UX Edition
+# Primy v12.1 — Focused UX Edition
 
 Primy è una PWA privata per creare portafogli coordinati di giocate per **La Primitiva** ed **EuroDreams**, registrare schedine acquistate tramite canali autorizzati e controllare i risultati.
 
-La v11 mantiene il **Primy Evidence Engine** della v10 e ricostruisce le parti operative che limitavano affidabilità, accessibilità e qualità percepita.
+La v12.1 mantiene il **Primy Evidence Engine** e l’hardening tecnico della v12, ma ricostruisce il flusso principale attorno a una sola domanda: quale gioco vuoi creare?
 
 ## Miglioramenti principali
 
@@ -98,3 +98,13 @@ Consulta:
 - `VALIDATION-ALVARO-V12.md`
 
 Per un deploy pubblico configura anche Upstash oltre a `LOTERIA_API_KEY`.
+## Primy v12.1 — Yuma Focused UX
+
+La Home apre con una scelta esplicita tra **La Primitiva** ed **EuroDreams**; il gioco con l’estrazione più vicina non viene più imposto come contenuto principale. Il flusso operativo è ora:
+
+```text
+Scegli gioco → imposta budget → genera → controlla i numeri → registra o salva
+```
+
+Le informazioni secondarie sono nascoste finché non servono: il calendario è richiudibile, le statistiche non compaiono a zero e i dettagli tecnici della generazione sono facoltativi.
+

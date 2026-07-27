@@ -62,7 +62,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
       <details className="rounded-2xl border border-default bg-surface p-5 md:p-6">
         <summary className="cursor-pointer text-xl font-black text-primary">Impostazioni avanzate e metodo Primy</summary>
         <p className="mt-2 text-sm leading-6 text-secondary">Apri questa sezione solo per controllare la fonte dati storica e i dettagli tecnici del metodo automatico.</p>
-        <div className="mt-5 border-t border-default pt-5"><h2 className="flex items-center gap-2 text-lg font-black text-primary"><InfoIcon width="21" height="21"/>Metodo automatico Primy</h2><p className="mt-1 text-sm leading-6 text-secondary">La pagina Genera non espone algoritmi o punteggi predittivi. Qui puoi consultare lo stato dello storico.</p><div className="mt-5"><GameSwitch active={activeGame} onChange={onGameChange} label="Gioco da analizzare"/></div></div>
+        <div className="mt-5 border-t border-default pt-5"><h2 className="flex items-center gap-2 text-lg font-black text-primary"><InfoIcon width="21" height="21"/>Metodo automatico Primy</h2><p className="mt-1 text-sm leading-6 text-secondary">La pagina Crea giocata non espone algoritmi o punteggi predittivi. Qui puoi consultare lo stato dello storico.</p><div className="mt-5"><GameSwitch active={activeGame} onChange={onGameChange} label="Gioco da analizzare"/></div></div>
         <div className="mt-5"><HistoryLab historyState={historyState}/></div>
       </details>
 

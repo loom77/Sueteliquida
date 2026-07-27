@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { HomeIcon, ListIcon, PlusIcon, SettingsIcon, SparklesIcon } from './Icons.jsx';
 
 const NAV = [
-  { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-  { id: 'generate', label: 'Genera', icon: PlusIcon },
+  { id: 'dashboard', label: 'Home', icon: HomeIcon },
+  { id: 'generate', label: 'Crea giocata', icon: PlusIcon },
   { id: 'plays', label: 'Le mie giocate', icon: ListIcon },
   { id: 'settings', label: 'Impostazioni', icon: SettingsIcon },
 ];
@@ -18,7 +18,7 @@ function NavButton({ item, active, onSelect, mobile = false, badge = 0 }) {
   );
 }
 
-export default function AppShell({ view, onNavigate, providerStatus, dueCount = 0, children }) {
+export default function AppShell({ view, onNavigate, dueCount = 0, children }) {
   const [online, setOnline] = useState(() => navigator.onLine !== false);
   useEffect(() => {
     const update = () => setOnline(navigator.onLine !== false);
@@ -33,9 +33,8 @@ export default function AppShell({ view, onNavigate, providerStatus, dueCount = 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-default bg-surface p-5 lg:flex">
         <div className="flex items-center gap-3"><span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-white"><SparklesIcon width="21" height="21"/></span><div><p className="text-lg font-black text-primary">Primy</p><p className="text-xs text-secondary">Assistente privato di gioco</p></div></div>
         <nav className="mt-8 space-y-2" aria-label="Navigazione principale">{NAV.map(item => <NavButton key={item.id} item={item} active={view === item.id} onSelect={onNavigate} badge={item.id === 'plays' ? dueCount : 0}/>)}</nav>
-        <div className="mt-auto space-y-4"><button type="button" onClick={providerStatus.reload} className="flex min-h-11 w-full items-center gap-3 rounded-xl bg-muted px-3 text-left text-xs font-bold text-secondary hover:bg-muted-strong"><span className={`h-2.5 w-2.5 rounded-full ${providerStatus.loading ? 'bg-slate-400' : providerStatus.online ? 'bg-emerald-500' : 'bg-amber-500'}`}/>{providerStatus.loading ? 'Controllo dati…' : providerStatus.online ? 'Fonte dati collegata' : 'Fonte dati da controllare'}</button><p className="px-2 text-xs leading-5 text-secondary">Primy non vende schedine e non garantisce vincite. Solo per maggiorenni.</p></div>
       </aside>
-      <header className="sticky top-0 z-20 border-b border-default bg-surface/95 px-4 py-3 backdrop-blur lg:hidden"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white"><SparklesIcon width="19" height="19"/></span><div><p className="font-black">Primy</p><p className="text-xs text-secondary">{NAV.find(item => item.id === view)?.label}</p></div></div><div className="flex items-center gap-3">{dueCount > 0 && <button type="button" onClick={() => onNavigate('plays')} className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-black text-amber-950">{dueCount} da verificare</button>}<span className={`h-3 w-3 rounded-full ${providerStatus.loading ? 'bg-slate-400' : providerStatus.online ? 'bg-emerald-500' : 'bg-amber-500'}`} aria-label={providerStatus.online ? 'Fonte dati collegata' : 'Fonte dati non disponibile'}/></div></div></header>
+      <header className="sticky top-0 z-20 border-b border-default bg-surface/95 px-4 py-3 backdrop-blur lg:hidden"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><span className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-950 text-white"><SparklesIcon width="19" height="19"/></span><div><p className="font-black">Primy</p><p className="text-xs text-secondary">{NAV.find(item => item.id === view)?.label}</p></div></div><div>{dueCount > 0 && <button type="button" onClick={() => onNavigate('plays')} className="rounded-full bg-amber-100 px-3 py-1.5 text-xs font-black text-amber-950">{dueCount} da verificare</button>}</div></div></header>
       {!online && <div role="status" className="border-b border-amber-300 bg-amber-100 px-4 py-2 text-center text-sm font-bold text-amber-950 lg:ml-64">Modalità offline: generazione e dati locali disponibili; risultati e sincronizzazione richiedono internet.</div>}
       <main id="main-content" className="pb-24 lg:ml-64 lg:pb-0">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-default bg-surface pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Navigazione principale">{NAV.map(item => <NavButton key={item.id} item={item} active={view === item.id} onSelect={onNavigate} mobile badge={item.id === 'plays' ? dueCount : 0}/>)}</nav>

@@ -64,7 +64,7 @@ export default function App() {
 
   useEffect(() => () => workerRef.current?.terminate(), []);
   useEffect(() => {
-    const titles = { dashboard: 'Dashboard', generate: 'Genera', plays: 'Le mie giocate', settings: 'Impostazioni' };
+    const titles = { dashboard: 'Home', generate: 'Crea giocata', plays: 'Le mie giocate', settings: 'Impostazioni' };
     document.title = `${titles[view]} · Primy`;
   }, [view]);
   useEffect(() => { if (preferences.defaultGame && !latest && !busy) setActiveGame(preferences.defaultGame); }, [preferences.defaultGame]);
@@ -264,9 +264,9 @@ export default function App() {
   };
 
   return (
-    <AppShell view={view} onNavigate={navigate} providerStatus={providerStatus} dueCount={dueTotal}>
+    <AppShell view={view} onNavigate={navigate} dueCount={dueTotal}>
       <Suspense fallback={<div className="rounded-2xl border border-border bg-surface p-6 text-sm text-secondary">Caricamento schermata…</div>}>
-      {view === 'dashboard' && <DashboardView now={now} history={history} monthlyStats={monthlyStats} totals={totals} dueByGame={dueByGame} drawOverview={drawOverview} onGenerate={openGenerate} onAddExternal={() => setManualOpen(true)} onOpenPlays={() => navigate('plays')} onCheckAll={checkAll} checking={checkingGame === 'all'} installPrompt={installPrompt}/>} 
+      {view === 'dashboard' && <DashboardView now={now} history={history} monthlyStats={monthlyStats} totals={totals} dueByGame={dueByGame} drawOverview={drawOverview} onGenerate={openGenerate} onAddExternal={() => setManualOpen(true)} onOpenPlays={() => navigate('plays')} onCheckAll={checkAll} checking={checkingGame === 'all'}/>} 
 
       {view === 'generate' && <GenerateView game={game} activeGame={activeGame} onGameChange={selectGame} columnCount={columnCount} setColumnCount={setColumnCount} onGenerate={generate} busy={busy} progress={progress} generationError={generationError} monthlySpent={monthlyStats.spent} monthlyLimit={preferences.monthlyLimit} latest={latest} saveState={saveState} onSaveDraft={() => saveLatest(false)} onPurchase={() => saveLatest(true)} onDiscard={discardLatest} onOpenPlays={() => navigate('plays')} onToast={message => setToast({ message })} variantLabel={variantContext?.label || ''} onClearVariant={() => setVariantContext(null)}/>} 
 

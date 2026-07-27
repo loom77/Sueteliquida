@@ -61,3 +61,16 @@
 - Header di sicurezza aggiuntivi e HSTS.
 - 3 nuovi test tecnici; totale 33 test verdi.
 - Documentazione tecnica Alvaro e checklist di release.
+## 12.1.0 — Yuma Focused UX
+
+- La Home non impone più automaticamente il gioco con l’estrazione più vicina.
+- La prima azione è ora la scelta esplicita tra La Primitiva ed EuroDreams.
+- Rimossi dalla parte alta della Home jackpot dominante, statistiche a zero, calendario aperto e stato provider invasivo.
+- Statistiche e ultime giocate compaiono soltanto quando esistono dati dell’utente.
+- Gli orari delle estrazioni sono disponibili tramite progressive disclosure.
+- Il flusso di generazione usa un solo controllo per budget/colonne, eliminando slider, preset e input duplicati.
+- Il risultato viene portato in vista automaticamente su mobile.
+- Metriche, distribuzione, copia e lettura vocale sono raccolte nei dettagli facoltativi.
+- Navigazione rinominata in Home e Crea giocata.
+- 33 test del motore e del dominio superati.
+
