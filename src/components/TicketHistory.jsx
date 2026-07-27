@@ -10,13 +10,25 @@ const euro = new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR'
 function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
+  const receiptScopedExtra = game.extra.scope === 'receipt';
+  const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
   return (
     <div className="p-4 md:p-5">
+      {receiptScopedExtra && (
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+          <div className="flex items-center justify-between gap-4">
+            <div><p className="text-xs font-bold uppercase tracking-wide text-amber-800">Reintegro del resguardo</p><p className="mt-1 text-sm text-amber-950">Unico per tutte le colonne</p></div>
+            <NumberBall compact extra>{receiptExtra}</NumberBall>
+          </div>
+          {play.receiptPrize && <div className="mt-3 border-t border-amber-200 pt-3 text-sm text-amber-950"><p className="font-black">{play.receiptPrize.category}</p><p>{play.receiptPrize.displayText}</p></div>}
+          {play.metadata?.rulesMigrationWarning && <p className="mt-3 text-sm font-bold leading-6 text-rose-800">{play.metadata.rulesMigrationWarning}</p>}
+        </div>
+      )}
       <div className="grid gap-3 xl:grid-cols-2">
         {play.columns.map((column, index) => (
           <div key={column.id} className="rounded-2xl bg-muted p-4">
             <div className="flex items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-wide text-secondary">Colonna {index + 1}</p>{column.status === 'checked' && <p className="text-xs font-bold text-secondary">{column.matches || 0} numeri indovinati</p>}</div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">{column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}<span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/><NumberBall compact extra>{column.extra}</NumberBall><span className="text-sm font-bold text-secondary">{game.extra.label}</span></div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">{column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}{!receiptScopedExtra && <><span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/><NumberBall compact extra>{column.extra}</NumberBall><span className="text-sm font-bold text-secondary">{game.extra.label}</span></>}</div>
             {column.status === 'checked' && <div className="mt-3 text-sm leading-6 text-primary"><p className="font-black text-primary">{column.prizeCategory || 'Nessun premio'}</p><p>{column.prizeDisplay}</p>{column.prizeCategory && column.officialPrize == null && <label className="mt-3 block font-bold">Premio ufficiale (€)<input type="number" min="0" step="0.01" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal" onBlur={event => event.target.value && onSetPrize(play.id, column.id, event.target.value)}/></label>}</div>}
           </div>
         ))}

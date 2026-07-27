@@ -229,7 +229,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
   const game = getGameConfig(gameId);
   const seed = String(options.seed || createGenerationSeed());
   const rng = createSeededRandom(seed);
-  const count = Math.max(1, Math.min(Number(columnCount) || 1, 20));
+  const count = Math.max(1, Math.min(Number(columnCount) || 1, game.maxSimpleBets || 1));
   const samples = Math.max(count * 250, Math.min(Number(options.samples) || Math.max(6000, count * 1000), 36000));
   const profile = resolveFusionProfile(gameId, analysis, options.evidenceOptions || options.auditOptions || {});
   const candidates = [];
@@ -250,7 +250,10 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     rankCandidates: profile.signalWeight > 0,
     localIterations: Math.min(220, 80 + count * 8),
   });
-  const extras = distributeExtras(game, selected.length, rng);
+  const receiptExtra = game.extra.scope === 'receipt' ? rng.int(game.extra.min, game.extra.max) : null;
+  const extras = game.extra.scope === 'receipt'
+    ? Array(selected.length).fill(receiptExtra)
+    : distributeExtras(game, selected.length, rng);
   const draw = getNextDrawInfo(gameId);
   const playId = crypto.randomUUID();
   const metrics = coverageMetrics(gameId, selected);
@@ -268,6 +271,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     id: playId,
     gameId,
     columns,
+    ...(game.extra.scope === 'receipt' ? { receiptExtra } : {}),
     createdAt: new Date().toISOString(),
     ...draw,
     method: 'primy-evidence',
@@ -275,7 +279,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     status: 'draft',
     metadata: {
       engine: 'Primy Evidence Engine',
-      engineVersion: '12.0',
+      engineVersion: '12.2',
       seed,
       candidatesAnalyzed: candidates.length,
       generationConfig: { samples, columns: count, gameId },

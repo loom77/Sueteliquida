@@ -13,14 +13,15 @@ test('Fusion genera il numero richiesto di colonne Primitiva', () => {
   const play = generateFusionPlay('primitiva', null, 5, { samples: 900 });
   assert.equal(play.columns.length, 5);
   assert.ok(play.columns.every(column => column.numbers.length === 6));
-  assert.ok(play.columns.every(column => column.extra >= 0 && column.extra <= 9));
+  assert.ok(play.columns.every(column => column.extra === play.receiptExtra));
+  assert.ok(play.receiptExtra >= 0 && play.receiptExtra <= 9);
   assert.equal(new Set(play.columns.map(column => column.numbers.join('-'))).size, 5);
   assert.equal(play.method, 'primy-evidence');
 });
 
-test('Fusion funziona anche per EuroDreams e distribuisce il Sogno', () => {
+test('Fusion funziona anche per EuroDreams, distribuisce il Sogno e rispetta il massimo del boleto', () => {
   const play = generateFusionPlay('eurodreams', null, 8, { samples: 1200 });
-  assert.equal(play.columns.length, 8);
+  assert.equal(play.columns.length, 6);
   assert.ok(play.columns.every(column => column.numbers.every(number => number >= 1 && number <= 40)));
   assert.ok(play.columns.every(column => column.extra >= 1 && column.extra <= 5));
   assert.ok(new Set(play.columns.map(column => column.extra)).size >= 4);

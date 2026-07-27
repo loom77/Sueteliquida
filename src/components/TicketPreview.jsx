@@ -32,12 +32,16 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
   }
 
   const quality = play.metadata?.quality || {};
+  const receiptScopedExtra = game.extra.scope === 'receipt';
+  const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
   const history = play.metadata?.history;
   const shownColumns = expanded ? play.columns : play.columns.slice(0, 3);
   const hiddenCount = play.columns.length - shownColumns.length;
 
   const copyPlay = async () => {
-    const text = `${game.name} — ${formatDrawDate(play.drawDateISO)}\n${play.columns.map((column, index) => `Colonna ${index + 1}: ${column.numbers.join(' ')} · ${game.extra.label} ${column.extra}`).join('\n')}`;
+    const extraLine = receiptScopedExtra ? `\nReintegro del resguardo: ${receiptExtra}` : '';
+    const columnsText = play.columns.map((column, index) => `Colonna ${index + 1}: ${column.numbers.join(' ')}${receiptScopedExtra ? '' : ` · ${game.extra.label} ${column.extra}`}`).join('\n');
+    const text = `${game.name} — ${formatDrawDate(play.drawDateISO)}${extraLine}\n${columnsText}`;
     try {
       await navigator.clipboard.writeText(text);
       onToast?.('Colonne copiate negli appunti.');
@@ -49,7 +53,8 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
   const speakPlay = () => {
     if (!('speechSynthesis' in window)) return onToast?.('La lettura vocale non è disponibile in questo browser.');
     window.speechSynthesis.cancel();
-    const text = `${game.name}. ${play.columns.map((column, index) => `Colonna ${index + 1}: ${column.numbers.join(', ')}. ${game.extra.label}: ${column.extra}.`).join(' ')}`;
+    const sharedExtraText = receiptScopedExtra ? `Reintegro del resguardo: ${receiptExtra}. ` : '';
+    const text = `${game.name}. ${sharedExtraText}${play.columns.map((column, index) => `Colonna ${index + 1}: ${column.numbers.join(', ')}.${receiptScopedExtra ? '' : ` ${game.extra.label}: ${column.extra}.`}`).join(' ')}`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'it-IT';
     utterance.rate = 0.92;
@@ -79,17 +84,26 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
           <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {formatDrawTime(play.drawDateTimeISO || play.drawDateISO)} · {play.columns.length} {play.columns.length === 1 ? 'colonna' : 'colonne'}</p>
         </div>
 
+        {receiptScopedExtra && (
+          <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-amber-800">Reintegro del resguardo</p>
+              <p className="mt-1 text-sm leading-6 text-amber-950">È unico e vale per tutte le colonne di questa schedina.</p>
+            </div>
+            <NumberBall extra>{receiptExtra}</NumberBall>
+          </div>
+        )}
+
         <div className="mt-6 space-y-3">
           {shownColumns.map((column, index) => (
             <div key={column.id} className="rounded-2xl bg-muted p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-bold uppercase tracking-wide text-secondary">Colonna {index + 1}</p>
-                <span className="text-xs font-bold text-secondary">{game.extra.label} {column.extra}</span>
+                {!receiptScopedExtra && <span className="text-xs font-bold text-secondary">{game.extra.label} {column.extra}</span>}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {column.numbers.map(number => <NumberBall key={number}>{number}</NumberBall>)}
-                <span aria-hidden="true" className="mx-1 h-8 w-px bg-slate-300"/>
-                <NumberBall extra>{column.extra}</NumberBall>
+                {!receiptScopedExtra && <><span aria-hidden="true" className="mx-1 h-8 w-px bg-slate-300"/><NumberBall extra>{column.extra}</NumberBall></>}
               </div>
             </div>
           ))}

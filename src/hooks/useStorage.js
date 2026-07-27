@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { calculatePayout } from '../utils/payout.js';
+import { calculatePlayPayout } from '../utils/payout.js';
 import { GAMES } from '../utils/gameConfig.js';
 import { isCheckable, toLocalDateKey } from '../utils/drawSchedule.js';
 import { playCost, playKnownPrize, playUnknownPrizeCount, sanitizePlay, sanitizePlays } from '../utils/playModel.js';
@@ -139,8 +139,9 @@ export function useGameHistory() {
         if (!draw) return { ...play, status: 'awaiting_check' };
         checked += 1;
 
-        const columns = play.columns.map(column => {
-          const payout = calculatePayout({ gameId: play.gameId, ticket: column.numbers, extra: column.extra }, draw);
+        const settlement = calculatePlayPayout(play, draw);
+        const columns = play.columns.map((column, index) => {
+          const payout = settlement.columns[index];
           return {
             ...column,
             status: 'checked',
@@ -160,6 +161,7 @@ export function useGameHistory() {
           checkedAt: new Date().toISOString(),
           result: draw,
           columns,
+          receiptPrize: settlement.receiptPrize || undefined,
         };
       }));
       return { checked, unavailable: data.unavailableDates?.length || 0 };

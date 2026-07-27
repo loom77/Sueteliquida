@@ -1,8 +1,8 @@
-# Primy v12.1 — Focused UX Edition
+# Primy v12.2 — Focused UX + Regole SELAE
 
 Primy è una PWA privata per creare portafogli coordinati di giocate per **La Primitiva** ed **EuroDreams**, registrare schedine acquistate tramite canali autorizzati e controllare i risultati.
 
-La v12.1 mantiene il **Primy Evidence Engine** e l’hardening tecnico della v12, ma ricostruisce il flusso principale attorno a una sola domanda: quale gioco vuoi creare?
+La v12.2 mantiene il **Primy Evidence Engine** e il flusso UX semplificato, correggendo il modello di schedina secondo le regole ufficiali SELAE.
 
 ## Miglioramenti principali
 
@@ -108,3 +108,10 @@ Scegli gioco → imposta budget → genera → controlla i numeri → registra o
 
 Le informazioni secondarie sono nascoste finché non servono: il calendario è richiudibile, le statistiche non compaiono a zero e i dettagli tecnici della generazione sono facoltativi.
 
+
+## Regole di schedina implementate nella v12.2
+
+- **La Primitiva:** da 1 a 8 giocate semplici per boleto; ogni colonna contiene 6 numeri, mentre il **Reintegro è unico per l’intero resguardo**.
+- **EuroDreams:** da 1 a 6 giocate semplici per boleto; ogni colonna contiene 6 numeri e il proprio **Sogno** da 1 a 5.
+- Il premio Reintegro di La Primitiva viene registrato una sola volta e corrisponde all’importo totale giocato sul resguardo per quel sorteggio.
+- Le giocate multiple combinatorie non sono ancora generate da Primy.

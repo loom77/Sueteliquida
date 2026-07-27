@@ -14,6 +14,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
   const [dateKey, setDateKey] = useState('');
   const [reference, setReference] = useState('');
   const [columns, setColumns] = useState([emptyColumn()]);
+  const [receiptExtra, setReceiptExtra] = useState('');
   const [error, setError] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState('');
@@ -46,6 +47,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     setDateKey(next.drawDateKey);
     setReference('');
     setColumns([emptyColumn()]);
+    setReceiptExtra('');
     setError('');
     setScanMessage('');
   }, [open, initialGame]);
@@ -54,6 +56,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     if (!open) return;
     setDateKey(getNextDrawInfo(gameId).drawDateKey);
     setColumns([emptyColumn()]);
+    setReceiptExtra('');
     setError('');
   }, [gameId, open]);
 
@@ -112,17 +115,21 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     const [year, month, day] = String(dateKey).split('-').map(Number);
     const weekday = new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay();
     if (!game.drawDays.includes(weekday)) return setError(`La data selezionata non corrisponde a un giorno di estrazione di ${game.name}.`);
+    if (columns.length > (game.maxSimpleBets || 1)) return setError(`${game.name} consente al massimo ${game.maxSimpleBets} giocate semplici nello stesso boleto.`);
+    const parsedReceiptExtra = Number(receiptExtra);
+    if (game.extra.scope === 'receipt' && (!Number.isInteger(parsedReceiptExtra) || parsedReceiptExtra < game.extra.min || parsedReceiptExtra > game.extra.max)) return setError(`${game.extra.label}: inserisci il numero unico del resguardo tra ${game.extra.min} e ${game.extra.max}.`);
     for (const column of parsed) {
       if (column.parsedNumbers.length !== game.numbersToPick) return setError(`Ogni colonna deve contenere ${game.numbersToPick} numeri diversi.`);
       if (column.parsedNumbers.some(number => number < 1 || number > game.numberPoolMax)) return setError(`I numeri devono essere compresi tra 1 e ${game.numberPoolMax}.`);
-      if (!Number.isInteger(column.parsedExtra) || column.parsedExtra < game.extra.min || column.parsedExtra > game.extra.max) return setError(`${game.extra.label}: inserisci un valore tra ${game.extra.min} e ${game.extra.max}.`);
+      if (game.extra.scope === 'column' && (!Number.isInteger(column.parsedExtra) || column.parsedExtra < game.extra.min || column.parsedExtra > game.extra.max)) return setError(`${game.extra.label}: inserisci un valore tra ${game.extra.min} e ${game.extra.max}.`);
     }
 
     const draw = drawInfoForDate(gameId, dateKey);
     onSave({
       id: crypto.randomUUID(),
       gameId,
-      columns: parsed.map(column => ({ id: crypto.randomUUID(), index: column.index, numbers: column.parsedNumbers, extra: column.parsedExtra, status: 'scheduled' })),
+      columns: parsed.map(column => ({ id: crypto.randomUUID(), index: column.index, numbers: column.parsedNumbers, extra: game.extra.scope === 'receipt' ? parsedReceiptExtra : column.parsedExtra, status: 'scheduled' })),
+      ...(game.extra.scope === 'receipt' ? { receiptExtra: parsedReceiptExtra } : {}),
       createdAt: new Date().toISOString(),
       purchasedAt: new Date().toISOString(),
       ...draw,
@@ -154,19 +161,27 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
           {scanMessage && <p className="mt-3 text-sm leading-6 text-secondary" aria-live="polite">{scanMessage}</p>}
         </div>
 
+        {game.extra.scope === 'receipt' && (
+          <label className="block rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-950">
+            Reintegro unico del resguardo
+            <span className="mt-1 block text-xs font-normal leading-5 text-amber-800">Vale per tutte le colonne. Copialo dal resguardo SELAE.</span>
+            <input value={receiptExtra} onChange={event => setReceiptExtra(event.target.value)} inputMode="numeric" className="mt-3 min-h-11 w-full rounded-xl border border-amber-300 bg-surface px-3 font-normal text-primary"/>
+          </label>
+        )}
+
         <div className="space-y-3">
           {columns.map((column, index) => (
             <div key={column.id} className="rounded-2xl bg-muted p-4">
               <div className="flex items-center justify-between gap-3"><p className="font-black text-primary">Colonna {index + 1}</p>{columns.length > 1 && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Rimuovi</button>}</div>
-              <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_150px]">
+              <div className={`mt-3 grid gap-3 ${game.extra.scope === 'column' ? 'sm:grid-cols-[1fr_150px]' : ''}`}>
                 <label className="text-sm font-bold text-primary">I {game.numbersToPick} numeri<input value={column.numbers} onChange={event => updateColumn(column.id, { numbers: event.target.value })} placeholder={`Es. ${Array.from({ length: game.numbersToPick }, (_, i) => i + 1).join(', ')}`} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
-                <label className="text-sm font-bold text-primary">{game.extra.label}<input value={column.extra} onChange={event => updateColumn(column.id, { extra: event.target.value })} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
+                {game.extra.scope === 'column' && <label className="text-sm font-bold text-primary">{game.extra.label}<input value={column.extra} onChange={event => updateColumn(column.id, { extra: event.target.value })} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>}
               </div>
             </div>
           ))}
         </div>
 
-        <button type="button" onClick={() => setColumns(current => [...current, emptyColumn()])} disabled={columns.length >= 20} className="flex min-h-11 items-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-50"><PlusIcon width="17" height="17"/>Aggiungi colonna</button>
+        <button type="button" onClick={() => setColumns(current => [...current, emptyColumn()])} disabled={columns.length >= (game.maxSimpleBets || 1)} className="flex min-h-11 items-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-50"><PlusIcon width="17" height="17"/>Aggiungi colonna ({columns.length}/{game.maxSimpleBets})</button>
         {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div>}
         <div className="flex flex-col-reverse gap-3 border-t border-default pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={close} className="min-h-12 rounded-xl border border-default px-5 text-sm font-bold text-primary hover:bg-muted">Annulla</button><button type="submit" className="min-h-12 rounded-xl bg-slate-950 px-5 text-sm font-black text-white hover:bg-slate-800">Salva schedina</button></div>
       </form>

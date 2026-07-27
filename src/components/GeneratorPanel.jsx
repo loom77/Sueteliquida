@@ -20,6 +20,7 @@ export default function GeneratorPanel({
   onClearVariant,
 }) {
   const totalCost = game.price * columnCount;
+  const maxColumns = game.maxSimpleBets || 1;
   const exceedsLimit = monthlyLimit != null && monthlyLimit > 0 && monthlySpent + totalCost > monthlyLimit;
 
   return (
@@ -78,8 +79,8 @@ export default function GeneratorPanel({
 
           <button
             type="button"
-            onClick={() => setColumnCount(value => Math.min(20, value + 1))}
-            disabled={busy || columnCount >= 20}
+            onClick={() => setColumnCount(value => Math.min(maxColumns, value + 1))}
+            disabled={busy || columnCount >= maxColumns}
             className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-default text-2xl font-black text-primary hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="Aumenta il budget di una colonna"
           >
@@ -87,7 +88,7 @@ export default function GeneratorPanel({
           </button>
         </div>
 
-        <p className="mt-3 text-center text-xs leading-5 text-secondary">Minimo 1, massimo 20 colonne.</p>
+        <p className="mt-3 text-center text-xs leading-5 text-secondary">Minimo 1, massimo {maxColumns} colonne nello stesso boleto.</p>
       </div>
 
       <button

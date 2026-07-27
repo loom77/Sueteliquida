@@ -79,6 +79,7 @@ export default function App() {
     setProgress(0);
     setGenerationError('');
     setActiveGame(gameId);
+    setColumnCount(current => Math.min(current, getGameConfig(gameId).maxSimpleBets || 1));
     setLatest(null);
     setSaveState('unsaved');
     if (variantContext?.gameId !== gameId) setVariantContext(null);
@@ -187,6 +188,7 @@ export default function App() {
       status: 'draft',
       checkedAt: undefined,
       result: undefined,
+      receiptPrize: undefined,
       favorite: false,
       method: 'repeat-exact',
       metadata: { ...(play.metadata || {}), repeatedFrom: play.id },

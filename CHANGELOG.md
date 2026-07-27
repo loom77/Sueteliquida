@@ -1,3 +1,11 @@
+## 12.2.0 — Correzione regole SELAE
+
+- La Primitiva ora usa un solo Reintegro per l'intero resguardo, condiviso da tutte le colonne.
+- Il premio Reintegro viene calcolato una sola volta sull'importo totale giocato nel sorteggio.
+- EuroDreams mantiene un numero Sogno distinto per ogni giocata semplice.
+- Limiti per singolo boleto: 8 giocate semplici La Primitiva, 6 EuroDreams.
+- Inserimento manuale, anteprima, storico, migrazione dati e verifica premi allineati al nuovo modello.
+
 # Changelog
 
 ## 11.0.0 — Production UX Edition
