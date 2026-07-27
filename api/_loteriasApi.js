@@ -1,5 +1,5 @@
 import { assertCircuitClosed, recordCircuitFailure, recordCircuitSuccess } from './_circuitBreaker.js';
-const OFFICIAL_BASE = 'https://api.loteriasapi.com/v1';
+const OFFICIAL_BASE = 'https://api.loteriasapi.com/api/v1';
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
 export class ProviderError extends Error {

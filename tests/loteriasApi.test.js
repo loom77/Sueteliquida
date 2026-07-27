@@ -6,7 +6,7 @@ import { GAMES } from '../src/utils/gameConfig.js';
 test('usa il base URL ufficiale di LoteriasAPI', () => {
   const previous = process.env.LOTERIA_API_BASE;
   delete process.env.LOTERIA_API_BASE;
-  assert.equal(providerBase(), 'https://api.loteriasapi.com/v1');
+  assert.equal(providerBase(), 'https://api.loteriasapi.com/api/v1');
   if (previous) process.env.LOTERIA_API_BASE = previous;
 });
 
@@ -29,7 +29,7 @@ test('invia la chiave nell header x-api-key', async () => {
     return new Response(JSON.stringify({ draw_date: '2026-07-25', numbers: [1, 2, 3, 4, 5, 6], complementary: 7, reintegro: 8 }), { status: 200, headers: { 'content-type': 'application/json' } });
   };
   await providerRequest('/results/primitiva/latest', { key: 'test-key', fetchImpl });
-  assert.equal(requestedUrl, 'https://api.loteriasapi.com/v1/results/primitiva/latest');
+  assert.equal(requestedUrl, 'https://api.loteriasapi.com/api/v1/results/primitiva/latest');
   assert.equal(requestedHeaders['x-api-key'], 'test-key');
 });
 
