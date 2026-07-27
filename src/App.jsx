@@ -1,29 +1,283 @@
-import React,{useRef,useState}from'react';
-import{useGameHistory}from'./hooks/useStorage.js';
-import{generateTicket,generateTicketFromPool}from'./utils/engine.js';
-import{GAMES,getGameConfig}from'./utils/gameConfig.js';
-import{formatDrawDate}from'./utils/drawSchedule.js';
-import MonteCarloLab from'./components/MonteCarloLab.jsx';
-import HistoryLab from'./components/HistoryLab.jsx';
-const MC=20000;
-const eur=new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR'});
-function Ball({children,extra=false,hit=false}){return <span className={`w-10 h-10 rounded-full border flex items-center justify-center font-bold ${extra?'bg-amber-300 border-amber-400':hit?'bg-emerald-100 border-emerald-400 text-emerald-800':'bg-slate-100 border-slate-200'}`}>{children}</span>}
-function Status({s}){const m={draft:['Bozza','bg-slate-100 text-slate-600'],scheduled:['In attesa','bg-blue-50 text-blue-700'],awaiting_check:['Da verificare','bg-amber-50 text-amber-700'],checked:['Verificata','bg-emerald-50 text-emerald-700']}[s]||['Stato',''];return <span className={`text-[10px] uppercase font-bold px-2 py-1 rounded-full ${m[1]}`}>{m[0]}</span>}
-export default function App(){
- const [active,setActive]=useState('eurodreams'),[method,setMethod]=useState('pure'),[latest,setLatest]=useState(null),[busy,setBusy]=useState(false),[checking,setChecking]=useState(false);const worker=useRef();
- const {history,statsByGame,error,saveDraft,saveDrafts,markPurchased,removeTicket,clearHistory,setOfficialPrize,checkResults}=useGameHistory(); const game=getGameConfig(active),items=history.filter(t=>t.gameId===active),stats=statsByGame[active]||{totalSpent:0,totalWon:0,balance:0,unknownPrizes:0};
- const generate=()=>{if(method!=='montecarlo'){const t=generateTicket(active,{antiPattern:method==='antipattern'});saveDraft(t);setLatest(t);return;}setBusy(true);const w=new Worker(new URL('./workers/monteCarlo.worker.js',import.meta.url),{type:'module'});worker.current=w;w.onmessage=({data})=>{if(data.type==='done'){const t=generateTicketFromPool(active,data.hotNumbers);saveDraft(t);setLatest(t);setBusy(false);w.terminate();}};w.postMessage({mode:'hot',totalDraws:MC,poolMax:game.numberPoolMax,pick:game.numbersToPick,topK:game.numbersToPick*3});};
- const check=async()=>{setChecking(true);await checkResults(active);setChecking(false)};
- return <main className="min-h-screen bg-slate-50 text-slate-800 p-4 md:p-8"><div className="max-w-xl mx-auto space-y-6">
-  <nav className="flex bg-white p-1.5 rounded-xl border gap-1">{Object.values(GAMES).map(g=><button key={g.id} onClick={()=>{setActive(g.id);setLatest(null)}} className={`flex-1 py-2.5 rounded-lg text-sm font-bold ${active===g.id?'bg-slate-900 text-white':'text-slate-500'}`}>{g.name}</button>)}</nav>
-  <header className="bg-white p-6 rounded-2xl border text-center"><h1 className="text-2xl font-black">Primy</h1><p className="text-xs text-slate-400 mb-4">Registro personale · {game.name} · {eur.format(game.price)}</p><div className="grid grid-cols-3 gap-2"><div className="bg-slate-50 p-3 rounded-lg"><small>Spesa reale</small><strong className="block">{eur.format(stats.totalSpent)}</strong></div><div className="bg-slate-50 p-3 rounded-lg"><small>Premi noti</small><strong className="block">{eur.format(stats.totalWon)}</strong></div><div className="bg-slate-50 p-3 rounded-lg"><small>Saldo noto</small><strong className={`block ${stats.balance>=0?'text-emerald-600':'text-rose-600'}`}>{eur.format(stats.balance)}</strong></div></div>{stats.unknownPrizes>0&&<p className="text-xs text-amber-700 mt-3">{stats.unknownPrizes} premio/i con importo non disponibile: esclusi dal saldo.</p>}</header>
-  {error&&<div role="alert" className="bg-rose-50 border border-rose-200 text-rose-700 p-4 rounded-xl text-sm">{error}</div>}
-  <section className="bg-white p-4 rounded-2xl border"><p className="text-xs font-bold text-slate-400 uppercase mb-3">Generazione</p><div className="grid grid-cols-3 gap-2">{[['pure','Casuale puro'],['antipattern','Anti-pattern'],['montecarlo','Monte Carlo']].map(([id,label])=><button key={id} onClick={()=>setMethod(id)} className={`py-2 rounded-lg text-xs font-semibold border ${method===id?'bg-slate-900 text-white':'border-slate-200'}`}>{label}</button>)}</div><p className="text-[11px] text-slate-500 mt-3">Tutti i metodi hanno la stessa probabilità di vincita. Anti-pattern evita alcune combinazioni popolari; Monte Carlo è solo dimostrativo.</p></section>
-  <button onClick={generate} disabled={busy} className="w-full bg-slate-900 text-white font-bold py-4 rounded-xl disabled:opacity-50">{busy?'Simulazione in corso…':`Genera combinazione ${game.name}`}</button>
-  {latest&&<section className="bg-white p-6 rounded-2xl border"><div className="flex justify-between"><h2 className="text-sm font-bold text-slate-400 uppercase">Anteprima</h2><Status s={latest.purchased?'scheduled':'draft'}/></div><div className="flex flex-wrap gap-2 justify-center my-4">{latest.ticket.map(n=><Ball key={n}>{n}</Ball>)}<Ball extra>{latest.extra}</Ball></div><p className="text-xs text-center">Estrazione: {formatDrawDate(latest.drawDateISO)}</p>{!latest.purchased&&<button onClick={()=>{markPurchased(latest.id);setLatest({...latest,purchased:true,status:'scheduled'})}} className="w-full mt-4 bg-emerald-600 text-white py-3 rounded-xl font-bold">Segna come acquistata · {eur.format(game.price)}</button>}<p className="text-[11px] text-slate-400 text-center mt-2">La spesa viene conteggiata solo dopo questa conferma.</p></section>}
-  <button onClick={check} disabled={checking} className="w-full bg-emerald-100 text-emerald-800 font-bold py-4 rounded-xl disabled:opacity-50">{checking?'Verifica in corso…':'Verifica estrazioni dovute'}</button>
-  <section className="bg-white p-5 rounded-2xl border"><div className="flex justify-between items-center mb-4"><h2 className="font-bold">Storico</h2>{items.length>0&&<button onClick={()=>confirm('Cancellare tutto lo storico?')&&clearHistory()} className="text-xs text-rose-600">Cancella tutto</button>}</div>{items.length===0?<p className="text-sm text-slate-400">Nessuna combinazione salvata.</p>:<div className="space-y-3">{items.map(t=>{const wins=new Set(t.result?.winningNumbers||[]);return <article key={t.id} className="border rounded-xl p-4"><div className="flex justify-between items-center"><p className="text-xs font-semibold">{formatDrawDate(t.drawDateISO)}</p><Status s={t.computedStatus}/></div><div className="flex flex-wrap gap-1.5 my-3">{t.ticket.map(n=><Ball key={n} hit={t.status==='checked'&&wins.has(n)}>{n}</Ball>)}<Ball extra>{t.extra}</Ball></div>{t.status==='checked'&&<div className="text-sm bg-slate-50 rounded-lg p-3"><p><strong>{t.prizeCategory||'Nessun premio'}</strong> · {t.matches} numeri</p><p>{t.prizeDisplay}</p>{t.prizeCategory&&t.officialPrize==null&&<label className="block mt-2 text-xs">Inserisci premio ufficiale (€)<input type="number" min="0" step="0.01" className="w-full border rounded p-2 mt-1" onBlur={e=>e.target.value&&setOfficialPrize(t.id,e.target.value)}/></label>}<p className="text-[10px] text-slate-400 mt-2">Fonte risultati: {t.result?.source}</p></div>}<div className="flex gap-2 mt-3">{!t.purchased&&<button onClick={()=>markPurchased(t.id)} className="text-xs bg-emerald-100 px-3 py-2 rounded">Acquistata</button>}<button onClick={()=>removeTicket(t.id)} className="text-xs text-rose-600 px-3 py-2">Elimina</button></div></article>})}</div>}</section>
-  <HistoryLab gameId={active} onGenerated={t=>{saveDraft(t);setLatest(t)}} onPortfolio={tickets=>{saveDrafts(tickets);setLatest(tickets[0]||null)}}/>
-  <MonteCarloLab gameId={active}/><footer className="text-center text-[11px] text-slate-400 pb-8">Solo per maggiorenni. Nessun metodo aumenta le probabilità di vincita. Gioca responsabilmente.</footer>
- </div></main>;
+import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
+import { useGameHistory } from './hooks/useStorage.js';
+import { useHistoryData } from './hooks/useHistoryData.js';
+import { useInstallPrompt } from './hooks/useInstallPrompt.js';
+import { useDueNotifications } from './hooks/useDueNotifications.js';
+import { useNow } from './hooks/useNow.js';
+import { usePreferences } from './hooks/usePreferences.js';
+import { useAppRouter } from './hooks/useAppRouter.js';
+import { useBootstrapData } from './hooks/useBootstrapData.js';
+import { usePwaUpdate } from './hooks/usePwaUpdate.js';
+import { GAMES, getGameConfig } from './utils/gameConfig.js';
+import { getNextDrawInfo, monthKeyMadrid } from './utils/drawSchedule.js';
+import { playCost, playKnownPrize } from './utils/playModel.js';
+import AppShell from './components/AppShell.jsx';
+import Toast from './components/Toast.jsx';
+import OnboardingDialog from './components/OnboardingDialog.jsx';
+
+const DashboardView = lazy(() => import('./components/DashboardView.jsx'));
+const GenerateView = lazy(() => import('./components/GenerateView.jsx'));
+const PlaysView = lazy(() => import('./components/PlaysView.jsx'));
+const SettingsView = lazy(() => import('./components/SettingsView.jsx'));
+const ManualPlayDialog = lazy(() => import('./components/ManualPlayDialog.jsx'));
+
+export default function App() {
+  const { view, navigate } = useAppRouter();
+  const [activeGame, setActiveGame] = useState('primitiva');
+  const [columnCount, setColumnCount] = useState(1);
+  const [latest, setLatest] = useState(null);
+  const [saveState, setSaveState] = useState('unsaved');
+  const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [generationError, setGenerationError] = useState('');
+  const [checkingGame, setCheckingGame] = useState('');
+  const [toast, setToast] = useState(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [variantContext, setVariantContext] = useState(null);
+  const workerRef = useRef(null);
+  const generationRequestRef = useRef(0);
+
+  const now = useNow(30000);
+  const { providerStatus, drawOverview } = useBootstrapData();
+  const installPrompt = useInstallPrompt();
+  usePwaUpdate({
+    onNeedRefresh: update => setToast({ message: 'È disponibile una nuova versione di Primy.', actionLabel: 'Aggiorna ora', action: update }),
+    onOfflineReady: () => setToast({ message: 'Primy è pronta per funzionare anche senza connessione nelle funzioni locali.' }),
+  });
+  const historyData = useHistoryData(activeGame, { enabled: view === 'generate' });
+  const { preferences, updatePreferences, error: preferenceError } = usePreferences();
+  const game = getGameConfig(activeGame);
+  const {
+    history,
+    storageError,
+    verificationError,
+    savePlay,
+    markPurchased,
+    toggleFavorite,
+    removePlay,
+    restorePlay,
+    clearHistory,
+    importHistory,
+    setOfficialPrize,
+    checkResults,
+  } = useGameHistory();
+
+  useEffect(() => () => workerRef.current?.terminate(), []);
+  useEffect(() => {
+    const titles = { dashboard: 'Dashboard', generate: 'Genera', plays: 'Le mie giocate', settings: 'Impostazioni' };
+    document.title = `${titles[view]} · Primy`;
+  }, [view]);
+  useEffect(() => { if (preferences.defaultGame && !latest && !busy) setActiveGame(preferences.defaultGame); }, [preferences.defaultGame]);
+
+  const selectGame = gameId => {
+    if (busy) {
+      generationRequestRef.current += 1;
+      workerRef.current?.terminate();
+      workerRef.current = null;
+    }
+    setBusy(false);
+    setProgress(0);
+    setGenerationError('');
+    setActiveGame(gameId);
+    setLatest(null);
+    setSaveState('unsaved');
+    if (variantContext?.gameId !== gameId) setVariantContext(null);
+  };
+
+  const openGenerate = gameId => {
+    if (gameId) selectGame(gameId);
+    navigate('generate');
+  };
+
+  const ensureWorker = () => {
+    if (!workerRef.current) {
+      workerRef.current = new Worker(new URL('./workers/fusion.worker.js', import.meta.url), { type: 'module' });
+    }
+    return workerRef.current;
+  };
+
+  const generate = () => {
+    setBusy(true);
+    setProgress(0.02);
+    setGenerationError('');
+    setLatest(null);
+    setSaveState('unsaved');
+
+    const requestId = ++generationRequestRef.current;
+    const worker = ensureWorker();
+    worker.onmessage = ({ data }) => {
+      if (data?.requestId !== requestId) return;
+      if (data.type === 'progress') return setProgress(Math.min(0.96, Number(data.progress) || 0));
+      if (data.type === 'done') {
+        setLatest(data.play);
+        setProgress(1);
+        setBusy(false);
+        return;
+      }
+      if (data.type === 'error') {
+        setGenerationError(data.message || 'Generazione non riuscita.');
+        setBusy(false);
+      }
+    };
+    worker.onerror = event => {
+      if (generationRequestRef.current !== requestId) return;
+      setGenerationError(event?.message || 'Il metodo automatico non è riuscito ad avviarsi nel browser.');
+      setBusy(false);
+      worker.terminate();
+      workerRef.current = null;
+    };
+
+    const samples = Math.min(28000, Math.max(6500, columnCount * 1100));
+    worker.postMessage({
+      requestId,
+      gameId: activeGame,
+      analysis: historyData.analysis,
+      columnCount,
+      samples,
+      avoidColumns: variantContext?.columns || [],
+      variantOf: variantContext?.id || null,
+    });
+  };
+
+  const saveLatest = purchased => {
+    if (!latest) return;
+    const stored = savePlay(latest, { purchased });
+    if (!stored) return;
+    setLatest(stored);
+    setSaveState(purchased ? 'purchased' : 'draft');
+    setVariantContext(null);
+    setToast(purchased ? { message: 'Giocata registrata. Primy la segnalerà quando sarà pronta per la verifica.', actionLabel: 'Annulla registrazione', action: () => { removePlay(stored.id); setLatest(latest); setSaveState('unsaved'); } } : { message: 'Bozza salvata nelle tue giocate.' });
+  };
+
+  const discardLatest = () => {
+    setLatest(null);
+    setSaveState('unsaved');
+  };
+
+  const removeWithUndo = id => {
+    const play = history.find(item => item.id === id);
+    if (!play) return;
+    removePlay(id);
+    setToast({ message: 'Giocata eliminata.', actionLabel: 'Annulla', action: () => restorePlay(play) });
+  };
+
+  const purchaseExisting = id => {
+    markPurchased(id);
+    setToast({ message: 'Giocata registrata come acquistata.' });
+  };
+
+  const saveExternal = play => {
+    const stored = savePlay(play, { purchased: true });
+    if (!stored) return;
+    setManualOpen(false);
+    setToast({ message: 'Schedina esterna aggiunta alle tue giocate.' });
+    navigate('plays');
+  };
+
+  const repeatExact = play => {
+    const draw = getNextDrawInfo(play.gameId);
+    const repeated = {
+      ...play,
+      id: crypto.randomUUID(),
+      columns: play.columns.map((column, index) => ({ ...column, id: crypto.randomUUID(), index: index + 1, status: 'draft', prizeCategory: undefined, prizeDisplay: undefined, officialPrize: undefined, matches: undefined })),
+      createdAt: new Date().toISOString(),
+      ...draw,
+      purchased: false,
+      purchasedAt: undefined,
+      status: 'draft',
+      checkedAt: undefined,
+      result: undefined,
+      favorite: false,
+      method: 'repeat-exact',
+      metadata: { ...(play.metadata || {}), repeatedFrom: play.id },
+    };
+    setActiveGame(play.gameId);
+    setColumnCount(play.columns.length);
+    setVariantContext(null);
+    setLatest(repeated);
+    setSaveState('unsaved');
+    navigate('generate');
+  };
+
+  const createVariant = play => {
+    setActiveGame(play.gameId);
+    setColumnCount(play.columns.length);
+    setLatest(null);
+    setSaveState('unsaved');
+    setVariantContext({ id: play.id, gameId: play.gameId, columns: play.columns, label: `${getGameConfig(play.gameId).shortName} del ${new Intl.DateTimeFormat('it-IT').format(new Date(play.createdAt))}` });
+    navigate('generate');
+  };
+
+  const dueByGame = useMemo(() => Object.keys(GAMES).reduce((output, gameId) => {
+    output[gameId] = history.filter(play => play.gameId === gameId && play.computedStatus === 'awaiting_check').length;
+    return output;
+  }, {}), [history]);
+  const dueTotal = Object.values(dueByGame).reduce((sum, count) => sum + count, 0);
+  useDueNotifications({ enabled: preferences.notifications, dueCount: dueTotal });
+
+  const checkGame = async gameId => {
+    setCheckingGame(gameId);
+    const result = await checkResults(gameId);
+    setCheckingGame('');
+    if (result.checked > 0) setToast({ message: `${result.checked} ${result.checked === 1 ? 'giocata verificata' : 'giocate verificate'}.` });
+    else if (!result.error) setToast({ message: 'Non sono stati trovati nuovi risultati da applicare.' });
+    return result;
+  };
+
+  const checkAll = async () => {
+    setCheckingGame('all');
+    let checked = 0;
+    let firstError = '';
+    for (const gameId of Object.keys(GAMES)) {
+      if (dueByGame[gameId]) {
+        const result = await checkResults(gameId);
+        checked += result.checked || 0;
+        firstError ||= result.error || '';
+      }
+    }
+    setCheckingGame('');
+    setToast({ message: firstError || (checked ? `${checked} ${checked === 1 ? 'giocata verificata' : 'giocate verificate'}.` : 'Non sono stati trovati nuovi risultati da applicare.') });
+  };
+
+  const monthlyStats = useMemo(() => {
+    const key = monthKeyMadrid();
+    return history.reduce((output, play) => {
+      if (!play.purchased || monthKeyMadrid(play.purchasedAt || play.createdAt) !== key) return output;
+      output.plays += 1;
+      output.spent += playCost(play);
+      if (play.status === 'checked') output.won += playKnownPrize(play);
+      return output;
+    }, { spent: 0, won: 0, plays: 0 });
+  }, [history]);
+
+  const totals = useMemo(() => history.reduce((output, play) => {
+    if (!play.purchased) return output;
+    output.plays += 1;
+    output.columns += play.columns.length;
+    return output;
+  }, { plays: 0, columns: 0 }), [history]);
+
+  const clearAll = () => {
+    if (!window.confirm('Cancellare definitivamente tutte le giocate e le bozze locali?')) return;
+    clearHistory();
+    setToast({ message: 'Tutti i dati locali sono stati cancellati.' });
+  };
+
+  return (
+    <AppShell view={view} onNavigate={navigate} providerStatus={providerStatus} dueCount={dueTotal}>
+      <Suspense fallback={<div className="rounded-2xl border border-border bg-surface p-6 text-sm text-secondary">Caricamento schermata…</div>}>
+      {view === 'dashboard' && <DashboardView now={now} history={history} monthlyStats={monthlyStats} totals={totals} dueByGame={dueByGame} drawOverview={drawOverview} onGenerate={openGenerate} onAddExternal={() => setManualOpen(true)} onOpenPlays={() => navigate('plays')} onCheckAll={checkAll} checking={checkingGame === 'all'} installPrompt={installPrompt}/>} 
+
+      {view === 'generate' && <GenerateView game={game} activeGame={activeGame} onGameChange={selectGame} columnCount={columnCount} setColumnCount={setColumnCount} onGenerate={generate} busy={busy} progress={progress} generationError={generationError} monthlySpent={monthlyStats.spent} monthlyLimit={preferences.monthlyLimit} latest={latest} saveState={saveState} onSaveDraft={() => saveLatest(false)} onPurchase={() => saveLatest(true)} onDiscard={discardLatest} onOpenPlays={() => navigate('plays')} onToast={message => setToast({ message })} variantLabel={variantContext?.label || ''} onClearVariant={() => setVariantContext(null)}/>} 
+
+      {view === 'plays' && <PlaysView plays={history} dueByGame={dueByGame} verificationError={verificationError} checkingGame={checkingGame} onCheck={checkGame} onPurchase={purchaseExisting} onRemove={removeWithUndo} onSetPrize={setOfficialPrize} onFavorite={toggleFavorite} onRepeat={repeatExact} onVariant={createVariant} onAddExternal={() => setManualOpen(true)}/>} 
+
+      {view === 'settings' && <SettingsView activeGame={activeGame} onGameChange={selectGame} providerStatus={providerStatus} historyState={historyData} preferences={preferences} updatePreferences={updatePreferences} preferenceError={preferenceError} storageError={storageError} history={history} onImport={importHistory} onClear={clearAll} onToast={message => setToast({ message })} installPrompt={installPrompt}/>} 
+
+      <ManualPlayDialog open={manualOpen} initialGame={activeGame} onClose={() => setManualOpen(false)} onSave={saveExternal}/>
+      <OnboardingDialog open={!preferences.onboardingSeen} onComplete={() => updatePreferences({ onboardingSeen: true })}/>
+      </Suspense>
+      <Toast toast={toast} onClose={() => setToast(null)}/>
+    </AppShell>
+  );
 }

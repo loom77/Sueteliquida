@@ -1,9 +1,48 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { analyzeHistory, scoreCombination, selectPortfolio, combinationDistance } from '../src/utils/historyAnalytics.js';
-const draws=Array.from({length:60},(_,i)=>({date:`2026-${String(1+Math.floor(i/28)).padStart(2,'0')}-${String(1+i%28).padStart(2,'0')}`,winningNumbers:[1+i%20,5+i%25,10+i%30,20+i%20,30+i%15,40+i%10].map(n=>((n-1)%49)+1)}));
-test('analisi storico crea metriche utilizzabili',()=>{const a=analyzeHistory('primitiva',draws);assert.equal(a.totalDraws,60);assert.equal(a.numbers.length,49);assert.ok(a.sumMean>0)});
-test('scoring restituisce punteggio e componenti',()=>{const a=analyzeHistory('primitiva',draws);const r=scoreCombination('primitiva',[3,11,18,27,36,47],a);assert.ok(r.score>=0&&r.score<=100);assert.equal(typeof r.parts.balance,'number')});
-test('portafoglio privilegia distanza tra colonne',()=>{const c=[{ticket:[1,2,3,4,5,6],score:99},{ticket:[1,2,3,4,5,7],score:98},{ticket:[8,9,10,11,12,13],score:90}];const p=selectPortfolio(c,2,{minDistance:4});assert.equal(p.length,2);assert.ok(combinationDistance(p[0].ticket,p[1].ticket)>=4)});
-import { backtestHistory } from '../src/utils/historyAnalytics.js';
-test('backtest walk-forward confronta ranking e casuale',()=>{const b=backtestHistory('primitiva',draws,{windows:20,candidates:30});assert.ok(b.runs>0);assert.equal(typeof b.delta,'number')});
+import { analyzeHistory, scoreCombination, selectPortfolio, combinationDistance, backtestHistory } from '../src/utils/historyAnalytics.js';
+import { coverageMetrics, optimizeCoverage } from '../src/utils/portfolioOptimizer.js';
+
+const draws = Array.from({ length: 60 }, (_, index) => ({
+  date: `2026-${String(1 + Math.floor(index / 28)).padStart(2, '0')}-${String(1 + index % 28).padStart(2, '0')}`,
+  winningNumbers: [1 + index % 20, 5 + index % 25, 10 + index % 30, 20 + index % 20, 30 + index % 15, 40 + index % 10].map(number => ((number - 1) % 49) + 1),
+}));
+
+test('analisi storico crea metriche utilizzabili', () => {
+  const analysis = analyzeHistory('primitiva', draws);
+  assert.equal(analysis.totalDraws, 60);
+  assert.equal(analysis.numbers.length, 49);
+  assert.ok(analysis.sumMean > 0);
+});
+
+test('scoring restituisce punteggio e componenti', () => {
+  const analysis = analyzeHistory('primitiva', draws);
+  const result = scoreCombination('primitiva', [3, 11, 18, 27, 36, 47], analysis);
+  assert.ok(result.score >= 0 && result.score <= 100);
+  assert.equal(typeof result.parts.balance, 'number');
+});
+
+test('portafoglio privilegia distanza e copertura', () => {
+  const candidates = [
+    { ticket: [1, 2, 3, 4, 5, 6], score: 99 },
+    { ticket: [1, 2, 3, 4, 5, 7], score: 98 },
+    { ticket: [8, 9, 10, 11, 12, 13], score: 90 },
+    { ticket: [14, 15, 16, 17, 18, 19], score: 88 },
+  ];
+  const portfolio = optimizeCoverage('primitiva', candidates, 3);
+  const metrics = coverageMetrics('primitiva', portfolio);
+  assert.equal(portfolio.length, 3);
+  assert.ok(metrics.uniqueNumbers >= 17);
+  assert.ok(combinationDistance(portfolio[0].ticket, portfolio[1].ticket) >= 8);
+});
+
+test('backtest walk-forward confronta ranking e casuale', () => {
+  const result = backtestHistory('primitiva', draws, { windows: 20, candidates: 30 });
+  assert.ok(result.runs > 0);
+  assert.equal(typeof result.delta, 'number');
+});
+
+test('selettore legacy continua a funzionare', () => {
+  const candidates = [{ ticket: [1, 2, 3, 4, 5, 6], score: 99 }, { ticket: [8, 9, 10, 11, 12, 13], score: 90 }];
+  assert.equal(selectPortfolio(candidates, 2).length, 2);
+});

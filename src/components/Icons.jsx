@@ -1,0 +1,41 @@
+import React from 'react';
+
+const base = { width: 20, height: 20, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': true };
+
+export const SparklesIcon = props => <svg {...base} {...props}><path d="m12 3-1.2 3.2L7.5 7.5l3.3 1.3L12 12l1.2-3.2 3.3-1.3-3.3-1.3L12 3Z"/><path d="m5 13-.8 2.2L2 16l2.2.8L5 19l.8-2.2L8 16l-2.2-.8L5 13Z"/><path d="m18 13-1.1 2.9L14 17l2.9 1.1L18 21l1.1-2.9L22 17l-2.9-1.1L18 13Z"/></svg>;
+export const CalendarIcon = props => <svg {...base} {...props}><path d="M7 2v3M17 2v3M3 9h18"/><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M8 13h.01M12 13h.01M16 13h.01M8 17h.01M12 17h.01"/></svg>;
+export const TicketIcon = props => <svg {...base} {...props}><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z"/><path d="M13 5v2M13 11v2M13 17v2"/></svg>;
+export const ChartIcon = props => <svg {...base} {...props}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>;
+export const WalletIcon = props => <svg {...base} {...props}><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H18a2 2 0 0 1 2 2v2H5.5A2.5 2.5 0 0 0 3 10.5v0A2.5 2.5 0 0 0 5.5 13H21v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5Z"/><path d="M16 13h5v-5h-5a2.5 2.5 0 0 0 0 5Z"/></svg>;
+export const RefreshIcon = props => <svg {...base} {...props}><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.2 5.8L4 8M5.5 15A7 7 0 0 0 17.8 18.2L20 16"/></svg>;
+export const ShieldIcon = props => <svg {...base} {...props}><path d="M12 22s8-3 8-10V5l-8-3-8 3v7c0 7 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>;
+export const CheckIcon = props => <svg {...base} {...props}><path d="m5 12 4 4L19 6"/></svg>;
+export const ClockIcon = props => <svg {...base} {...props}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>;
+export const ChevronRightIcon = props => <svg {...base} {...props}><path d="m9 18 6-6-6-6"/></svg>;
+export const ChevronDownIcon = props => <svg {...base} {...props}><path d="m6 9 6 6 6-6"/></svg>;
+export const TrashIcon = props => <svg {...base} {...props}><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5"/></svg>;
+export const HomeIcon = props => <svg {...base} {...props}><path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10M9 20v-6h6v6"/></svg>;
+export const InfoIcon = props => <svg {...base} {...props}><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>;
+export const DatabaseIcon = props => <svg {...base} {...props}><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>;
+export const SettingsIcon = props => <svg {...base} {...props}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6V21h-4v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H3v-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3h4v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.1v4H21a1.7 1.7 0 0 0-1.6 1Z"/></svg>;
+export const ListIcon = props => <svg {...base} {...props}><path d="M8 6h13M8 12h13M8 18h13"/><path d="M3 6h.01M3 12h.01M3 18h.01"/></svg>;
+export const PlusIcon = props => <svg {...base} {...props}><path d="M12 5v14M5 12h14"/></svg>;
+export const DownloadIcon = props => <svg {...base} {...props}><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>;
+export const UploadIcon = props => <svg {...base} {...props}><path d="M12 21V9M7 14l5-5 5 5"/><path d="M5 3h14"/></svg>;
+export const XIcon = props => <svg {...base} {...props}><path d="m6 6 12 12M18 6 6 18"/></svg>;
+export const SearchIcon = props => <svg {...base} {...props}><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>;
+export const ArrowRightIcon = props => <svg {...base} {...props}><path d="M5 12h14M13 6l6 6-6 6"/></svg>;
+export const AlertIcon = props => <svg {...base} {...props}><path d="M12 3 2.8 19a1.5 1.5 0 0 0 1.3 2h15.8a1.5 1.5 0 0 0 1.3-2L12 3Z"/><path d="M12 9v4M12 17h.01"/></svg>;
+export const StarIcon = props => <svg {...base} {...props}><path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2 7.5 14 3 9.6l6.2-.9L12 3Z"/></svg>;
+export const RepeatIcon = props => <svg {...base} {...props}><path d="m17 2 4 4-4 4"/><path d="M3 11V9a3 3 0 0 1 3-3h15"/><path d="m7 22-4-4 4-4"/><path d="M21 13v2a3 3 0 0 1-3 3H3"/></svg>;
+export const BellIcon = props => <svg {...base} {...props}><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>;
+export const MoonIcon = props => <svg {...base} {...props}><path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/></svg>;
+export const SunIcon = props => <svg {...base} {...props}><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>;
+export const DeviceIcon = props => <svg {...base} {...props}><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8M10 17h4"/></svg>;
+export const InstallIcon = props => <svg {...base} {...props}><path d="M12 3v11M8 10l4 4 4-4"/><path d="M5 21h14a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2"/></svg>;
+export const EditIcon = props => <svg {...base} {...props}><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>;
+export const CopyIcon = props => <svg {...base} {...props}><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>;
+export const GridIcon = props => <svg {...base} {...props}><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>;
+export const CameraIcon = props => <svg {...base} {...props}><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3Z"/><circle cx="12" cy="13" r="4"/></svg>;
+
+export const VolumeIcon = props => <svg {...base} {...props}><path d="M11 5 6 9H3v6h3l5 4V5Z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>;

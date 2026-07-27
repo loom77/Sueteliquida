@@ -1,13 +1,17 @@
-# Caricamento da iPad su GitHub
+# Caricamento da iPad con Working Copy
 
-Lo ZIP contiene direttamente i file della radice del repository.
+1. Estrai `primy-v11-production-ux-final.zip` nell'app File.
+2. In Working Copy clona o apri il repository Primy.
+3. Copia nella radice del repository il contenuto della cartella estratta.
+4. Accetta la sostituzione dei file esistenti.
+5. Apri **Changes** e verifica che siano presenti `src`, `api`, `tests` e i file della radice.
+6. Esegui il commit con un messaggio come:
 
-1. Nell’app File, tocca lo ZIP per estrarlo.
-2. Apri la cartella estratta.
-3. Su GitHub apri il repository e scegli **Add file → Upload files**.
-4. Carica il contenuto a gruppi: prima i file della radice, poi `api`, `public`, `src` e `tests`.
-5. I file con lo stesso percorso sostituiscono quelli vecchi.
-6. Verifica che nella radice compaiano direttamente `api`, `public`, `src`, `tests`, `package.json` e `vite.config.js`.
-7. Esegui il commit. Vercel avvierà automaticamente il deploy.
+```text
+Upgrade Primy v11 Evidence Engine
+```
 
-Non caricare una cartella esterna chiamata `primy-v2` o `primy-main` dentro il repository.
+7. Esegui **Push**.
+8. Controlla il nuovo deployment su Vercel.
+
+Non caricare lo ZIP come singolo file e non creare una cartella esterna sopra `src` e `api`.

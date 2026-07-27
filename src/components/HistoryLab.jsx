@@ -1,12 +1,49 @@
-import React,{useMemo,useState}from'react';
-import{useHistoryData}from'../hooks/useHistoryData.js';
-import{generateHistoricalTicket,generatePortfolio}from'../utils/engine.js';
-import{backtestHistory}from'../utils/historyAnalytics.js';
-export default function HistoryLab({gameId,onGenerated,onPortfolio}){
- const{loading,error,analysis,source,reload}=useHistoryData(gameId),[count,setCount]=useState(5),[working,setWorking]=useState(false);
- const top=useMemo(()=>analysis?[...analysis.numbers].sort((a,b)=>b.count-a.count).slice(0,6):[],[analysis]);
- const backtest=useMemo(()=>analysis?backtestHistory(gameId,analysis.draws):null,[analysis,gameId]);
- const one=()=>{setWorking(true);setTimeout(()=>{try{onGenerated(generateHistoricalTicket(gameId,analysis))}finally{setWorking(false)}},30)};
- const portfolio=()=>{setWorking(true);setTimeout(()=>{try{onPortfolio(generatePortfolio(gameId,analysis,count))}finally{setWorking(false)}},30)};
- return <section className="bg-white p-5 rounded-2xl border space-y-4"><div className="flex justify-between items-start gap-3"><div><h2 className="font-bold">Laboratorio storico</h2><p className="text-xs text-slate-500">Ranking sperimentale e copertura di più colonne.</p></div><button onClick={reload} disabled={loading} className="text-xs border px-3 py-2 rounded-lg">{loading?'Carico…':'Aggiorna'}</button></div>{error&&<p className="text-xs text-amber-700">{error}</p>}{analysis&&<><div className="grid grid-cols-3 gap-2 text-center"><div className="bg-slate-50 rounded-lg p-3"><small>Estrazioni</small><strong className="block">{analysis.totalDraws}</strong></div><div className="bg-slate-50 rounded-lg p-3"><small>Dal</small><strong className="block text-xs">{analysis.from}</strong></div><div className="bg-slate-50 rounded-lg p-3"><small>Al</small><strong className="block text-xs">{analysis.to}</strong></div></div><div className="bg-indigo-50 rounded-xl p-3 text-sm"><p className="font-bold">Backtest walk-forward</p><p className="text-xs mt-1">{backtest?.runs||0} estrazioni mai viste · ranking {backtest?.rankedAverage.toFixed(2)} numeri medi · casuale {backtest?.randomAverage.toFixed(2)}.</p><p className="text-[11px] text-slate-500 mt-1">È un controllo sperimentale: un vantaggio piccolo o occasionale può essere semplice rumore.</p></div><div><p className="text-xs font-bold text-slate-400 uppercase mb-2">Più frequenti nello storico</p><div className="flex gap-2 flex-wrap">{top.map(x=><span key={x.number} className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center font-bold" title={`${x.count} uscite`}>{x.number}</span>)}</div></div><button onClick={one} disabled={working} className="w-full bg-indigo-600 text-white rounded-xl py-3 font-bold">Genera con ranking storico</button><div className="border-t pt-4"><label className="text-sm font-semibold">Portafoglio ottimizzato: {count} giocate<input className="w-full mt-2" type="range" min="2" max="20" value={count} onChange={e=>setCount(Number(e.target.value))}/></label><button onClick={portfolio} disabled={working} className="w-full mt-3 bg-slate-900 text-white rounded-xl py-3 font-bold">Genera portafoglio diversificato</button></div><p className="text-[11px] text-slate-400">Fonte: {source}. Il ranking non prevede il sorteggio e non modifica la probabilità matematica di ciascuna combinazione. Il portafoglio riduce soltanto la sovrapposizione tra le giocate.</p></>}</section>
+import React from 'react';
+import { DatabaseIcon, RefreshIcon, ShieldIcon } from './Icons.jsx';
+
+export default function HistoryLab({ historyState }) {
+  const { loading, loaded, error, notice, analysis, source, limited, reload, load } = historyState;
+  const totalDraws = analysis?.totalDraws || 0;
+
+  return (
+    <section className="rounded-2xl border border-default bg-surface p-5 md:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h2 className="text-xl font-black text-primary">Dati storici</h2>
+          <p className="mt-1 text-sm leading-6 text-secondary">Questi dati sono facoltativi. Primy li usa solo dopo un confronto fuori campione con il casuale uniforme.</p>
+        </div>
+        <button type="button" onClick={loaded ? reload : load} disabled={loading} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-60">
+          <RefreshIcon className={loading ? 'animate-spin' : ''} width="17" height="17"/>
+          {loading ? 'Caricamento…' : loaded ? 'Aggiorna dati' : 'Carica dati'}
+        </button>
+      </div>
+
+      {!loaded && !loading && (
+        <div className="mt-5 rounded-xl bg-muted p-4">
+          <p className="font-black text-primary">Nessun caricamento automatico</p>
+          <p className="mt-1 text-sm leading-6 text-secondary">Per velocizzare la dashboard e ridurre le richieste al provider, lo storico viene scaricato solo quando generi una giocata o premi “Carica dati”.</p>
+        </div>
+      )}
+
+      {error && <div role="alert" className="mt-4 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div>}
+      {notice && <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">{notice}</div>}
+
+      {(loaded || loading) && (
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-xl bg-muted p-4"><DatabaseIcon className="text-indigo-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Estrazioni disponibili</p><p className="mt-1 text-2xl font-black text-primary">{loading ? '—' : totalDraws}</p></div>
+          <div className="rounded-xl bg-muted p-4"><ShieldIcon className="text-emerald-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Decisione automatica</p><p className="mt-1 text-lg font-black text-primary">{loading ? 'Analisi in attesa' : totalDraws ? 'Confronto attivo' : 'Casuale uniforme'}</p></div>
+          <div className="rounded-xl bg-muted p-4"><DatabaseIcon className="text-amber-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Disponibilità</p><p className="mt-1 text-lg font-black text-primary">{loading ? 'Caricamento' : limited ? 'Archivio limitato' : totalDraws ? 'Archivio disponibile' : 'Non disponibile'}</p></div>
+        </div>
+      )}
+
+      <details className="mt-5 rounded-xl border border-default p-4">
+        <summary className="cursor-pointer text-sm font-bold text-primary">Mostra dettagli tecnici</summary>
+        <div className="mt-3 space-y-3 text-sm leading-6 text-secondary">
+          <p>Primy confronta modelli bayesiani, di recenza e KNN con una baseline casuale a pari budget computazionale. Un modello storico entra nella generazione solo quando supera i controlli previsti.</p>
+          <p>Le estrazioni passate non rendono un numero “dovuto” e non trasformano una lotteria casuale in un sistema prevedibile.</p>
+          <p>Fonte: {source || 'non caricata'}.</p>
+        </div>
+      </details>
+    </section>
+  );
 }
