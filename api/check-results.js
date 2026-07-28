@@ -7,19 +7,19 @@ export default async function handler(req, res) {
   applyApiSecurity(res);
   const context = withRequestContext(req, res);
   if (!(await rateLimit(req, { limit: 20, windowMs: 60000 }))) {
-    return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Troppe richieste. Riprova tra poco.' });
+    return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Demasiadas solicitudes. Inténtalo de nuevo en unos instantes.' });
   }
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Metodo non consentito.' });
+    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Método no permitido.' });
   }
 
   const game = parseGame(req.query?.game);
-  if (!game) return res.status(400).json({ success: false, code: 'INVALID_GAME', message: 'Gioco non valido.' });
+  if (!game) return res.status(400).json({ success: false, code: 'INVALID_GAME', message: 'Juego no válido.' });
 
   const dates = parseDateList(req.query?.dates, { max: 31 });
   if (!dates) {
-    return res.status(400).json({ success: false, code: 'INVALID_DATES', message: 'Date non valide.' });
+    return res.status(400).json({ success: false, code: 'INVALID_DATES', message: 'Fechas no válidas.' });
   }
 
   const sorted = [...dates].sort();
@@ -45,7 +45,7 @@ export default async function handler(req, res) {
       unavailableDates,
       partial: unavailableDates.length > 0,
       notice: unavailableDates.length
-        ? 'Alcune estrazioni non sono disponibili con il piano API corrente o non sono ancora state pubblicate.'
+        ? 'Algunos sorteos no están disponibles con el plan API actual o todavía no se han publicado.'
         : '',
     });
   } catch (error) {
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
     return res.status(known ? error.status : 502).json({
       success: false,
       code: known ? error.code : 'UNKNOWN_PROVIDER_ERROR',
-      message: known ? error.message : 'Impossibile recuperare i risultati in questo momento.',
+      message: known ? error.message : 'No se pueden recuperar los resultados en este momento.',
       providerStatus: known ? error.providerStatus : null,
     });
   }

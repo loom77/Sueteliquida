@@ -12,27 +12,27 @@ function findOfficialPrize(results, keys=[]) {
   return Number.isFinite(amount) ? amount : null;
 }
 function result(category, matches, amount=null, displayText=null, payoutType='variable', extra={}) {
-  return { category, matches, officialAmount: amount, displayText: displayText || (amount != null ? `${amount.toFixed(2)} €` : 'Importo ufficiale non disponibile'), payoutType, ...extra };
+  return { category, matches, officialAmount: amount, displayText: displayText || (amount != null ? `${amount.toFixed(2)} €` : 'Importe oficial no disponible'), payoutType, ...extra };
 }
 function euroDreams(ticket, results) {
   const m=countMatches(ticket.ticket,results.winningNumbers); const dream=Number(ticket.extra)===Number(results.extra);
-  if(m===6&&dream) return result('1ª categoria (6 + Sogno)',m,null,'20.000 € al mese per 30 anni','deferred',{extraMatch:true});
-  if(m===6) return result('2ª categoria (6 numeri)',m,null,'2.000 € al mese per 5 anni','deferred');
-  const map={5:['3ª categoria (5 numeri)',['3','5']],4:['4ª categoria (4 numeri)',['4']],3:['5ª categoria (3 numeri)',['5']],2:['6ª categoria (2 numeri)',['6']]};
+  if(m===6&&dream) return result('1.ª categoría (6 + Sueño)',m,null,'20.000 € al mes durante 30 años','deferred',{extraMatch:true});
+  if(m===6) return result('2.ª categoría (6 números)',m,null,'2.000 € al mes durante 5 años','deferred');
+  const map={5:['3.ª categoría (5 números)',['3','5']],4:['4.ª categoría (4 números)',['4']],3:['5.ª categoría (3 números)',['5']],2:['6.ª categoría (2 números)',['6']]};
   if(map[m]) { const amount=findOfficialPrize(results,map[m][1]); return result(map[m][0],m,amount,null,amount==null?'variable':'cash',{extraMatch:dream}); }
-  return result(null,m,0,'Nessun premio','cash',{extraMatch:dream});
+  return result(null,m,0,'Sin premio','cash',{extraMatch:dream});
 }
 function primitiva(ticket, results, { includeStandaloneReintegro = true } = {}) {
   const m=countMatches(ticket.ticket,results.winningNumbers); const comp=Number(results.complementary);
   const compMatch=m===5 && (ticket.ticket||[]).some(n=>Number(n)===comp); const reintegro=Number(ticket.extra)===Number(results.extra);
-  if(m===6&&reintegro) return result('Especial (6 + Reintegro)',m,findOfficialPrize(results,['especial','6+r']),'Premio variabile','variable',{extraMatch:true});
-  if(m===6) return result('1ª categoria (6 numeri)',m,findOfficialPrize(results,['1','6']),'Premio variabile','variable');
-  if(compMatch) return result('2ª categoria (5 + Complementare)',m,findOfficialPrize(results,['2','5+c']),'Premio variabile','variable',{complementaryMatch:true});
-  if(m===5) return result('3ª categoria (5 numeri)',m,findOfficialPrize(results,['3','5']),'Premio variabile','variable');
-  if(m===4) return result('4ª categoria (4 numeri)',m,findOfficialPrize(results,['4']),'Premio variabile','variable');
-  if(m===3) return result('5ª categoria (3 numeri)',m,findOfficialPrize(results,['5','3']),'8,00 €','cash');
+  if(m===6&&reintegro) return result('Especial (6 + Reintegro)',m,findOfficialPrize(results,['especial','6+r']),'Premio variable','variable',{extraMatch:true});
+  if(m===6) return result('1.ª categoría (6 números)',m,findOfficialPrize(results,['1','6']),'Premio variable','variable');
+  if(compMatch) return result('2.ª categoría (5 + Complementario)',m,findOfficialPrize(results,['2','5+c']),'Premio variable','variable',{complementaryMatch:true});
+  if(m===5) return result('3.ª categoría (5 números)',m,findOfficialPrize(results,['3','5']),'Premio variable','variable');
+  if(m===4) return result('4.ª categoría (4 números)',m,findOfficialPrize(results,['4']),'Premio variable','variable');
+  if(m===3) return result('5.ª categoría (3 números)',m,findOfficialPrize(results,['5','3']),'8,00 €','cash');
   if(includeStandaloneReintegro && reintegro) return result('Reintegro',m,findOfficialPrize(results,['reintegro']) ?? 1,'1,00 €','cash',{extraMatch:true});
-  return result(null,m,0,'Nessun premio','cash',{extraMatch:reintegro});
+  return result(null,m,0,'Sin premio','cash',{extraMatch:reintegro});
 }
 
 export function calculatePayout(ticket, results){
@@ -57,7 +57,7 @@ export function calculatePlayPayout(play, results) {
     receiptPrize: extraMatch ? {
       category: 'Reintegro del resguardo',
       officialAmount: amount,
-      displayText: new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(amount),
+      displayText: new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(amount),
       payoutType: 'cash',
       extraMatch: true,
     } : null,

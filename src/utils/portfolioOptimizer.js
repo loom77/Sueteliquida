@@ -110,9 +110,9 @@ function greedySelection(gameId, candidates, target, options) {
 }
 
 /**
- * Greedy covering design followed by deterministic local swap search.
- * This is still an approximation, but it improves global portfolio coverage
- * over a one-pass greedy selection without adding a heavy solver dependency.
+ * Diseño de cobertura voraz seguido de una búsqueda local determinista por intercambios.
+ * Sigue siendo una aproximación, pero mejora la cobertura global de la cartera
+ * frente a una selección voraz de una sola pasada sin añadir una dependencia pesada.
  */
 export function optimizeCoverage(gameId, candidates, count, options = {}) {
   const target = Math.max(1, Math.min(Number(count) || 1, 20));

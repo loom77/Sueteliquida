@@ -107,25 +107,25 @@ export function longShortBlendProbabilities(gameId, rawDraws, {
 export const MODEL_DEFINITIONS = Object.freeze([
   {
     id: 'bayes-frequency',
-    label: 'Bayes frequenze',
+    label: 'Frecuencias bayesianas',
     minDraws: 80,
     predict: (gameId, draws) => bayesianFrequencyProbabilities(gameId, draws, { priorDraws: 50 }),
   },
   {
     id: 'recency-26',
-    label: 'Recenza 26',
+    label: 'Recencia 26',
     minDraws: 100,
     predict: (gameId, draws) => recencyProbabilities(gameId, draws, { halfLife: 26, priorDraws: 35 }),
   },
   {
     id: 'long-short',
-    label: 'Lungo/breve periodo',
+    label: 'Largo/corto plazo',
     minDraws: 120,
     predict: (gameId, draws) => longShortBlendProbabilities(gameId, draws, { halfLife: 22, longPrior: 90, shortWeight: 0.5 }),
   },
   {
     id: 'knn-sequence',
-    label: 'KNN sequenziale',
+    label: 'KNN secuencial',
     minDraws: 180,
     predict: (gameId, draws) => knnSequenceProbabilities(gameId, draws, { lookback: 12, neighbors: 18, priorDraws: 55 }),
   },

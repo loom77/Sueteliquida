@@ -11,6 +11,6 @@ self.onmessage = event => {
     });
     self.postMessage({ type: 'done', requestId, play });
   } catch (error) {
-    self.postMessage({ type: 'error', requestId, message: error?.message || 'Errore durante la generazione.' });
+    self.postMessage({ type: 'error', requestId, message: error?.message || 'Error durante la generación.' });
   }
 };

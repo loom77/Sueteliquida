@@ -48,31 +48,31 @@ function mapHttpError(response, payload, endpoint) {
   const providerMessage = messageFromPayload(payload);
   const retryAfter = response.headers.get('retry-after');
   if (response.status === 401) {
-    return new ProviderError('La API key non è valida, non è attiva oppure non appartiene a LoteriasAPI.', {
+    return new ProviderError('La clave API no es válida, no está activa o no pertenece a LoteriasAPI.', {
       code: 'AUTH_INVALID', status: 401, providerStatus: 401, details: providerMessage, endpoint,
     });
   }
   if (response.status === 403) {
-    return new ProviderError('LoteriasAPI ha rifiutato questa richiesta. Controlla permessi e stato del piano.', {
+    return new ProviderError('LoteriasAPI ha rechazado la solicitud. Comprueba los permisos y el estado del plan.', {
       code: 'PLAN_RESTRICTED', status: 403, providerStatus: 403, details: providerMessage, endpoint,
     });
   }
   if (response.status === 404) {
-    return new ProviderError('Endpoint LoteriasAPI non trovato.', {
+    return new ProviderError('No se ha encontrado el endpoint de LoteriasAPI.', {
       code: 'ENDPOINT_NOT_FOUND', status: 502, providerStatus: 404, details: providerMessage, endpoint,
     });
   }
   if (response.status === 429) {
-    return new ProviderError('Limite di richieste LoteriasAPI raggiunto. Riprova più tardi.', {
+    return new ProviderError('Se ha alcanzado el límite de solicitudes de LoteriasAPI. Inténtalo de nuevo más tarde.', {
       code: 'RATE_LIMITED', status: 429, providerStatus: 429, details: providerMessage, retryAfter, endpoint,
     });
   }
   if (response.status >= 500) {
-    return new ProviderError('LoteriasAPI è temporaneamente indisponibile.', {
+    return new ProviderError('LoteriasAPI no está disponible temporalmente.', {
       code: 'PROVIDER_UNAVAILABLE', status: 502, providerStatus: response.status, details: providerMessage, endpoint,
     });
   }
-  return new ProviderError(providerMessage || `LoteriasAPI ha risposto con HTTP ${response.status}.`, {
+  return new ProviderError(providerMessage || `LoteriasAPI ha respondido con HTTP ${response.status}.`, {
     code: 'PROVIDER_REJECTED', status: 502, providerStatus: response.status, details: providerMessage, endpoint,
   });
 }
@@ -85,12 +85,12 @@ export async function providerRequest(path, {
 } = {}) {
   const normalizedKey = String(key || '').trim();
   if (!normalizedKey) {
-    throw new ProviderError('LOTERIA_API_KEY non configurata su Vercel.', {
+    throw new ProviderError('LOTERIA_API_KEY no está configurada en Vercel.', {
       code: 'KEY_NOT_CONFIGURED', status: 500,
     });
   }
   if (typeof fetchImpl !== 'function') {
-    throw new ProviderError('Il runtime non supporta fetch.', { code: 'FETCH_UNAVAILABLE', status: 500 });
+    throw new ProviderError('El entorno de ejecución no admite fetch.', { code: 'FETCH_UNAVAILABLE', status: 500 });
   }
 
   const search = new URLSearchParams();
@@ -118,7 +118,7 @@ export async function providerRequest(path, {
     const payload = await readPayload(response);
     if (!response.ok) throw mapHttpError(response, payload, endpoint);
     if (payload?.success === false) {
-      throw new ProviderError(messageFromPayload(payload) || 'LoteriasAPI ha restituito una risposta negativa.', {
+      throw new ProviderError(messageFromPayload(payload) || 'LoteriasAPI ha devuelto una respuesta negativa.', {
         code: 'PROVIDER_REJECTED', status: 502, providerStatus: response.status, endpoint,
       });
     }
@@ -126,7 +126,7 @@ export async function providerRequest(path, {
     return { payload, response, base, endpoint };
   } catch (error) {
     if (error?.name === 'AbortError') {
-      throw new ProviderError('LoteriasAPI non ha risposto entro il tempo previsto.', {
+      throw new ProviderError('LoteriasAPI no ha respondido dentro del tiempo previsto.', {
         code: 'PROVIDER_TIMEOUT', status: 504, endpoint,
       });
     }
@@ -135,7 +135,7 @@ export async function providerRequest(path, {
       throw error;
     }
     recordCircuitFailure(circuitName);
-    throw new ProviderError('Impossibile collegarsi a LoteriasAPI.', {
+    throw new ProviderError('No se puede conectar con LoteriasAPI.', {
       code: 'NETWORK_ERROR', status: 502, details: safeText(error?.message || ''), endpoint,
     });
   } finally {
@@ -265,6 +265,6 @@ export async function fetchDrawRange({
     draws,
     providerBase: base,
     limited: true,
-    notice: 'Lo storico completo non è stato restituito: è disponibile soltanto l’ultima estrazione.',
+    notice: 'No se ha devuelto el historial completo: solo está disponible el último sorteo.',
   };
 }

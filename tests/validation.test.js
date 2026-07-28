@@ -4,7 +4,7 @@ import { parseDateList, parseGame, parseYears } from '../api/_validation.js';
 import { assertCircuitClosed, recordCircuitFailure, recordCircuitSuccess, resetCircuit } from '../api/_circuitBreaker.js';
 import { generateFusionPlay } from '../src/utils/fusionEngine.js';
 
-test('API validators reject malformed inputs', () => {
+test('los validadores de la API rechazan entradas mal formadas', () => {
   assert.equal(parseGame('primitiva')?.id, 'primitiva');
   assert.equal(parseGame('unknown'), null);
   assert.equal(parseYears('10'), 10);
@@ -13,7 +13,7 @@ test('API validators reject malformed inputs', () => {
   assert.equal(parseDateList('01/07/2026'), null);
 });
 
-test('circuit breaker opens after repeated failures and resets after success', () => {
+test('el cortacircuitos se abre tras fallos repetidos y se restablece después de un éxito', () => {
   const name = 'test-provider';
   resetCircuit(name);
   for (let index = 0; index < 4; index += 1) recordCircuitFailure(name, { threshold: 4, cooldownMs: 10000, now: 1000 });
@@ -22,7 +22,7 @@ test('circuit breaker opens after repeated failures and resets after success', (
   assert.doesNotThrow(() => assertCircuitClosed(name, { now: 1001 }));
 });
 
-test('same Evidence Engine seed reproduces the same columns', () => {
+test('la misma semilla del Motor de Evidencia reproduce las mismas columnas', () => {
   const first = generateFusionPlay('primitiva', null, 5, { samples: 1500, seed: 'primy-repro-test' });
   const second = generateFusionPlay('primitiva', null, 5, { samples: 1500, seed: 'primy-repro-test' });
   assert.deepEqual(first.columns.map(column => [column.numbers, column.extra]), second.columns.map(column => [column.numbers, column.extra]));

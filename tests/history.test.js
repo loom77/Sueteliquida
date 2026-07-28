@@ -8,21 +8,21 @@ const draws = Array.from({ length: 60 }, (_, index) => ({
   winningNumbers: [1 + index % 20, 5 + index % 25, 10 + index % 30, 20 + index % 20, 30 + index % 15, 40 + index % 10].map(number => ((number - 1) % 49) + 1),
 }));
 
-test('analisi storico crea metriche utilizzabili', () => {
+test('el análisis histórico crea métricas utilizables', () => {
   const analysis = analyzeHistory('primitiva', draws);
   assert.equal(analysis.totalDraws, 60);
   assert.equal(analysis.numbers.length, 49);
   assert.ok(analysis.sumMean > 0);
 });
 
-test('scoring restituisce punteggio e componenti', () => {
+test('la puntuación devuelve valor y componentes', () => {
   const analysis = analyzeHistory('primitiva', draws);
   const result = scoreCombination('primitiva', [3, 11, 18, 27, 36, 47], analysis);
   assert.ok(result.score >= 0 && result.score <= 100);
   assert.equal(typeof result.parts.balance, 'number');
 });
 
-test('portafoglio privilegia distanza e copertura', () => {
+test('la cartera prioriza la distancia y la cobertura', () => {
   const candidates = [
     { ticket: [1, 2, 3, 4, 5, 6], score: 99 },
     { ticket: [1, 2, 3, 4, 5, 7], score: 98 },
@@ -36,13 +36,13 @@ test('portafoglio privilegia distanza e copertura', () => {
   assert.ok(combinationDistance(portfolio[0].ticket, portfolio[1].ticket) >= 8);
 });
 
-test('backtest walk-forward confronta ranking e casuale', () => {
+test('la retrospección progresiva compara la clasificación y el azar', () => {
   const result = backtestHistory('primitiva', draws, { windows: 20, candidates: 30 });
   assert.ok(result.runs > 0);
   assert.equal(typeof result.delta, 'number');
 });
 
-test('selettore legacy continua a funzionare', () => {
+test('el selector heredado sigue funcionando', () => {
   const candidates = [{ ticket: [1, 2, 3, 4, 5, 6], score: 99 }, { ticket: [8, 9, 10, 11, 12, 13], score: 90 }];
   assert.equal(selectPortfolio(candidates, 2).length, 2);
 });

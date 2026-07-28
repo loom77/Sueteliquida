@@ -1,7 +1,7 @@
 import React from 'react';
 import { GAMES } from '../utils/gameConfig.js';
 
-export default function GameSwitch({ active, onChange, label = 'Gioco' }) {
+export default function GameSwitch({ active, onChange, label = 'Juego' }) {
   return (
     <fieldset>
       <legend className="mb-2 text-sm font-bold text-primary">{label}</legend>

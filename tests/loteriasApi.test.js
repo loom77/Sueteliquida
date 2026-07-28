@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import { extractDrawItems, fetchDrawRange, normalizeProviderDraw, providerBase, providerRequest } from '../api/_loteriasApi.js';
 import { GAMES } from '../src/utils/gameConfig.js';
 
-test('usa il base URL ufficiale di LoteriasAPI', () => {
+test('usa la URL base oficial de LoteriasAPI', () => {
   const previous = process.env.LOTERIA_API_BASE;
   delete process.env.LOTERIA_API_BASE;
   assert.equal(providerBase(), 'https://api.loteriasapi.com/api/v1');
   if (previous) process.env.LOTERIA_API_BASE = previous;
 });
 
-test('normalizza la risposta ufficiale La Primitiva', () => {
+test('normaliza la respuesta oficial de La Primitiva', () => {
   const payload = { success: true, data: [{ draw_date: '2026-07-25', numbers: [1, 5, 18, 36, 37, 42], complementary: 17, reintegro: 2, prizes: [] }] };
   const items = extractDrawItems(payload);
   const draw = normalizeProviderDraw(items[0], GAMES.primitiva);
@@ -20,7 +20,7 @@ test('normalizza la risposta ufficiale La Primitiva', () => {
   assert.equal(draw.complementary, 17);
 });
 
-test('invia la chiave nell header x-api-key', async () => {
+test('envía la clave en la cabecera x-api-key', async () => {
   let requestedUrl = '';
   let requestedHeaders = null;
   const fetchImpl = async (url, options) => {
@@ -34,7 +34,7 @@ test('invia la chiave nell header x-api-key', async () => {
 });
 
 
-test('recupera e normalizza uno storico per intervallo', async () => {
+test('recupera y normaliza un historial por intervalo', async () => {
   const fetchImpl = async url => {
     assert.match(url, /from=2026-07-01/);
     assert.match(url, /to=2026-07-31/);
@@ -48,7 +48,7 @@ test('recupera e normalizza uno storico per intervallo', async () => {
   assert.equal(result.draws[0].date, '2026-07-20');
 });
 
-test('normalizza il bote della prossima estrazione', () => {
+test('normaliza el bote del próximo sorteo', () => {
   const draw = normalizeProviderDraw({ draw_date: '2026-07-25', numbers: [1, 5, 18, 36, 37, 42], complementary: 17, reintegro: 2, jackpot_next: 5200000 }, GAMES.primitiva);
   assert.equal(draw.jackpotNext, 5200000);
 });

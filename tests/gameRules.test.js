@@ -4,14 +4,14 @@ import { generateFusionPlay } from '../src/utils/fusionEngine.js';
 import { calculatePlayPayout } from '../src/utils/payout.js';
 import { playKnownPrize, sanitizePlay } from '../src/utils/playModel.js';
 
-test('La Primitiva usa un solo reintegro per tutte le colonne del resguardo', () => {
+test('La Primitiva usa un único reintegro para todas las columnas del resguardo', () => {
   const play = generateFusionPlay('primitiva', null, 3, { samples: 900, seed: 'shared-reintegro' });
   assert.equal(play.columns.length, 3);
   assert.ok(Number.isInteger(play.receiptExtra));
   assert.deepEqual([...new Set(play.columns.map(column => column.extra))], [play.receiptExtra]);
 });
 
-test('Il reintegro Primitiva restituisce l importo totale giocato sul resguardo una sola volta', () => {
+test('El reintegro de La Primitiva devuelve una sola vez el importe total jugado en el resguardo', () => {
   const play = {
     gameId: 'primitiva',
     receiptExtra: 7,
@@ -27,14 +27,14 @@ test('Il reintegro Primitiva restituisce l importo totale giocato sul resguardo 
   assert.ok(settlement.columns.every(column => column.officialAmount === 0));
 });
 
-test('EuroDreams mantiene un Sogno per ogni giocata semplice e massimo sei blocchi', () => {
+test('EuroDreams mantiene un Sueño por cada apuesta simple y un máximo de seis bloques', () => {
   const play = generateFusionPlay('eurodreams', null, 9, { samples: 1300, seed: 'eurodreams-blocks' });
   assert.equal(play.columns.length, 6);
   assert.ok(play.columns.every(column => column.extra >= 1 && column.extra <= 5));
   assert.equal(play.receiptExtra, undefined);
 });
 
-test('La migrazione corregge vecchie giocate Primitiva con reintegri diversi e segnala la verifica', () => {
+test('La migración corrige jugadas antiguas de La Primitiva con reintegros distintos y señala la comprobación', () => {
   const play = sanitizePlay({
     id: 'legacy-invalid',
     gameId: 'primitiva',
@@ -47,10 +47,10 @@ test('La migrazione corregge vecchie giocate Primitiva con reintegri diversi e s
   });
   assert.equal(play.receiptExtra, 2);
   assert.deepEqual(play.columns.map(column => column.extra), [2,2]);
-  assert.match(play.metadata.rulesMigrationWarning, /verifica il resguardo/i);
+  assert.match(play.metadata.rulesMigrationWarning, /comprueba el resguardo/i);
 });
 
-test('Il totale premi include il reintegro del resguardo senza duplicarlo per colonna', () => {
+test('El total de premios incluye el reintegro del resguardo sin duplicarlo por columna', () => {
   const play = { columns: [{ officialPrize: 8 }, { officialPrize: 0 }], receiptPrize: { officialAmount: 2 } };
   assert.equal(playKnownPrize(play), 10);
 });

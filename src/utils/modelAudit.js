@@ -8,13 +8,13 @@ function mean(a){return a.length?a.reduce((s,v)=>s+v,0)/a.length:0}
 function stdev(a){if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)**2,0)/(a.length-1))}
 
 /**
- * Walk-forward audit with multiple random baselines. A model is only considered
- * eligible when its conservative 95% lower bound is above zero and the effect
- * repeats across folds. This is intentionally strict to prevent overfitting.
+ * Auditoría progresiva con varias referencias aleatorias. Un modelo solo se considera
+ * apto cuando el límite inferior conservador del 95 % supera cero y el efecto
+ * se repite en los distintos bloques. El criterio es estricto para evitar el sobreajuste.
  */
 export function auditHistoricalModel(gameId,rawDraws,{windows=90,candidates=250,baselines=24,minTrain=80}={}){
  const game=getGameConfig(gameId),draws=Array.isArray(rawDraws)?rawDraws:[];
- if(draws.length<minTrain+20)return {eligible:false,reason:'Storico insufficiente',runs:0,delta:0,lower95:0,foldWinRate:0};
+ if(draws.length<minTrain+20)return {eligible:false,reason:'Historial insuficiente',runs:0,delta:0,lower95:0,foldWinRate:0};
  const start=Math.max(minTrain,draws.length-windows),deltas=[],foldWins=[];
  for(let i=start;i<draws.length;i++){
   const analysis=analyzeHistory(gameId,draws.slice(0,i));
@@ -26,5 +26,5 @@ export function auditHistoricalModel(gameId,rawDraws,{windows=90,candidates=250,
  }
  const delta=mean(deltas),se=stdev(deltas)/Math.sqrt(Math.max(deltas.length,1)),lower95=delta-1.96*se,foldWinRate=mean(foldWins);
  const eligible=deltas.length>=40&&lower95>0&&foldWinRate>=0.56&&delta>=0.08;
- return {eligible,reason:eligible?'Vantaggio fuori campione rilevato':'Nessun vantaggio robusto dimostrato',runs:deltas.length,delta,lower95,foldWinRate,baselineCount:baselines};
+ return {eligible,reason:eligible?'Ventaja fuera de muestra detectada':'No se ha demostrado ninguna ventaja sólida',runs:deltas.length,delta,lower95,foldWinRate,baselineCount:baselines};
 }

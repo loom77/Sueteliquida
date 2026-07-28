@@ -17,9 +17,9 @@ export default function GenerateView(props) {
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <header className="max-w-3xl">
-        <p className="text-sm font-black text-indigo-700">Crea giocata</p>
-        <h1 className="mt-2 text-3xl font-black tracking-tight text-primary sm:text-4xl">Crea la tua giocata</h1>
-        <p className="mt-3 text-base leading-7 text-secondary">Hai scelto <strong className="text-primary">{props.game.name}</strong>. Ora imposta soltanto quanto vuoi spendere.</p>
+        <p className="text-sm font-black text-indigo-700">Crear jugada</p>
+        <h1 className="mt-2 text-3xl font-black tracking-tight text-primary sm:text-4xl">Crea tu jugada</h1>
+        <p className="mt-3 text-base leading-7 text-secondary">Has elegido <strong className="text-primary">{props.game.name}</strong>. Ahora solo tienes que indicar cuánto quieres gastar.</p>
       </header>
 
       <div className={props.latest ? 'grid items-start gap-6 xl:grid-cols-[0.82fr_1.18fr]' : 'max-w-3xl'}>

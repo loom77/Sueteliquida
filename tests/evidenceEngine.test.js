@@ -22,7 +22,7 @@ function dateFor(index) {
   return `${2020 + Math.floor(index / 150)}-${String(1 + (index % 12)).padStart(2, '0')}-${String(1 + (index % 28)).padStart(2, '0')}`;
 }
 
-test('su estrazioni IID il motore predittivo torna al casuale uniforme', () => {
+test('con sorteos IID el motor predictivo vuelve al azar uniforme', () => {
   const rng = seeded(12345);
   const draws = Array.from({ length: 360 }, (_, index) => ({
     date: dateFor(index),
@@ -39,7 +39,7 @@ test('su estrazioni IID il motore predittivo torna al casuale uniforme', () => {
   assert.ok(evidence.models.every(model => model.assignedWeight === 0));
 });
 
-test('un bias artificiale persistente viene rilevato fuori campione', () => {
+test('se detecta fuera de muestra un sesgo artificial persistente', () => {
   const draws = Array.from({ length: 300 }, (_, index) => ({
     date: dateFor(index),
     numbers: [1, 2, 3, 4, 5, 6],
@@ -55,7 +55,7 @@ test('un bias artificiale persistente viene rilevato fuori campione', () => {
   assert.ok(evidence.probabilities[0] > evidence.probabilities[20]);
 });
 
-test('la ricerca locale non peggiora l obiettivo del portafoglio greedy', () => {
+test('la búsqueda local no empeora el objetivo de la cartera voraz', () => {
   const probabilities = Array(49).fill(6 / 49);
   const candidates = [
     { ticket: [1, 2, 3, 4, 5, 6], score: 80 },

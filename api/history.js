@@ -17,18 +17,18 @@ export default async function handler(req, res) {
   applyApiSecurity(res);
   const context = withRequestContext(req, res);
   if (!(await rateLimit(req, { limit: 12, windowMs: 60000 }))) {
-    return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Troppe richieste. Riprova tra poco.' });
+    return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Demasiadas solicitudes. Inténtalo de nuevo en unos instantes.' });
   }
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Metodo non consentito.' });
+    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Método no permitido.' });
   }
 
   const game = parseGame(req.query?.game);
-  if (!game) return res.status(400).json({ success: false, code: 'INVALID_GAME', message: 'Gioco non valido.' });
+  if (!game) return res.status(400).json({ success: false, code: 'INVALID_GAME', message: 'Juego no válido.' });
 
   const requestedYears = parseYears(req.query?.years);
-  if (requestedYears == null) return res.status(400).json({ success: false, code: 'INVALID_YEARS', message: 'Intervallo storico non valido.' });
+  if (requestedYears == null) return res.status(400).json({ success: false, code: 'INVALID_YEARS', message: 'Intervalo histórico no válido.' });
   const attempts = [...new Set([requestedYears, Math.min(requestedYears, 2), 1])].filter(Boolean);
 
   try {
@@ -50,12 +50,12 @@ export default async function handler(req, res) {
         if (candidate.draws.length) {
           result = candidate;
           actualYears = years;
-          if (years < requestedYears) notices.push(`Il provider ha restituito uno storico ridotto a circa ${years} ${years === 1 ? 'anno' : 'anni'}.`);
+          if (years < requestedYears) notices.push(`El proveedor ha devuelto un historial reducido de aproximadamente ${years} ${years === 1 ? 'año' : 'años'}.`);
           break;
         }
       } catch (error) {
         if (!(error instanceof ProviderError) || !RETRYABLE_HISTORY_CODES.has(error.code)) throw error;
-        notices.push(`Intervallo di ${years} ${years === 1 ? 'anno' : 'anni'} non disponibile con il piano corrente.`);
+        notices.push(`El intervalo de ${years} ${years === 1 ? 'año' : 'años'} no está disponible con el plan actual.`);
       }
     }
 
@@ -73,12 +73,12 @@ export default async function handler(req, res) {
     }
 
     if (!result.draws.length) {
-      return res.status(502).json({ success: false, code: 'EMPTY_HISTORY', message: 'LoteriasAPI non ha restituito estrazioni valide.' });
+      return res.status(502).json({ success: false, code: 'EMPTY_HISTORY', message: 'LoteriasAPI no ha devuelto sorteos válidos.' });
     }
 
     const sufficientForAudit = result.draws.length >= 100;
     if (result.notice) notices.push(result.notice);
-    if (!sufficientForAudit) notices.push(`Sono disponibili ${result.draws.length} estrazioni valide. Per l’audit storico ne servono almeno 100.`);
+    if (!sufficientForAudit) notices.push(`Hay disponibles ${result.draws.length} sorteos válidos. Para la auditoría histórica se necesitan al menos 100.`);
 
     res.setHeader('Cache-Control', 's-maxage=21600, stale-while-revalidate=86400');
     finishRequest(context, { endpoint: 'history', status: 200, gameId: game.id, draws: result.draws.length, actualYears });
@@ -101,7 +101,7 @@ export default async function handler(req, res) {
     return res.status(status).json({
       success: false,
       code: known ? error.code : 'UNKNOWN_PROVIDER_ERROR',
-      message: known ? error.message : 'Impossibile recuperare lo storico.',
+      message: known ? error.message : 'No se puede recuperar el historial.',
       providerStatus: known ? error.providerStatus : null,
     });
   }

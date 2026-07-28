@@ -1,18 +1,29 @@
-# UX/UI Audit — Primy v11
+# Auditoría UX/UI de Primy
 
-La v9 applica il benchmark delle app più apprezzate senza copiarne la componente commerciale.
+## Problemas detectados originalmente
 
-## Miglioramenti realizzati
+- Demasiados bloques con la misma importancia visual.
+- Selección automática del juego con el sorteo más próximo.
+- Controles duplicados para definir el presupuesto.
+- Resultado presentado como informe técnico.
+- Historial y ajustes con demasiadas acciones visibles.
 
-- Hero della prossima estrazione con bote e CTA.
-- Azioni rapide immediatamente identificabili.
-- Boti e giochi confrontabili senza carousel o scroll annidati.
-- Generazione per budget o numero di colonne.
-- Anteprima con mappa di distribuzione.
-- Schedine esterne, preferiti, ripeti e varianti.
-- Dark mode e installazione PWA.
-- Informazioni tecniche mantenute nelle impostazioni.
+## Solución aplicada
 
-## Limite intenzionale
+- Elección explícita del juego.
+- Un único control de cantidad y presupuesto.
+- Flujo dividido entre configuración y resultado.
+- Acciones principales visibles y herramientas avanzadas plegadas.
+- Diseño móvil primero, objetivos táctiles amplios y foco accesible.
+- Acceso mediante una pantalla clara de registro o inicio de sesión.
 
-Lo scanner beta acquisisce il codice come riferimento ma non considera il QR una fonte sufficiente per ricostruire automaticamente i numeri: l’utente deve confermare manualmente le colonne. Questa scelta evita errori silenziosi con formati proprietari o modificati da SELAE.
+## Flujo principal
+
+```text
+Crear cuenta o acceder
+→ elegir juego
+→ elegir presupuesto
+→ generar
+→ revisar números
+→ registrar o guardar
+```

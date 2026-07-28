@@ -10,12 +10,12 @@ export function useDueNotifications({ enabled, dueCount }) {
     try {
       if (localStorage.getItem(NOTIFIED_KEY) === marker) return;
       new Notification('Primy', {
-        body: `${dueCount} ${dueCount === 1 ? 'giocata è pronta' : 'giocate sono pronte'} per la verifica.`,
+        body: `${dueCount} ${dueCount === 1 ? 'jugada está lista' : 'jugadas están listas'} para comprobar.`,
         icon: '/icon-192x192.png',
       });
       localStorage.setItem(NOTIFIED_KEY, marker);
     } catch {
-      // Le notifiche sono una funzione facoltativa.
+      // Las notificaciones son una función opcional.
     }
   }, [enabled, dueCount]);
 }

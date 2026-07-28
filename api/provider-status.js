@@ -6,11 +6,11 @@ export default async function handler(req, res) {
   applyApiSecurity(res);
   res.setHeader('Cache-Control', 'no-store');
   if (!(await rateLimit(req, { limit: 10, windowMs: 60000 }))) {
-    return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Troppe richieste.' });
+    return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Demasiadas solicitudes.' });
   }
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Metodo non consentito.' });
+    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Método no permitido.' });
   }
   try {
     const game = GAMES.primitiva;
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
       success: false,
       configured: error?.code !== 'KEY_NOT_CONFIGURED',
       code: known ? error.code : 'UNKNOWN_PROVIDER_ERROR',
-      message: known ? error.message : 'Errore di collegamento al provider.',
+      message: known ? error.message : 'Error de conexión con el proveedor.',
       providerStatus: known ? error.providerStatus : null,
     });
   }

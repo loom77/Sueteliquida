@@ -1,27 +1,12 @@
-# Release checklist
+# Lista de comprobación de publicación
 
-## Codice
-- [ ] Test unitari verdi.
-- [ ] Build Vite completata.
-- [ ] Nessun import mancante.
-- [ ] `package-lock.json` aggiornato e CI con `npm ci`.
-- [ ] Versione package, cache PWA e changelog coerenti.
-
-## API e sicurezza
-- [ ] `LOTERIA_API_KEY` configurata.
-- [ ] Upstash configurato per rate limiting distribuito.
-- [ ] Test provider con fixture reali.
-- [ ] Header di sicurezza verificati sul deploy.
-- [ ] Nessun segreto nel bundle client.
-
-## UX e accessibilità
-- [ ] Review Yuma completata.
-- [ ] Test axe senza violazioni critiche.
-- [ ] Flusso principale Playwright verde.
-- [ ] Verifica manuale Safari iPad/iPhone e Chrome Android.
-
-## Produzione
-- [ ] Preview deploy approvato.
-- [ ] Log e correlation ID funzionanti.
-- [ ] Rollback disponibile.
-- [ ] Service worker aggiornato senza cache stale critica.
+- [ ] `npm test` sin fallos.
+- [ ] `npm run build` completado correctamente.
+- [ ] Variables de entorno configuradas.
+- [ ] `/api/provider-status` y `/api/bootstrap` responden correctamente.
+- [ ] Rutas de la aplicación de página única verificadas.
+- [ ] Sin secretos en el repositorio.
+- [ ] Cabeceras de seguridad activas.
+- [ ] Aplicación web progresiva, modo sin conexión y actualización probados.
+- [ ] Reglas de La Primitiva y EuroDreams comprobadas.
+- [ ] Lighthouse, axe y prueba en dispositivos reales completados.

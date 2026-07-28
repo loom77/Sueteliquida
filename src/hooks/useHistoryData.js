@@ -16,7 +16,7 @@ async function readJson(response) {
   const text = await response.text();
   if (!text) return {};
   try { return JSON.parse(text); }
-  catch { throw new Error(`Il server ha restituito una risposta non valida (HTTP ${response.status}).`); }
+  catch { throw new Error(`El servidor ha devuelto una respuesta no válida (HTTP ${response.status}).`); }
 }
 
 const initialState = {
@@ -53,7 +53,7 @@ export function useHistoryData(gameId, { enabled = false } = {}) {
       });
       const data = await readJson(response);
       if (!response.ok || !data.success) {
-        const error = new Error(data.message || `Errore archivio (HTTP ${response.status}).`);
+        const error = new Error(data.message || `Error del archivo histórico (HTTP ${response.status}).`);
         error.code = data.code;
         throw error;
       }
@@ -73,15 +73,15 @@ export function useHistoryData(gameId, { enabled = false } = {}) {
       if (error?.name === 'AbortError') return;
       if (hit?.draws?.length) {
         setState({
-          loading: false, loaded: true, error: `Connessione non disponibile: uso la cache locale. ${error.message}`,
+          loading: false, loaded: true, error: `Conexión no disponible: se usa la caché local. ${error.message}`,
           notice: hit.notice || '', analysis: analyzeHistory(gameId, hit.draws), source: hit.source || '',
           limited: Boolean(hit.limited), sufficientForAudit: Boolean(hit.sufficientForAudit),
         });
       } else {
         const guidance = error.code === 'KEY_NOT_CONFIGURED'
-          ? ' Configura LOTERIA_API_KEY nelle Environment Variables di Vercel e ridistribuisci il progetto.'
-          : error.code === 'AUTH_INVALID' ? ' Controlla la chiave nella dashboard di LoteriasAPI.'
-            : error.code === 'PLAN_RESTRICTED' ? ' Il piano corrente potrebbe non includere lo storico richiesto.' : '';
+          ? ' Configura LOTERIA_API_KEY en las variables de entorno de Vercel y vuelve a desplegar el proyecto.'
+          : error.code === 'AUTH_INVALID' ? ' Comprueba la clave en el panel de LoteriasAPI.'
+            : error.code === 'PLAN_RESTRICTED' ? ' El plan actual puede no incluir el historial solicitado.' : '';
         const code = error.code ? ` [${error.code}]` : '';
         setState({ ...initialState, loaded: true, error: `${error.message}${code}${guidance}` });
       }

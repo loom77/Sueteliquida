@@ -107,7 +107,7 @@ export function formatDrawDate(iso, options = {}) {
   if (!iso) return '';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('it-IT', {
+  return new Intl.DateTimeFormat('es-ES', {
     timeZone: APP_TIME_ZONE,
     weekday: options.short ? 'short' : 'long',
     day: 'numeric',
@@ -120,25 +120,25 @@ export function formatDrawTime(iso) {
   if (!iso) return '';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('it-IT', { timeZone: APP_TIME_ZONE, hour: '2-digit', minute: '2-digit' }).format(date);
+  return new Intl.DateTimeFormat('es-ES', { timeZone: APP_TIME_ZONE, hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
 export function formatSyncTime(iso) {
   if (!iso) return '';
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('it-IT', { timeZone: APP_TIME_ZONE, day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
+  return new Intl.DateTimeFormat('es-ES', { timeZone: APP_TIME_ZONE, day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }).format(date);
 }
 
 export function formatCountdown(targetISO, now = new Date()) {
   const target = new Date(targetISO);
   const delta = target.getTime() - now.getTime();
-  if (!Number.isFinite(delta) || delta <= 0) return 'in corso';
+  if (!Number.isFinite(delta) || delta <= 0) return 'en curso';
   const totalMinutes = Math.floor(delta / 60000);
   const days = Math.floor(totalMinutes / 1440);
   const hours = Math.floor((totalMinutes % 1440) / 60);
   const minutes = totalMinutes % 60;
-  if (days > 0) return `${days}g ${hours}h`;
+  if (days > 0) return `${days}d ${hours}h`;
   if (hours > 0) return `${hours}h ${minutes}m`;
   return `${Math.max(1, minutes)}m`;
 }

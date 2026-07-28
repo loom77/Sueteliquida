@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase.js';
 
 const KEY = 'primy_preferences_v3';
 const LEGACY_KEYS = ['primy_preferences_v2', 'primy_preferences_v1'];
@@ -10,24 +11,34 @@ const DEFAULTS = {
   onboardingSeen: false,
 };
 
+function userKey(userId) {
+  return `${KEY}_${userId}`;
+}
+
 function normalizeAppearance(value) {
   return ['system', 'light', 'dark'].includes(value) ? value : 'system';
 }
 
-function loadPreferences() {
+function normalizePreferences(parsed = {}) {
+  const monthlyLimit = parsed.monthlyLimit == null ? null : Math.max(0, Number(parsed.monthlyLimit) || 0);
+  return {
+    ...DEFAULTS,
+    ...parsed,
+    monthlyLimit,
+    appearance: normalizeAppearance(parsed.appearance),
+    notifications: Boolean(parsed.notifications),
+    defaultGame: parsed.defaultGame === 'eurodreams' ? 'eurodreams' : 'primitiva',
+    onboardingSeen: Boolean(parsed.onboardingSeen),
+  };
+}
+
+function loadPreferences(userId) {
   try {
-    const source = localStorage.getItem(KEY) || LEGACY_KEYS.map(key => localStorage.getItem(key)).find(Boolean) || '{}';
-    const parsed = JSON.parse(source);
-    const monthlyLimit = parsed.monthlyLimit == null ? null : Math.max(0, Number(parsed.monthlyLimit) || 0);
-    return {
-      ...DEFAULTS,
-      ...parsed,
-      monthlyLimit,
-      appearance: normalizeAppearance(parsed.appearance),
-      notifications: Boolean(parsed.notifications),
-      defaultGame: parsed.defaultGame === 'eurodreams' ? 'eurodreams' : 'primitiva',
-      onboardingSeen: Boolean(parsed.onboardingSeen),
-    };
+    const sources = userId
+      ? [localStorage.getItem(userKey(userId)), localStorage.getItem(KEY), ...LEGACY_KEYS.map(key => localStorage.getItem(key))]
+      : [localStorage.getItem(KEY), ...LEGACY_KEYS.map(key => localStorage.getItem(key))];
+    const source = sources.find(Boolean) || '{}';
+    return normalizePreferences(JSON.parse(source));
   } catch {
     return DEFAULTS;
   }
@@ -39,13 +50,38 @@ function resolveTheme(appearance) {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-export function usePreferences() {
+export function usePreferences(user) {
   const [preferences, setPreferences] = useState(DEFAULTS);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    setPreferences(loadPreferences());
-  }, []);
+    let cancelled = false;
+    const local = loadPreferences(user?.id);
+    setPreferences(local);
+    if (!user?.id || !supabase) return undefined;
+
+    const loadRemote = async () => {
+      const { data, error: fetchError } = await supabase
+        .from('primy_user_settings')
+        .select('data')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (fetchError) {
+        setError('No se han podido sincronizar las preferencias de tu cuenta.');
+        return;
+      }
+      if (data?.data) {
+        const remote = normalizePreferences(data.data);
+        setPreferences(remote);
+        localStorage.setItem(userKey(user.id), JSON.stringify(remote));
+      } else {
+        await supabase.from('primy_user_settings').upsert({ user_id: user.id, data: local, updated_at: new Date().toISOString() });
+      }
+    };
+    loadRemote();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   useEffect(() => {
     const apply = () => {
@@ -61,18 +97,28 @@ export function usePreferences() {
     return () => media.removeEventListener?.('change', apply);
   }, [preferences.appearance]);
 
-  const updatePreferences = patch => {
+  const updatePreferences = useCallback(patch => {
     setPreferences(current => {
-      const next = { ...current, ...patch };
+      const next = normalizePreferences({ ...current, ...patch });
       try {
-        localStorage.setItem(KEY, JSON.stringify(next));
+        const storageKey = user?.id ? userKey(user.id) : KEY;
+        localStorage.setItem(storageKey, JSON.stringify(next));
         setError('');
       } catch {
-        setError('Non è stato possibile salvare le preferenze sul dispositivo.');
+        setError('No se han podido guardar las preferencias en el dispositivo.');
+      }
+      if (user?.id && supabase) {
+        supabase.from('primy_user_settings').upsert({
+          user_id: user.id,
+          data: next,
+          updated_at: new Date().toISOString(),
+        }).then(({ error: syncError }) => {
+          if (syncError) setError('La preferencia se ha guardado en este dispositivo, pero no se ha podido sincronizar.');
+        });
       }
       return next;
     });
-  };
+  }, [user?.id]);
 
   return { preferences, updatePreferences, error };
 }

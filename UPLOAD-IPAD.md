@@ -1,17 +1,11 @@
-# Caricamento da iPad con Working Copy
+# Publicar Primy desde un iPad con Working Copy
 
-1. Estrai `primy-v11-production-ux-final.zip` nell'app File.
-2. In Working Copy clona o apri il repository Primy.
-3. Copia nella radice del repository il contenuto della cartella estratta.
-4. Accetta la sostituzione dei file esistenti.
-5. Apri **Changes** e verifica che siano presenti `src`, `api`, `tests` e i file della radice.
-6. Esegui il commit con un messaggio come:
+1. Extrae el archivo ZIP en la aplicación Archivos.
+2. Abre o clona el repositorio `loom77/Sueteliquida` en Working Copy.
+3. Copia el contenido extraído en la raíz del repositorio conservando las carpetas.
+4. Sustituye los archivos existentes cuando se solicite.
+5. Revisa que existan `src/main.jsx`, `package.json`, `api/` y `vercel.json`.
+6. Crea un commit y envíalo a la rama `main`.
+7. Espera a que Vercel termine el despliegue con estado `Ready`.
 
-```text
-Upgrade Primy v11 Evidence Engine
-```
-
-7. Esegui **Push**.
-8. Controlla il nuovo deployment su Vercel.
-
-Non caricare lo ZIP come singolo file e non creare una cartella esterna sopra `src` e `api`.
+No subas archivos `.env` con secretos. Las variables privadas deben configurarse directamente en Vercel.

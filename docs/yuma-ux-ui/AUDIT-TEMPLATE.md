@@ -1,51 +1,23 @@
-# Template audit Yuma UX/UI
+# Plantilla de auditoría UX/UI
 
-## Contesto
-- Schermata o flusso:
-- Persona:
-- Obiettivo utente:
-- Obiettivo prodotto:
-- Vincoli tecnici:
+## Contexto
 
-## Sintesi
-- Valutazione complessiva:
-- Punto di forza principale:
-- Rischio principale:
+- Pantalla o flujo:
+- Objetivo del usuario:
+- Dispositivo principal:
+- Estado de la cuenta:
 
-## Problemi
-| Priorità | Evidenza | Impatto | Proposta | Criterio di accettazione |
-|---|---|---|---|---|
+## Hallazgos
 
-## User flow attuale
-```text
-Ingresso → Azione → Feedback → Risultato
-```
+| Prioridad | Fricción | Consecuencia | Recomendación |
+|---|---|---|---|
+| P0/P1/P2 | | | |
 
-## User flow proposto
-```text
-Ingresso → Decisione minima → Azione primaria → Conferma → Passo successivo
-```
+## Comprobaciones
 
-## Wireframe testuale
-```text
-[Header]
-[Titolo + contesto]
-[CTA primaria]
-[Contenuto essenziale]
-[Azioni secondarie]
-```
-
-## Verifica accessibilità
-- Tastiera:
-- Focus:
-- Screen reader:
-- Contrasto:
-- Target size:
-- Zoom/reflow:
-- Reduced motion:
-
-## Piano di validazione
-- Test automatici:
-- Test manuali:
-- Test con utenti:
-- Metriche:
+- Jerarquía visual.
+- Flujo principal.
+- Estados vacío, carga, error y éxito.
+- Móvil y escritorio.
+- WCAG 2.2.
+- Autenticación, privacidad y sincronización cuando proceda.

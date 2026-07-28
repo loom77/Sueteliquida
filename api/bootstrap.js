@@ -4,21 +4,21 @@ import { applyApiSecurity, rateLimit } from './_security.js';
 import { finishRequest, logEvent, withRequestContext } from './_observability.js';
 
 function publicError(error) {
-  return { code: error?.code || 'OVERVIEW_ERROR', message: error?.message || 'Impossibile aggiornare i dati.' };
+  return { code: error?.code || 'OVERVIEW_ERROR', message: error?.message || 'No se pueden actualizar los datos.' };
 }
 
 export default async function handler(req, res) {
   applyApiSecurity(res);
   const context = withRequestContext(req, res);
   res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=1800');
-  if (!(await rateLimit(req, { limit: 40, windowMs: 60000, scope: 'bootstrap' }))) return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Troppe richieste. Riprova tra poco.' });
+  if (!(await rateLimit(req, { limit: 40, windowMs: 60000, scope: 'bootstrap' }))) return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Demasiadas solicitudes. Inténtalo de nuevo en unos instantes.' });
   if (req.method !== 'GET') {
     res.setHeader('Allow', 'GET');
-    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Metodo non consentito.' });
+    return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Método no permitido.' });
   }
 
   const key = process.env.LOTERIA_API_KEY;
-  if (!key) return res.status(500).json({ success: false, configured: false, code: 'KEY_NOT_CONFIGURED', message: 'LOTERIA_API_KEY non configurata su Vercel.' });
+  if (!key) return res.status(500).json({ success: false, configured: false, code: 'KEY_NOT_CONFIGURED', message: 'LOTERIA_API_KEY no está configurada en Vercel.' });
 
   const games = {};
   logEvent('info', 'bootstrap_start', { requestId: context.requestId });
@@ -27,7 +27,7 @@ export default async function handler(req, res) {
     try {
       const { payload } = await providerRequest(`/results/${game.apiSlug}/latest`, { key, timeoutMs: 9000 });
       const draw = extractDrawItems(payload).map(item => normalizeProviderDraw(item, game)).find(Boolean);
-      if (!draw) throw new ProviderError(`Risposta ${game.name} non riconosciuta.`, { code: 'INVALID_PROVIDER_PAYLOAD' });
+      if (!draw) throw new ProviderError(`Respuesta ${game.name} no reconocida.`, { code: 'INVALID_PROVIDER_PAYLOAD' });
       games[game.id] = {
         latestDate: draw.date,
         jackpotNext: draw.jackpotNext,
@@ -50,6 +50,6 @@ export default async function handler(req, res) {
     errors,
     partial: available > 0 && Object.keys(errors).length > 0,
     fetchedAt: new Date().toISOString(),
-    message: available ? '' : 'Il provider non ha restituito dati validi.',
+    message: available ? '' : 'El proveedor no ha devuelto datos válidos.',
   });
 }

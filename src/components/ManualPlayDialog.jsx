@@ -69,12 +69,12 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
 
   const startScanner = async () => {
     if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
-      setScanMessage('La lettura del codice non è disponibile in questo browser. Inserisci il riferimento manualmente.');
+      setScanMessage('La lectura del código no está disponible en este navegador. Introduce la referencia manualmente.');
       return;
     }
     try {
       stopScanner();
-      setScanMessage('Inquadra il QR o il codice a barre del resguardo.');
+      setScanMessage('Enfoca el código QR o el código de barras del resguardo.');
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
       streamRef.current = stream;
       setScanning(true);
@@ -92,17 +92,17 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
           const codes = await detector.detect(videoRef.current);
           if (codes[0]?.rawValue) {
             setReference(String(codes[0].rawValue).slice(0, 160));
-            setScanMessage('Codice acquisito. Verifica e completa i numeri della schedina.');
+            setScanMessage('Código capturado. Comprueba y completa los números del boleto.');
             stopScanner();
             return;
           }
-        } catch { /* continua la lettura */ }
+        } catch { /* continúa la lectura */ }
         frameRef.current = requestAnimationFrame(scan);
       };
       frameRef.current = requestAnimationFrame(scan);
     } catch {
       stopScanner();
-      setScanMessage('Non è stato possibile accedere alla fotocamera. Inserisci il riferimento manualmente.');
+      setScanMessage('No se ha podido acceder a la cámara. Introduce la referencia manualmente.');
     }
   };
 
@@ -111,17 +111,17 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
   const submit = event => {
     event.preventDefault();
     setError('');
-    if (!dateKey) return setError('Seleziona la data dell’estrazione.');
+    if (!dateKey) return setError('Selecciona la fecha del sorteo.');
     const [year, month, day] = String(dateKey).split('-').map(Number);
     const weekday = new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay();
-    if (!game.drawDays.includes(weekday)) return setError(`La data selezionata non corrisponde a un giorno di estrazione di ${game.name}.`);
-    if (columns.length > (game.maxSimpleBets || 1)) return setError(`${game.name} consente al massimo ${game.maxSimpleBets} giocate semplici nello stesso boleto.`);
+    if (!game.drawDays.includes(weekday)) return setError(`La fecha seleccionada no corresponde a un día de sorteo de ${game.name}.`);
+    if (columns.length > (game.maxSimpleBets || 1)) return setError(`${game.name} permite como máximo ${game.maxSimpleBets} apuestas simples en el mismo boleto.`);
     const parsedReceiptExtra = Number(receiptExtra);
-    if (game.extra.scope === 'receipt' && (!Number.isInteger(parsedReceiptExtra) || parsedReceiptExtra < game.extra.min || parsedReceiptExtra > game.extra.max)) return setError(`${game.extra.label}: inserisci il numero unico del resguardo tra ${game.extra.min} e ${game.extra.max}.`);
+    if (game.extra.scope === 'receipt' && (!Number.isInteger(parsedReceiptExtra) || parsedReceiptExtra < game.extra.min || parsedReceiptExtra > game.extra.max)) return setError(`${game.extra.label}: introduce el número único del resguardo entre ${game.extra.min} y ${game.extra.max}.`);
     for (const column of parsed) {
-      if (column.parsedNumbers.length !== game.numbersToPick) return setError(`Ogni colonna deve contenere ${game.numbersToPick} numeri diversi.`);
-      if (column.parsedNumbers.some(number => number < 1 || number > game.numberPoolMax)) return setError(`I numeri devono essere compresi tra 1 e ${game.numberPoolMax}.`);
-      if (game.extra.scope === 'column' && (!Number.isInteger(column.parsedExtra) || column.parsedExtra < game.extra.min || column.parsedExtra > game.extra.max)) return setError(`${game.extra.label}: inserisci un valore tra ${game.extra.min} e ${game.extra.max}.`);
+      if (column.parsedNumbers.length !== game.numbersToPick) return setError(`Cada columna debe contener ${game.numbersToPick} números distintos.`);
+      if (column.parsedNumbers.some(number => number < 1 || number > game.numberPoolMax)) return setError(`Los números deben estar comprendidos entre 1 y ${game.numberPoolMax}.`);
+      if (game.extra.scope === 'column' && (!Number.isInteger(column.parsedExtra) || column.parsedExtra < game.extra.min || column.parsedExtra > game.extra.max)) return setError(`${game.extra.label}: introduce un valor entre ${game.extra.min} y ${game.extra.max}.`);
     }
 
     const draw = drawInfoForDate(gameId, dateKey);
@@ -144,27 +144,27 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
   return (
     <AccessibleDialog open={open} onClose={close} labelledBy="manual-play-title" className="sm:max-w-2xl">
       <div className="flex items-start justify-between gap-4">
-        <div><p className="text-sm font-bold text-indigo-700">Schedina esterna</p><h2 id="manual-play-title" className="mt-1 text-2xl font-black text-primary">Aggiungi una giocata acquistata altrove</h2><p className="mt-2 text-sm leading-6 text-secondary">Inserisci i dati del resguardo. Primy non acquista la schedina: la conserva localmente e la rende verificabile.</p></div>
-        <button type="button" onClick={close} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted" aria-label="Chiudi"><XIcon/></button>
+        <div><p className="text-sm font-bold text-indigo-700">Boleto externo</p><h2 id="manual-play-title" className="mt-1 text-2xl font-black text-primary">Añadir una jugada comprada en otro lugar</h2><p className="mt-2 text-sm leading-6 text-secondary">Introduce los datos del resguardo. Primy no compra el boleto: lo guarda en tu cuenta y permite comprobarlo.</p></div>
+        <button type="button" onClick={close} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted" aria-label="Cerrar"><XIcon/></button>
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
-        <GameSwitch active={gameId} onChange={setGameId} label="Gioco"/>
+        <GameSwitch active={gameId} onChange={setGameId} label="Juego"/>
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="text-sm font-bold text-primary">Data estrazione<span className="mt-2 flex min-w-0 rounded-xl border border-default bg-surface px-3 py-2"><input type="date" value={dateKey} onChange={event => setDateKey(event.target.value)} className="block w-full min-w-0 border-0 bg-transparent p-0 font-normal text-primary"/></span></label>
-          <label className="text-sm font-bold text-primary">Riferimento facoltativo<input value={reference} onChange={event => setReference(event.target.value)} maxLength={160} placeholder="Codice o nota personale" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
+          <label className="text-sm font-bold text-primary">Fecha del sorteo<span className="mt-2 flex min-w-0 rounded-xl border border-default bg-surface px-3 py-2"><input type="date" value={dateKey} onChange={event => setDateKey(event.target.value)} className="block w-full min-w-0 border-0 bg-transparent p-0 font-normal text-primary"/></span></label>
+          <label className="text-sm font-bold text-primary">Referencia opcional<input value={reference} onChange={event => setReference(event.target.value)} maxLength={160} placeholder="Código o nota personal" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
         </div>
 
         <div className="rounded-2xl border border-default p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black text-primary">Acquisisci codice del resguardo <span className="text-xs text-secondary">beta</span></p><p className="mt-1 text-sm leading-6 text-secondary">Il codice viene salvato come riferimento. I formati SELAE non sono documentati pubblicamente: i numeri devono essere confermati manualmente.</p></div><button type="button" onClick={scanning ? stopScanner : startScanner} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-black text-primary hover:bg-muted"><CameraIcon width="18" height="18"/>{scanning ? 'Chiudi fotocamera' : 'Apri fotocamera'}</button></div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black text-primary">Capturar código del resguardo <span className="text-xs text-secondary">beta</span></p><p className="mt-1 text-sm leading-6 text-secondary">El código se guarda como referencia. Los formatos de SELAE no están documentados públicamente: los números deben confirmarse manualmente.</p></div><button type="button" onClick={scanning ? stopScanner : startScanner} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-black text-primary hover:bg-muted"><CameraIcon width="18" height="18"/>{scanning ? 'Cerrar cámara' : 'Abrir cámara'}</button></div>
           {scanning && <video ref={videoRef} muted playsInline className="mt-4 aspect-video w-full rounded-xl bg-slate-950 object-cover"/>}
           {scanMessage && <p className="mt-3 text-sm leading-6 text-secondary" aria-live="polite">{scanMessage}</p>}
         </div>
 
         {game.extra.scope === 'receipt' && (
           <label className="block rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-950">
-            Reintegro unico del resguardo
-            <span className="mt-1 block text-xs font-normal leading-5 text-amber-800">Vale per tutte le colonne. Copialo dal resguardo SELAE.</span>
+            Reintegro único del resguardo
+            <span className="mt-1 block text-xs font-normal leading-5 text-amber-800">Se aplica a todas las columnas. Cópialo del resguardo de SELAE.</span>
             <input value={receiptExtra} onChange={event => setReceiptExtra(event.target.value)} inputMode="numeric" className="mt-3 min-h-11 w-full rounded-xl border border-amber-300 bg-surface px-3 font-normal text-primary"/>
           </label>
         )}
@@ -172,18 +172,18 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
         <div className="space-y-3">
           {columns.map((column, index) => (
             <div key={column.id} className="rounded-2xl bg-muted p-4">
-              <div className="flex items-center justify-between gap-3"><p className="font-black text-primary">Colonna {index + 1}</p>{columns.length > 1 && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Rimuovi</button>}</div>
+              <div className="flex items-center justify-between gap-3"><p className="font-black text-primary">Columna {index + 1}</p>{columns.length > 1 && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>}</div>
               <div className={`mt-3 grid gap-3 ${game.extra.scope === 'column' ? 'sm:grid-cols-[1fr_150px]' : ''}`}>
-                <label className="text-sm font-bold text-primary">I {game.numbersToPick} numeri<input value={column.numbers} onChange={event => updateColumn(column.id, { numbers: event.target.value })} placeholder={`Es. ${Array.from({ length: game.numbersToPick }, (_, i) => i + 1).join(', ')}`} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
+                <label className="text-sm font-bold text-primary">Los {game.numbersToPick} números<input value={column.numbers} onChange={event => updateColumn(column.id, { numbers: event.target.value })} placeholder={`Es. ${Array.from({ length: game.numbersToPick }, (_, i) => i + 1).join(', ')}`} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
                 {game.extra.scope === 'column' && <label className="text-sm font-bold text-primary">{game.extra.label}<input value={column.extra} onChange={event => updateColumn(column.id, { extra: event.target.value })} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>}
               </div>
             </div>
           ))}
         </div>
 
-        <button type="button" onClick={() => setColumns(current => [...current, emptyColumn()])} disabled={columns.length >= (game.maxSimpleBets || 1)} className="flex min-h-11 items-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-50"><PlusIcon width="17" height="17"/>Aggiungi colonna ({columns.length}/{game.maxSimpleBets})</button>
+        <button type="button" onClick={() => setColumns(current => [...current, emptyColumn()])} disabled={columns.length >= (game.maxSimpleBets || 1)} className="flex min-h-11 items-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-50"><PlusIcon width="17" height="17"/>Añadir columna ({columns.length}/{game.maxSimpleBets})</button>
         {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div>}
-        <div className="flex flex-col-reverse gap-3 border-t border-default pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={close} className="min-h-12 rounded-xl border border-default px-5 text-sm font-bold text-primary hover:bg-muted">Annulla</button><button type="submit" className="min-h-12 rounded-xl bg-slate-950 px-5 text-sm font-black text-white hover:bg-slate-800">Salva schedina</button></div>
+        <div className="flex flex-col-reverse gap-3 border-t border-default pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={close} className="min-h-12 rounded-xl border border-default px-5 text-sm font-bold text-primary hover:bg-muted">Cancelar</button><button type="submit" className="min-h-12 rounded-xl bg-slate-950 px-5 text-sm font-black text-white hover:bg-slate-800">Guardar boleto</button></div>
       </form>
     </AccessibleDialog>
   );

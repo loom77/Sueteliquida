@@ -1,117 +1,76 @@
-# Primy v12.2 — Focused UX + Regole SELAE
+# Primy v12.4 — cuentas y sincronización con Supabase
 
-Primy è una PWA privata per creare portafogli coordinati di giocate per **La Primitiva** ed **EuroDreams**, registrare schedine acquistate tramite canali autorizzati e controllare i risultati.
+Primy es una PWA en castellano para crear y gestionar jugadas de **La Primitiva** y **EuroDreams**. La versión 12.4 añade cuentas multiusuario con correo y contraseña, confirmación del correo y sincronización privada entre dispositivos.
 
-La v12.2 mantiene il **Primy Evidence Engine** e il flusso UX semplificato, correggendo il modello di schedina secondo le regole ufficiali SELAE.
+## Funciones principales
 
-## Miglioramenti principali
+- Registro e inicio de sesión sin Google.
+- Confirmación del correo antes del primer acceso.
+- Recuperación y cambio de contraseña.
+- Historial privado por usuario, protegido con Row Level Security.
+- Sincronización de jugadas, borradores y preferencias.
+- Importación opcional de las jugadas antiguas guardadas en el navegador.
+- Funcionamiento temporal sin conexión con sincronización posterior.
+- Generación coordinada para La Primitiva y EuroDreams.
+- Consulta de resultados mediante funciones serverless de Vercel.
 
-### Esperienza utente
-
-- routing reale con URL `/`, `/genera`, `/giocate` e `/impostazioni`;
-- pulsanti avanti/indietro del browser funzionanti;
-- onboarding accessibile al primo utilizzo e riapribile dalle impostazioni;
-- dashboard con una sola azione primaria e separazione esplicita fra chiusura vendite, estrazione e pubblicazione del risultato;
-- tabella desktop e card mobile per lo storico;
-- dialoghi con focus trap, Escape, ripristino del focus e blocco dello scroll;
-- lettura vocale delle colonne generate;
-- dark mode basata su token semantici, non su override fragili;
-- banner offline e aggiornamento PWA controllato dall’utente.
-
-### Affidabilità tecnica
-
-- tutti gli orari sono calcolati in `Europe/Madrid`, inclusi i cambi fra ora solare e legale;
-- EuroDreams distingue chiusura alle 20:30, sorteggio alle 21:00 e risultato programmato alle 21:40;
-- la fotocamera viene arrestata quando si chiude il dialogo o si cambia schermata;
-- un solo endpoint `/api/bootstrap` sostituisce le richieste duplicate iniziali;
-- lo storico non viene scaricato dalla dashboard e viene caricato soltanto quando serve;
-- richieste client cancellabili tramite `AbortController`;
-- Worker persistente fra più generazioni, così la cache del modello non viene distrutta ogni volta;
-- rate limiting distribuito opzionale tramite Upstash REST, con fallback locale;
-- endpoint pubblici senza dettagli interni del provider;
-- storage aggiornato a `primy_plays_v11`, con migrazione automatica delle versioni precedenti;
-- campo `purchasedAt` usato per attribuire correttamente la spesa mensile.
-
-### PWA
-
-- installabile;
-- cache controllata di dashboard, storico e risultati;
-- navigazione SPA compatibile con Vercel;
-- avviso quando è disponibile una nuova versione;
-- modalità offline esplicita per generazione e dati locali.
-
-## Variabili Vercel
-
-Obbligatoria:
+## Arquitectura
 
 ```text
+React + Vite + PWA
+        │
+        ├── Vercel Functions → LoteriasAPI
+        │
+        └── Supabase
+             ├── Auth: correo + contraseña
+             ├── PostgreSQL
+             └── RLS por usuario
+```
+
+## Tablas Supabase
+
+- `primy_profiles`
+- `primy_plays`
+- `primy_user_settings`
+- `primy_data_migrations`
+
+Las tablas usan el prefijo `primy_` para no interferir con otros proyectos del mismo Supabase. El rol anónimo no tiene acceso y cada usuario autenticado solo puede leer o modificar sus propias filas.
+
+## Configuración de autenticación
+
+En Supabase debe estar activada la confirmación de correo. Configura:
+
+```text
+Site URL
+https://sueteliquida.vercel.app
+
+Redirect URLs
+https://sueteliquida.vercel.app/auth/confirm
+https://sueteliquida.vercel.app/auth/recovery
+http://localhost:5173/**
+```
+
+## Variables opcionales de Vercel
+
+```text
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
 LOTERIA_API_KEY
 ```
 
-Facoltative, consigliate per un servizio pubblico con più utenti:
+La clave publicable de Supabase puede estar en el cliente; la seguridad depende de RLS. Nunca debe exponerse una clave `service_role`.
 
-```text
-UPSTASH_REDIS_REST_URL
-UPSTASH_REDIS_REST_TOKEN
-```
-
-Senza Upstash Primy continua a funzionare, ma il rate limiter serverless usa un fallback in memoria meno robusto.
-
-## Comandi
+## Desarrollo
 
 ```bash
 npm install
+npm run dev
 npm test
 npm run build
 ```
 
-## Endpoint principali
+## Reglas de juego implementadas
 
-```text
-/api/bootstrap
-/api/history?game=primitiva&years=10
-/api/check-results?game=primitiva&dates=2026-07-27
-```
-
-## Limiti dichiarati
-
-- Primy non vende né acquista schedine.
-- Il lettore beta acquisisce il codice del resguardo come riferimento; i numeri devono essere confermati manualmente perché i formati SELAE non sono documentati pubblicamente.
-- Le notifiche locali funzionano quando l’app è attiva. Le push in background richiederebbero un servizio push e un backend dedicato.
-- Il modello non garantisce vincite e torna al casuale uniforme quando non trova evidenza storica sufficiente.
-
-## Privacy
-
-Giocate e preferenze restano nel browser. La chiave del provider è utilizzata esclusivamente dalle funzioni serverless Vercel.
-
-## Yuma UX/UI
-
-Il repository include il ruolo ufficiale di revisione UX/UI in `docs/yuma-ux-ui/`. Le decisioni di interfaccia devono essere valutate secondo persona, user flow, architettura informativa, griglia 8pt, mobile-first, WCAG 2.2 AA e principi di psicologia del design.
-
-## Primy v12 — Alvaro Hardening
-Questa versione applica il primo ciclo di hardening tecnico guidato da Alvaro: Error Boundary, osservabilità, validazione API, circuit breaker, seed riproducibile, lazy loading e cache risultati più conservativa.
-
-Consulta:
-- `docs/ALVARO-HARDENING-V12.md`
-- `docs/alvaro-fullstack/ROLE.md`
-- `docs/alvaro-fullstack/RELEASE-CHECKLIST.md`
-- `VALIDATION-ALVARO-V12.md`
-
-Per un deploy pubblico configura anche Upstash oltre a `LOTERIA_API_KEY`.
-## Primy v12.1 — Yuma Focused UX
-
-La Home apre con una scelta esplicita tra **La Primitiva** ed **EuroDreams**; il gioco con l’estrazione più vicina non viene più imposto come contenuto principale. Il flusso operativo è ora:
-
-```text
-Scegli gioco → imposta budget → genera → controlla i numeri → registra o salva
-```
-
-Le informazioni secondarie sono nascoste finché non servono: il calendario è richiudibile, le statistiche non compaiono a zero e i dettagli tecnici della generazione sono facoltativi.
-
-
-## Regole di schedina implementate nella v12.2
-
-- **La Primitiva:** da 1 a 8 giocate semplici per boleto; ogni colonna contiene 6 numeri, mentre il **Reintegro è unico per l’intero resguardo**.
-- **EuroDreams:** da 1 a 6 giocate semplici per boleto; ogni colonna contiene 6 numeri e il proprio **Sogno** da 1 a 5.
-- Il premio Reintegro di La Primitiva viene registrato una sola volta e corrisponde all’importo totale giocato sul resguardo per quel sorteggio.
-- Le giocate multiple combinatorie non sono ancora generate da Primy.
+- **La Primitiva:** de 1 a 8 apuestas simples por boleto; seis números por columna y un único Reintegro para todo el resguardo.
+- **EuroDreams:** de 1 a 6 apuestas simples por boleto; seis números y un número Sueño por apuesta.
+- Primy no compra boletos y no promete resultados. El usuario debe realizar la compra en un canal autorizado.

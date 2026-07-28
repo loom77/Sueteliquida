@@ -91,7 +91,7 @@ function repeatedLastDigits(numbers) {
 }
 
 /**
- * Descriptive balance only. It is never presented as a higher draw probability.
+ * Equilibrio meramente descriptivo. Nunca se presenta como una mayor probabilidad de acierto.
  */
 export function scoreStructuralQuality(gameId, numbers) {
   const game = getGameConfig(gameId);
@@ -120,8 +120,8 @@ export function scoreStructuralQuality(gameId, numbers) {
 }
 
 /**
- * Secondary expected-payout tie-breaker based on documented human choice biases.
- * It does not claim to improve the probability of matching the draw.
+ * Desempate secundario por premio esperado, basado en sesgos documentados de elección humana.
+ * No se presenta como una mejora de la probabilidad de acertar el sorteo.
  */
 export function scoreAntiShare(gameId, numbers) {
   const game = getGameConfig(gameId);
@@ -160,9 +160,9 @@ export function resolveFusionProfile(gameId, analysis, evidenceOptions = {}) {
     },
     probabilities: evidence.probabilities,
     signalWeight: historicalWeight,
-    // Only validated probability estimates influence hit-oriented ranking.
-    // Structural balance and anti-sharing remain diagnostics and never masquerade
-    // as predictive evidence.
+    // Solo las estimaciones de probabilidad validadas influyen en la clasificación orientada al acierto.
+    // El equilibrio estructural y la reducción de coincidencias siguen siendo diagnósticos
+    // y nunca se presentan como evidencia predictiva.
     weights: {
       predictive: historicalWeight,
       historical: historicalWeight,
@@ -191,10 +191,10 @@ function scoreCandidate(gameId, numbers, profile, avoidColumns = []) {
     ? probabilityAffinity(gameId, numbers, profile.probabilities)
     : 50;
   const diversity = anchorDiversityScore(numbers, avoidColumns);
-  // Hit-oriented score: no historical evidence means every valid combination is
-  // neutral. Human-pattern and visual-balance diagnostics are kept out of the
-  // predictive rank. For variants, distance from the source is only a small,
-  // explicit diversification term.
+  // Puntuación orientada al acierto: sin evidencia histórica, todas las combinaciones válidas
+  // son neutrales. Los diagnósticos sobre patrones humanos y equilibrio visual quedan fuera
+  // de la clasificación predictiva. En las variantes, la distancia respecto al origen es
+  // únicamente un término pequeño y explícito de diversificación.
   const finalScore = avoidColumns.length
     ? predictive * 0.95 + diversity * 0.05
     : predictive;
@@ -278,7 +278,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     purchased: false,
     status: 'draft',
     metadata: {
-      engine: 'Primy Evidence Engine',
+      engine: 'Motor de Evidencia de Primy',
       engineVersion: '12.2',
       seed,
       candidatesAnalyzed: candidates.length,

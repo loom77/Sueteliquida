@@ -10,7 +10,7 @@ export function usePwaUpdate({ onNeedRefresh, onOfflineReady } = {}) {
       immediate: true,
       onNeedRefresh() { callbacks.current.onNeedRefresh?.(() => updateSW(true)); },
       onOfflineReady() { callbacks.current.onOfflineReady?.(); },
-      onRegisterError(error) { console.error('Registrazione PWA non riuscita:', error); },
+      onRegisterError(error) { console.error('No se ha podido registrar la PWA:', error); },
     });
   }, []);
 }

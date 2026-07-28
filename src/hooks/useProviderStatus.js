@@ -22,7 +22,7 @@ export function useProviderStatus() {
         latestDrawDate: data.latestDrawDate || null,
       });
     } catch {
-      setState({ loading: false, online: false, configured: null, message: 'Servizio dati non raggiungibile.', latestDrawDate: null });
+      setState({ loading: false, online: false, configured: null, message: 'No se puede acceder al servicio de datos.', latestDrawDate: null });
     }
   }, []);
 

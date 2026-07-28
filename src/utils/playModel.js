@@ -84,7 +84,7 @@ export function sanitizePlay(play) {
     columns,
     ...(game.extra.scope === 'receipt' ? { receiptExtra } : {}),
     metadata: rulesMigrationWarning
-      ? { ...(play.metadata || {}), rulesMigrationWarning: 'La vecchia versione conteneva più reintegri. È stato mantenuto il primo: verifica il resguardo originale.' }
+      ? { ...(play.metadata || {}), rulesMigrationWarning: 'La versión anterior contenía varios reintegros. Se ha conservado el primero: comprueba el resguardo original.' }
       : (play.metadata || {}),
     purchased,
     purchasedAt: purchased ? (play.purchasedAt || play.createdAt || new Date().toISOString()) : undefined,

@@ -16,7 +16,7 @@ async function readJson(response) {
   const text = await response.text();
   if (!text) return {};
   try { return JSON.parse(text); }
-  catch { throw new Error(`Risposta dati non valida (HTTP ${response.status}).`); }
+  catch { throw new Error(`Respuesta de datos no válida (HTTP ${response.status}).`); }
 }
 
 export function useDrawOverview() {
@@ -33,15 +33,15 @@ export function useDrawOverview() {
     try {
       const response = await fetch('/api/draw-overview', { headers: { Accept: 'application/json' } });
       const data = await readJson(response);
-      if (!response.ok || !data.success) throw new Error(data.message || 'Impossibile aggiornare boti e fonte dati.');
+      if (!response.ok || !data.success) throw new Error(data.message || 'No se pueden actualizar los botes ni la fuente de datos.');
       const next = { loading: false, games: data.games || {}, errors: data.errors || {}, fetchedAt: data.fetchedAt || '', error: '' };
       setState(next);
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...next, savedAt: Date.now() })); } catch { /* cache facoltativa */ }
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...next, savedAt: Date.now() })); } catch { /* caché opcional */ }
     } catch (error) {
       if (cached) {
-        setState({ loading: false, games: cached.games || {}, errors: cached.errors || {}, fetchedAt: cached.fetchedAt || '', error: 'Dati non aggiornati: mostro l’ultima sincronizzazione disponibile.' });
+        setState({ loading: false, games: cached.games || {}, errors: cached.errors || {}, fetchedAt: cached.fetchedAt || '', error: 'Datos sin actualizar: se muestra la última sincronización disponible.' });
       } else {
-        setState({ loading: false, games: {}, errors: {}, fetchedAt: '', error: error?.message || 'Impossibile aggiornare i dati.' });
+        setState({ loading: false, games: {}, errors: {}, fetchedAt: '', error: error?.message || 'No se pueden actualizar los datos.' });
       }
     }
   }, []);

@@ -7,7 +7,7 @@ export const GAMES = {
     numbersToPick: 6,
     price: 2.5,
     maxSimpleBets: 6,
-    extra: { key: 'sueno', label: 'Sogno', min: 1, max: 5, scope: 'column' },
+    extra: { key: 'sueno', label: 'Sueño', min: 1, max: 5, scope: 'column' },
     hasComplementary: false,
     drawDays: [1, 4],
     drawTime: { hour: 21, minute: 0 },
@@ -16,7 +16,7 @@ export const GAMES = {
     resultDelayMinutes: 40,
     apiSlug: 'eurodreams',
     accent: 'violet',
-    payoff: '20.000 € al mese per 30 anni',
+    payoff: '20.000 € al mes durante 30 años',
   },
   primitiva: {
     id: 'primitiva',
@@ -35,7 +35,7 @@ export const GAMES = {
     resultDelayMinutes: 20,
     apiSlug: 'primitiva',
     accent: 'indigo',
-    payoff: 'Jackpot variabile',
+    payoff: 'Bote variable',
   },
 };
 

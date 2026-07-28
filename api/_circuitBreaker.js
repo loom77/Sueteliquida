@@ -7,7 +7,7 @@ export function circuitState(name) {
 export function assertCircuitClosed(name, { now = Date.now() } = {}) {
   const state = circuitState(name);
   if (state.openedUntil > now) {
-    const error = new Error('Servizio esterno temporaneamente sospeso dopo errori ripetuti.');
+    const error = new Error('Servicio externo suspendido temporalmente tras errores repetidos.');
     error.code = 'CIRCUIT_OPEN';
     error.retryAfter = Math.ceil((state.openedUntil - now) / 1000);
     throw error;

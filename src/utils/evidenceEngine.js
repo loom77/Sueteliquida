@@ -99,7 +99,7 @@ export function evaluateEvidenceModels(gameId, rawDraws, {
   if (draws.length < trainFloor + 30) {
     return {
       eligible: false,
-      reason: 'Storico insufficiente per una validazione predittiva rigorosa',
+      reason: 'Historial insuficiente para una validación predictiva rigurosa',
       draws: draws.length,
       runs: 0,
       signalWeight: 0,
@@ -167,8 +167,8 @@ export function evaluateEvidenceModels(gameId, rawDraws, {
   return {
     eligible: eligibleModels.length > 0,
     reason: eligibleModels.length
-      ? 'Segnale storico debole ma ripetuto fuori campione'
-      : 'Nessun modello storico supera il casuale con evidenza sufficiente',
+      ? 'Señal histórica débil pero repetida fuera de muestra'
+      : 'Ningún modelo histórico supera al azar con evidencia suficiente',
     draws: draws.length,
     runs: Math.max(0, draws.length - start),
     signalWeight: predictiveBudget,

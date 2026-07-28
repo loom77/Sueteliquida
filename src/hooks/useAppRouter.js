@@ -2,9 +2,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const ROUTES = {
   dashboard: '/',
-  generate: '/genera',
-  plays: '/giocate',
-  settings: '/impostazioni',
+  generate: '/generar',
+  plays: '/jugadas',
+  settings: '/ajustes',
 };
 const VIEWS = Object.fromEntries(Object.entries(ROUTES).map(([view, path]) => [path, view]));
 

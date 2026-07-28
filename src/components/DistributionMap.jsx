@@ -14,12 +14,12 @@ export default function DistributionMap({ play, game }) {
     <section className="rounded-2xl border border-default bg-surface p-4 md:p-5" aria-labelledby="distribution-title">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h3 id="distribution-title" className="font-black text-primary">Distribuzione delle colonne</h3>
-          <p className="mt-1 text-sm leading-6 text-secondary">Mostra quante volte compare ogni numero. Non rappresenta una probabilità di estrazione.</p>
+          <h3 id="distribution-title" className="font-black text-primary">Distribución de las columnas</h3>
+          <p className="mt-1 text-sm leading-6 text-secondary">Muestra cuántas veces aparece cada número. No representa una probabilidad de extracción.</p>
         </div>
-        <p className="text-sm font-bold text-indigo-700">{covered}/{game.numberPoolMax} numeri coperti</p>
+        <p className="text-sm font-bold text-indigo-700">{covered}/{game.numberPoolMax} números cubiertos</p>
       </div>
-      <div className="mt-4 grid grid-cols-8 gap-1.5 sm:grid-cols-10" role="list" aria-label="Frequenza dei numeri nelle colonne">
+      <div className="mt-4 grid grid-cols-8 gap-1.5 sm:grid-cols-10" role="list" aria-label="Frecuencia de los números en las columnas">
         {counts.slice(1).map((count, index) => {
           const number = index + 1;
           const intensity = count ? 0.16 + (count / maximum) * 0.72 : 0;
@@ -27,7 +27,7 @@ export default function DistributionMap({ play, game }) {
             <div
               key={number}
               role="listitem"
-              aria-label={`Numero ${number}: presente ${count} ${count === 1 ? 'volta' : 'volte'}`}
+              aria-label={`Número ${number}: presente ${count} ${count === 1 ? 'vez' : 'veces'}`}
               className="relative flex aspect-square items-center justify-center rounded-lg border border-default text-xs font-black text-primary"
               style={count ? { backgroundColor: `color-mix(in srgb, var(--primy-accent) ${Math.round(intensity * 100)}%, transparent)` } : undefined}
             >

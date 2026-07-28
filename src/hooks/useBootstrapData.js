@@ -14,7 +14,7 @@ async function readJson(response) {
   const text = await response.text();
   if (!text) return {};
   try { return JSON.parse(text); }
-  catch { throw new Error(`Risposta dati non valida (HTTP ${response.status}).`); }
+  catch { throw new Error(`Respuesta de datos no válida (HTTP ${response.status}).`); }
 }
 
 export function useBootstrapData() {
@@ -35,20 +35,20 @@ export function useBootstrapData() {
     try {
       const response = await fetch('/api/bootstrap', { headers: { Accept: 'application/json' }, signal: controller.signal });
       const data = await readJson(response);
-      if (!response.ok || !data.success) throw Object.assign(new Error(data.message || 'Impossibile aggiornare i dati.'), { configured: data.configured, code: data.code });
+      if (!response.ok || !data.success) throw Object.assign(new Error(data.message || 'No se pueden actualizar los datos.'), { configured: data.configured, code: data.code });
       const next = {
         loading: false,
         games: data.games || {}, errors: data.errors || {}, fetchedAt: data.fetchedAt || '', error: '',
         online: true, configured: data.configured !== false, message: data.message || '',
       };
       setState(next);
-      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...next, savedAt: Date.now() })); } catch { /* cache facoltativa */ }
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...next, savedAt: Date.now() })); } catch { /* caché opcional */ }
     } catch (error) {
       if (error?.name === 'AbortError') return;
       if (cached) {
-        setState({ ...cached, loading: false, online: Object.keys(cached.games || {}).length > 0, error: 'Dati non aggiornati: mostro l’ultima sincronizzazione disponibile.' });
+        setState({ ...cached, loading: false, online: Object.keys(cached.games || {}).length > 0, error: 'Datos sin actualizar: se muestra la última sincronización disponible.' });
       } else {
-        setState({ loading: false, games: {}, errors: {}, fetchedAt: '', error: error?.message || 'Impossibile aggiornare i dati.', online: false, configured: error?.configured ?? null, message: error?.message || '' });
+        setState({ loading: false, games: {}, errors: {}, fetchedAt: '', error: error?.message || 'No se pueden actualizar los datos.', online: false, configured: error?.configured ?? null, message: error?.message || '' });
       }
     }
   }, []);
