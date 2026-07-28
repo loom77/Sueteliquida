@@ -1,5 +1,13 @@
 # Registro de cambios
 
+## v12.6.1 — Corrección del generador responsive
+
+- Corregida la superposición y compresión del tutorial al mostrar un boleto generado.
+- El generador y el boleto solo se muestran en dos columnas cuando existe anchura real suficiente.
+- En vista compacta, la mascota se convierte en un banner horizontal y deja de robar ancho a los controles.
+- Añadidas protecciones `min-width: 0` para evitar desbordamientos y texto en columnas verticales.
+- El resultado se desplaza debajo del generador en portátiles y pantallas medianas.
+
 ## v12.6.0 — Pulido visual, movimiento y sistema de mascota
 
 - Nueva paleta Primy más luminosa y equilibrada: verde principal, mint, ivory, cream, gold, sky, peach y lavender.
