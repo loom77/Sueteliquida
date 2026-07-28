@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
-import { PrimyWordmark } from './BrandVisuals.jsx';
+import { PrimyMascotAvatar, PrimyWordmark } from './BrandVisuals.jsx';
 
 const NAV = [
   { id: 'dashboard', label: 'Inicio', icon: HomeIcon },
@@ -60,7 +60,6 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
   }, []);
 
   const displayName = user?.user_metadata?.display_name?.trim() || user?.email?.split('@')[0] || 'Cuenta';
-  const initial = displayName.charAt(0).toUpperCase();
 
   return (
     <div className="min-h-screen bg-app text-primary">
@@ -68,7 +67,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
 
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-primy-100 bg-surface/95 p-5 backdrop-blur lg:flex">
         <PrimyWordmark/>
-        <div className="mt-7 rounded-3xl bg-gradient-to-br from-primy-700 to-primy-900 p-5 text-white">
+        <div className="primy-card-enter mt-7 rounded-3xl bg-gradient-to-br from-primy-700 to-primy-900 p-5 text-white">
           <p className="font-display text-lg font-semibold">Hoy puede empezar una nueva combinación.</p>
           <p className="mt-2 text-xs leading-5 text-primy-100">Crea, guarda y comprueba tus jugadas sin perder el control del presupuesto.</p>
           <div className="mt-4 flex gap-2" aria-hidden="true">
@@ -80,7 +79,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
         </nav>
         <section className="mt-auto rounded-3xl border border-primy-100 bg-primy-50 p-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primy-700 font-display font-bold text-white">{initial}</span>
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primy-200 bg-ivory"><PrimyMascotAvatar className="h-14 w-14"/></span>
             <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{displayName}</p><p className="truncate text-xs text-secondary">{user?.email}</p></div>
           </div>
           <p className="mt-3 text-xs font-semibold"><SyncLabel status={syncStatus} lastSyncedAt={lastSyncedAt}/></p>

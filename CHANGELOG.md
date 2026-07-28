@@ -1,5 +1,16 @@
 # Registro de cambios
 
+## v12.6.0 — Pulido visual, movimiento y sistema de mascota
+
+- Nueva paleta Primy más luminosa y equilibrada: verde principal, mint, ivory, cream, gold, sky, peach y lavender.
+- Sistema de mascota con variantes Welcome, Helper, Thinking, Celebration, Empty y Responsible.
+- Mascota contextual integrada en autenticación, dashboard, onboarding, generador, estados vacíos, guardado, migración, ajustes y errores.
+- Nuevo diseño de acceso y registro más compacto, sin espacio blanco interior innecesario y con pestañas dedicadas.
+- Animaciones accesibles para entrada de página, tarjetas, mascota, shimmer, revelado de bolas y feedback de éxito.
+- Generador rediseñado con la mascota Thinking durante el procesamiento.
+- Estados de vista previa y guardado del boleto enriquecidos con las mascotas Helper y Celebration.
+- Manifest PWA y cachés actualizados a la versión v12.6.
+
 ## v12.5.4 — Auth layout tightened and rebalanced
 
 - Reducción fuerte del ancho útil del bloque de autenticación para eliminar el espacio blanco excesivo en desktop.

@@ -29,7 +29,7 @@ function GameCard({ draw, onSelect }) {
   const samples = isPrimitiva ? [6, 14, 23, 31, 38, 45] : [2, 9, 18, 25, 32, 39];
 
   return (
-    <article className={`group relative min-h-[360px] overflow-hidden rounded-[2rem] border p-6 shadow-soft ${theme.card}`}>
+    <article className={`primy-card-enter group relative min-h-[350px] overflow-hidden rounded-[2rem] border p-6 shadow-soft ${theme.card}`}>
       <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-white/10" aria-hidden="true"/>
       <div className="absolute -bottom-20 -left-16 h-48 w-48 rounded-full bg-black/10" aria-hidden="true"/>
       <div className="relative z-10 flex h-full flex-col">
@@ -81,7 +81,7 @@ export default function DashboardView({ now, history, monthlyStats, totals, dueB
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
-      <section className="relative overflow-hidden rounded-[2rem] border border-primy-200 bg-gradient-to-br from-primy-50 via-surface to-cream p-5 dark:from-primy-950 dark:via-surface dark:to-surface shadow-soft sm:p-6">
+      <section className="primy-card-enter relative overflow-hidden rounded-[2rem] border border-primy-200 bg-gradient-to-br from-primy-50 via-surface to-cream p-5 dark:from-primy-950 dark:via-surface dark:to-surface shadow-soft sm:p-6">
         <div className="grid items-center gap-6 lg:grid-cols-[1.05fr_.95fr]">
           <div className="relative z-10">
             <p className="inline-flex rounded-full bg-primy-100 px-3 py-1.5 text-xs font-semibold text-primy-800">Nueva jugada</p>
@@ -98,7 +98,7 @@ export default function DashboardView({ now, history, monthlyStats, totals, dueB
               <div className="rounded-2xl border border-primy-100 bg-white/70 p-3 text-sm"><p className="font-semibold text-primary">Responsable</p><p className="mt-1 text-secondary">Con control del gasto y ritmo de juego.</p></div>
             </div>
           </div>
-          <PrimyMascotGraphic className="mx-auto w-full max-w-[420px]" size="dashboard" caption="Hola, soy Primy"/>
+          <PrimyMascotGraphic className="mx-auto w-full max-w-[380px]" variant="helper" size="dashboard" caption="Estoy aquí para ayudarte a elegir"/>
         </div>
       </section>
 

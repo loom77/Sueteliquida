@@ -13,7 +13,7 @@ export default function GenerateView(props) {
   }, [props.latest?.id]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    <div className="primy-page-enter mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <header className="max-w-3xl">
         <p className="inline-flex rounded-full bg-primy-100 px-3 py-1.5 text-xs font-semibold text-primy-800">Crear jugada</p>
         <h1 className="mt-4 text-3xl font-semibold tracking-[-0.04em] text-primary sm:text-4xl">Diseña tu próxima combinación</h1>

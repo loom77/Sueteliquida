@@ -3,7 +3,8 @@ import { formatDrawDate, formatDrawTime } from '../utils/drawSchedule.js';
 import { playCost } from '../utils/playModel.js';
 import { NumberBall } from './TicketUI.jsx';
 import DistributionMap from './DistributionMap.jsx';
-import { CheckIcon, ChevronDownIcon, CopyIcon, SparklesIcon, TicketIcon, VolumeIcon } from './Icons.jsx';
+import { CheckIcon, ChevronDownIcon, CopyIcon, SparklesIcon, VolumeIcon } from './Icons.jsx';
+import { PrimyMascotGraphic } from './BrandVisuals.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
@@ -24,9 +25,9 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
 
   if (!play) {
     return (
-      <section className="flex min-h-[320px] flex-col items-center justify-center rounded-[2rem] border border-dashed border-primy-200 bg-surface p-8 text-center">
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primy-100 text-primy-700"><TicketIcon width="26" height="26"/></span>
-        <h2 className="mt-4 text-xl font-semibold text-primary">La jugada aparecerá aquí</h2>
+      <section className="primy-card-enter grid min-h-[320px] items-center gap-5 rounded-[2rem] border border-dashed border-primy-200 bg-gradient-to-br from-ivory via-white to-primy-50 p-6 text-center sm:grid-cols-[1fr_230px] sm:text-left">
+        <div><p className="text-sm font-bold text-primy-700">Vista previa</p><h2 className="mt-2 text-2xl font-semibold text-primary">La jugada aparecerá aquí</h2><p className="mt-3 text-sm leading-7 text-secondary">Ajusta el número de columnas y pulsa Generar. Primy te mostrará el boleto antes de guardarlo.</p></div>
+        <PrimyMascotGraphic variant="helper" size="dashboard" compact showCaption={false} className="mx-auto w-full max-w-[230px]"/>
       </section>
     );
   }
@@ -63,21 +64,16 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
 
   if (saveState !== 'unsaved') {
     return (
-      <section className="flex min-h-[380px] flex-col items-center justify-center rounded-[2rem] border border-primy-200 bg-primy-50 p-8 text-center">
-        <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primy-700 text-white"><CheckIcon width="26" height="26"/></span>
-        <h2 className="mt-4 text-xl font-semibold text-primy-950">{saveState === 'purchased' ? 'Jugada registrada' : 'Borrador guardado'}</h2>
-        <p className="mt-2 max-w-md text-sm leading-6 text-primy-900">{saveState === 'purchased' ? 'Primy te avisará cuando esté lista para comprobarla.' : 'La encontrarás en la sección Mis jugadas.'}</p>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <button type="button" onClick={onOpenPlays} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">Ir a mis jugadas</button>
-          <button type="button" onClick={onRegenerate} className="min-h-11 rounded-xl border border-primy-300 bg-surface px-5 text-sm font-semibold text-primy-800 hover:bg-primy-100">Crear otra</button>
-        </div>
+      <section className="primy-card-enter grid min-h-[380px] items-center gap-6 rounded-[2rem] border border-primy-200 bg-gradient-to-br from-amber-50 via-ivory to-primy-50 p-7 text-center sm:grid-cols-[1fr_280px] sm:text-left">
+        <div><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primy-700 text-white"><CheckIcon width="26" height="26"/></span><h2 className="mt-4 text-2xl font-semibold text-primy-950">{saveState === 'purchased' ? 'Jugada registrada' : 'Borrador guardado'}</h2><p className="mt-2 max-w-md text-sm leading-6 text-primy-900">{saveState === 'purchased' ? 'Primy te avisará cuando esté lista para comprobarla.' : 'La encontrarás en la sección Mis jugadas.'}</p><div className="mt-6 flex flex-col gap-3 sm:flex-row"><button type="button" onClick={onOpenPlays} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">Ir a mis jugadas</button><button type="button" onClick={onRegenerate} className="min-h-11 rounded-xl border border-primy-300 bg-surface px-5 text-sm font-semibold text-primy-800 hover:bg-primy-100">Crear otra</button></div></div>
+        <PrimyMascotGraphic variant="celebration" size="dashboard" showCaption={false} className="mx-auto w-full max-w-[280px]"/>
       </section>
     );
   }
 
   return (
     <section aria-live="polite">
-      <article className="primy-ticket rounded-[2rem] p-5 md:p-7">
+      <article className="primy-ticket primy-card-enter rounded-[2rem] p-5 md:p-7">
         <div>
           <p className="flex items-center gap-2 text-sm font-semibold text-primy-700"><SparklesIcon width="18" height="18"/>Jugada lista</p>
           <h2 className="mt-1 text-2xl font-semibold text-primary">{game.name}</h2>

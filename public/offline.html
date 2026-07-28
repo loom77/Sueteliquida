@@ -3,23 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#007A46" />
+  <meta name="theme-color" content="#0B7A49" />
   <title>Primy · Sin conexión</title>
   <style>
-    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#101828;background:#f7f4e8}
-    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 10% 10%,#d7f7e5,transparent 38rem),#f7f4e8}
-    main{max-width:560px;background:#fff;border:1px solid #cfe0d7;border-radius:32px;padding:34px;box-shadow:0 22px 60px rgba(0,78,45,.11)}
-    .mark{width:58px;height:58px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#00b968,#007a46);color:white;font-size:28px;font-weight:800;position:relative}
-    .mark:after{content:"";position:absolute;right:4px;top:4px;width:11px;height:11px;border-radius:50%;background:#ffc83d}
-    h1{margin:24px 0 0;font-size:31px;letter-spacing:-.03em}p{line-height:1.65;color:#4c5e54}button{min-height:48px;border:0;border-radius:16px;background:#007a46;color:#fff;font-weight:700;padding:0 22px;cursor:pointer}button:hover{background:#075f3a}
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#132238;background:#fbf8ef}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 10% 10%,#e4f7ec,transparent 38rem),radial-gradient(circle at 90% 90%,#dceeff,transparent 30rem),#fbf8ef}
+    main{display:grid;max-width:760px;gap:26px;align-items:center;background:#fffdf8;border:1px solid #d3e2d9;border-radius:32px;padding:30px;box-shadow:0 22px 60px rgba(11,122,73,.11)}
+    img{display:block;width:min(260px,100%);margin:auto}.copy{max-width:470px}.brand{display:flex;align-items:center;gap:12px;color:#0b7a49;font-weight:800}.mark{width:48px;height:48px;border-radius:17px;display:grid;place-items:center;background:linear-gradient(145deg,#12a05c,#0b7a49);color:white;font-size:24px;font-weight:800;position:relative}.mark:after{content:"";position:absolute;right:4px;top:4px;width:10px;height:10px;border-radius:50%;background:#f4c84a}
+    h1{margin:20px 0 0;font-size:31px;letter-spacing:-.03em}p{line-height:1.65;color:#4f6058}button{min-height:48px;border:0;border-radius:16px;background:#0b7a49;color:#fff;font-weight:700;padding:0 22px;cursor:pointer}button:hover{background:#09623c}
+    @media(min-width:680px){main{grid-template-columns:1fr 280px}.copy{grid-column:1}.visual{grid-column:2;grid-row:1}}
   </style>
 </head>
 <body>
   <main>
-    <div class="mark" aria-label="Primy">P</div>
-    <h1>Primy está temporalmente sin conexión</h1>
-    <p>Las jugadas ya guardadas pueden seguir disponibles en la aplicación instalada. Para actualizar sorteos, sincronizar tu cuenta o comprobar resultados necesitas recuperar la conexión.</p>
-    <button type="button" onclick="location.reload()">Volver a intentarlo</button>
+    <div class="copy">
+      <div class="brand"><span class="mark" aria-hidden="true">P</span><span>Primy</span></div>
+      <h1>Primy está temporalmente sin conexión</h1>
+      <p>Las jugadas ya guardadas pueden seguir disponibles en la aplicación instalada. Para actualizar sorteos, sincronizar tu cuenta o comprobar resultados necesitas recuperar la conexión.</p>
+      <button type="button" onclick="location.reload()">Volver a intentarlo</button>
+    </div>
+    <div class="visual"><img src="/mascot/primy-responsible.webp" alt="Mascota de Primy recordando que falta conexión" /></div>
   </main>
 </body>
 </html>
