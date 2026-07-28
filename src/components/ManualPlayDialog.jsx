@@ -144,20 +144,20 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
   return (
     <AccessibleDialog open={open} onClose={close} labelledBy="manual-play-title" className="sm:max-w-2xl">
       <div className="flex items-start justify-between gap-4">
-        <div><p className="text-sm font-bold text-indigo-700">Boleto externo</p><h2 id="manual-play-title" className="mt-1 text-2xl font-black text-primary">Añadir una jugada comprada en otro lugar</h2><p className="mt-2 text-sm leading-6 text-secondary">Introduce los datos del resguardo. Primy no compra el boleto: lo guarda en tu cuenta y permite comprobarlo.</p></div>
+        <div><p className="text-sm font-bold text-primy-700">Boleto externo</p><h2 id="manual-play-title" className="mt-1 text-2xl font-semibold text-primary">Añadir una jugada comprada en otro lugar</h2><p className="mt-2 text-sm leading-6 text-secondary">Introduce los datos del resguardo. Primy no compra el boleto: lo guarda en tu cuenta y permite comprobarlo.</p></div>
         <button type="button" onClick={close} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted" aria-label="Cerrar"><XIcon/></button>
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
         <GameSwitch active={gameId} onChange={setGameId} label="Juego"/>
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="text-sm font-bold text-primary">Fecha del sorteo<span className="mt-2 flex min-w-0 rounded-xl border border-default bg-surface px-3 py-2"><input type="date" value={dateKey} onChange={event => setDateKey(event.target.value)} className="block w-full min-w-0 border-0 bg-transparent p-0 font-normal text-primary"/></span></label>
-          <label className="text-sm font-bold text-primary">Referencia opcional<input value={reference} onChange={event => setReference(event.target.value)} maxLength={160} placeholder="Código o nota personal" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
+          <label className="text-sm font-bold text-primary">Fecha del sorteo<span className="mt-2 flex min-w-0 rounded-2xl border border-default bg-surface px-3 py-2"><input type="date" value={dateKey} onChange={event => setDateKey(event.target.value)} className="block w-full min-w-0 border-0 bg-transparent p-0 font-normal text-primary"/></span></label>
+          <label className="text-sm font-bold text-primary">Referencia opcional<input value={reference} onChange={event => setReference(event.target.value)} maxLength={160} placeholder="Código o nota personal" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>
         </div>
 
         <div className="rounded-2xl border border-default p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-black text-primary">Capturar código del resguardo <span className="text-xs text-secondary">beta</span></p><p className="mt-1 text-sm leading-6 text-secondary">El código se guarda como referencia. Los formatos de SELAE no están documentados públicamente: los números deben confirmarse manualmente.</p></div><button type="button" onClick={scanning ? stopScanner : startScanner} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-black text-primary hover:bg-muted"><CameraIcon width="18" height="18"/>{scanning ? 'Cerrar cámara' : 'Abrir cámara'}</button></div>
-          {scanning && <video ref={videoRef} muted playsInline className="mt-4 aspect-video w-full rounded-xl bg-slate-950 object-cover"/>}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"><div><p className="font-semibold text-primary">Capturar código del resguardo <span className="text-xs text-secondary">beta</span></p><p className="mt-1 text-sm leading-6 text-secondary">El código se guarda como referencia. Los formatos de SELAE no están documentados públicamente: los números deben confirmarse manualmente.</p></div><button type="button" onClick={scanning ? stopScanner : startScanner} className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-default px-4 text-sm font-semibold text-primary hover:bg-muted"><CameraIcon width="18" height="18"/>{scanning ? 'Cerrar cámara' : 'Abrir cámara'}</button></div>
+          {scanning && <video ref={videoRef} muted playsInline className="mt-4 aspect-video w-full rounded-xl bg-primy-700 object-cover"/>}
           {scanMessage && <p className="mt-3 text-sm leading-6 text-secondary" aria-live="polite">{scanMessage}</p>}
         </div>
 
@@ -172,18 +172,18 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
         <div className="space-y-3">
           {columns.map((column, index) => (
             <div key={column.id} className="rounded-2xl bg-muted p-4">
-              <div className="flex items-center justify-between gap-3"><p className="font-black text-primary">Columna {index + 1}</p>{columns.length > 1 && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>}</div>
+              <div className="flex items-center justify-between gap-3"><p className="font-semibold text-primary">Columna {index + 1}</p>{columns.length > 1 && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>}</div>
               <div className={`mt-3 grid gap-3 ${game.extra.scope === 'column' ? 'sm:grid-cols-[1fr_150px]' : ''}`}>
-                <label className="text-sm font-bold text-primary">Los {game.numbersToPick} números<input value={column.numbers} onChange={event => updateColumn(column.id, { numbers: event.target.value })} placeholder={`Es. ${Array.from({ length: game.numbersToPick }, (_, i) => i + 1).join(', ')}`} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>
-                {game.extra.scope === 'column' && <label className="text-sm font-bold text-primary">{game.extra.label}<input value={column.extra} onChange={event => updateColumn(column.id, { extra: event.target.value })} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal text-primary"/></label>}
+                <label className="text-sm font-bold text-primary">Los {game.numbersToPick} números<input value={column.numbers} onChange={event => updateColumn(column.id, { numbers: event.target.value })} placeholder={`Es. ${Array.from({ length: game.numbersToPick }, (_, i) => i + 1).join(', ')}`} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>
+                {game.extra.scope === 'column' && <label className="text-sm font-bold text-primary">{game.extra.label}<input value={column.extra} onChange={event => updateColumn(column.id, { extra: event.target.value })} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>}
               </div>
             </div>
           ))}
         </div>
 
-        <button type="button" onClick={() => setColumns(current => [...current, emptyColumn()])} disabled={columns.length >= (game.maxSimpleBets || 1)} className="flex min-h-11 items-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-50"><PlusIcon width="17" height="17"/>Añadir columna ({columns.length}/{game.maxSimpleBets})</button>
-        {error && <div role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div>}
-        <div className="flex flex-col-reverse gap-3 border-t border-default pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={close} className="min-h-12 rounded-xl border border-default px-5 text-sm font-bold text-primary hover:bg-muted">Cancelar</button><button type="submit" className="min-h-12 rounded-xl bg-slate-950 px-5 text-sm font-black text-white hover:bg-slate-800">Guardar boleto</button></div>
+        <button type="button" onClick={() => setColumns(current => [...current, emptyColumn()])} disabled={columns.length >= (game.maxSimpleBets || 1)} className="flex min-h-11 items-center gap-2 rounded-2xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-50"><PlusIcon width="17" height="17"/>Añadir columna ({columns.length}/{game.maxSimpleBets})</button>
+        {error && <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div>}
+        <div className="flex flex-col-reverse gap-3 border-t border-default pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={close} className="min-h-12 rounded-2xl border border-default px-5 text-sm font-bold text-primary hover:bg-muted">Cancelar</button><button type="submit" className="min-h-12 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">Guardar boleto</button></div>
       </form>
     </AccessibleDialog>
   );

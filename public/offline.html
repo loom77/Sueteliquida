@@ -3,20 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#007A46" />
   <title>Primy · Sin conexión</title>
   <style>
-    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#0f172a;background:#f8fafc}
-    body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}
-    main{max-width:520px;background:#fff;border:1px solid #e2e8f0;border-radius:24px;padding:28px}
-    h1{margin:0;font-size:28px}p{line-height:1.6;color:#475569}button{min-height:44px;border:0;border-radius:12px;background:#0f172a;color:#fff;font-weight:800;padding:0 18px;cursor:pointer}
+    :root{font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#101828;background:#f7f4e8}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 10% 10%,#d7f7e5,transparent 38rem),#f7f4e8}
+    main{max-width:560px;background:#fff;border:1px solid #cfe0d7;border-radius:32px;padding:34px;box-shadow:0 22px 60px rgba(0,78,45,.11)}
+    .mark{width:58px;height:58px;border-radius:20px;display:grid;place-items:center;background:linear-gradient(145deg,#00b968,#007a46);color:white;font-size:28px;font-weight:800;position:relative}
+    .mark:after{content:"";position:absolute;right:4px;top:4px;width:11px;height:11px;border-radius:50%;background:#ffc83d}
+    h1{margin:24px 0 0;font-size:31px;letter-spacing:-.03em}p{line-height:1.65;color:#4c5e54}button{min-height:48px;border:0;border-radius:16px;background:#007a46;color:#fff;font-weight:700;padding:0 22px;cursor:pointer}button:hover{background:#075f3a}
   </style>
 </head>
 <body>
   <main>
-    <h1>Estás sin conexión</h1>
-    <p>Las jugadas guardadas y la generación local pueden seguir funcionando desde la aplicación instalada. Para actualizar sorteos y comprobar resultados necesitas conexión.</p>
-    <button type="button" onclick="location.reload()">Reintentar</button>
+    <div class="mark" aria-label="Primy">P</div>
+    <h1>Primy está temporalmente sin conexión</h1>
+    <p>Las jugadas ya guardadas pueden seguir disponibles en la aplicación instalada. Para actualizar sorteos, sincronizar tu cuenta o comprobar resultados necesitas recuperar la conexión.</p>
+    <button type="button" onclick="location.reload()">Volver a intentarlo</button>
   </main>
 </body>
 </html>

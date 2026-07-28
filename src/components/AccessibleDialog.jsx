@@ -54,7 +54,7 @@ export default function AccessibleDialog({ open, onClose, labelledBy, children, 
 
   if (!open) return null;
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/65 p-0 sm:items-center sm:p-6" role="presentation" onMouseDown={event => closeOnBackdrop && event.target === event.currentTarget && onClose?.()}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-primy-700/60 p-0 sm:items-center sm:p-6" role="presentation" onMouseDown={event => closeOnBackdrop && event.target === event.currentTarget && onClose?.()}>
       <section ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby={labelledBy} className={`max-h-[92vh] w-full overflow-y-auto rounded-t-3xl bg-surface p-5 shadow-2xl sm:rounded-3xl sm:p-7 ${className}`}>
         {children}
       </section>

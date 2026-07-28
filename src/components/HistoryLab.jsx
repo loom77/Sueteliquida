@@ -9,7 +9,7 @@ export default function HistoryLab({ historyState }) {
     <section className="rounded-2xl border border-default bg-surface p-5 md:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-xl font-black text-primary">Datos históricos</h2>
+          <h2 className="text-xl font-semibold text-primary">Datos históricos</h2>
           <p className="mt-1 text-sm leading-6 text-secondary">Estos datos son opcionales. Primy solo los utiliza después de compararlos fuera de muestra con el azar uniforme.</p>
         </div>
         <button type="button" onClick={loaded ? reload : load} disabled={loading} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted disabled:opacity-60">
@@ -20,7 +20,7 @@ export default function HistoryLab({ historyState }) {
 
       {!loaded && !loading && (
         <div className="mt-5 rounded-xl bg-muted p-4">
-          <p className="font-black text-primary">Sin carga automática</p>
+          <p className="font-semibold text-primary">Sin carga automática</p>
           <p className="mt-1 text-sm leading-6 text-secondary">Para acelerar el panel y reducir las solicitudes al proveedor, el historial solo se descarga cuando generas una jugada o pulsas «Cargar datos».</p>
         </div>
       )}
@@ -30,9 +30,9 @@ export default function HistoryLab({ historyState }) {
 
       {(loaded || loading) && (
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl bg-muted p-4"><DatabaseIcon className="text-indigo-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Sorteos disponibles</p><p className="mt-1 text-2xl font-black text-primary">{loading ? '—' : totalDraws}</p></div>
-          <div className="rounded-xl bg-muted p-4"><ShieldIcon className="text-emerald-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Decisión automática</p><p className="mt-1 text-lg font-black text-primary">{loading ? 'Análisis pendiente' : totalDraws ? 'Comparación activa' : 'Azar uniforme'}</p></div>
-          <div className="rounded-xl bg-muted p-4"><DatabaseIcon className="text-amber-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Disponibilidad</p><p className="mt-1 text-lg font-black text-primary">{loading ? 'Carga' : limited ? 'Historial limitado' : totalDraws ? 'Historial disponible' : 'No disponible'}</p></div>
+          <div className="rounded-xl bg-muted p-4"><DatabaseIcon className="text-primy-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Sorteos disponibles</p><p className="mt-1 text-2xl font-semibold text-primary">{loading ? '—' : totalDraws}</p></div>
+          <div className="rounded-xl bg-muted p-4"><ShieldIcon className="text-emerald-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Decisión automática</p><p className="mt-1 text-lg font-semibold text-primary">{loading ? 'Análisis pendiente' : totalDraws ? 'Comparación activa' : 'Azar uniforme'}</p></div>
+          <div className="rounded-xl bg-muted p-4"><DatabaseIcon className="text-amber-700" width="20" height="20"/><p className="mt-3 text-sm font-bold text-primary">Disponibilidad</p><p className="mt-1 text-lg font-semibold text-primary">{loading ? 'Carga' : limited ? 'Historial limitado' : totalDraws ? 'Historial disponible' : 'No disponible'}</p></div>
         </div>
       )}
 

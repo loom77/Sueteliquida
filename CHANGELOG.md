@@ -34,3 +34,12 @@
 
 - Validación de API, observabilidad, cortacircuitos y barrera global de errores.
 - Endpoints serverless endurecidos y pruebas automáticas ampliadas.
+
+## 12.5.0 — Iker Visual Restyle
+
+- Nueva identidad visual verde, crema y dorada inspirada en el lenguaje gráfico de la lotería española sin reproducir marcas oficiales.
+- Nueva marca Primy, favicon e iconos PWA.
+- Tipografía Sora para títulos y números e Inter para la interfaz.
+- Rediseño de acceso, navegación, dashboard, generador, boleto y estados de jugadas.
+- Nuevas ilustraciones SVG y microinteracciones respetando `prefers-reduced-motion`.
+- Manifest PWA actualizado a español y nueva paleta de instalación.

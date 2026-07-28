@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
+  <defs><linearGradient id="g" x1="8" y1="8" x2="56" y2="56"><stop stop-color="#00B968"/><stop offset="1" stop-color="#007A46"/></linearGradient></defs>
+  <g transform="translate(5 5)"><rect width="70" height="70" rx="22" fill="url(#g)"/><circle cx="34" cy="31" r="17" fill="#fff"/><path d="M25 55V22h12c10 0 16 5 16 13 0 8-6 13-16 13h-3v7h-9Zm9-15h3c4 0 7-2 7-5s-2-5-7-5h-3v10Z" fill="#007A46"/><circle cx="57" cy="15" r="6" fill="#FFC83D"/></g>
+  <text x="92" y="51" font-family="Sora,Arial,sans-serif" font-size="43" font-weight="700" fill="#101828">Primy</text>
+</svg>

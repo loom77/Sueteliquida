@@ -1,6 +1,6 @@
-# Primy v12.4 — cuentas y sincronización con Supabase
+# Primy v12.5 — Iker Visual Restyle
 
-Primy es una PWA en castellano para crear y gestionar jugadas de **La Primitiva** y **EuroDreams**. La versión 12.4 añade cuentas multiusuario con correo y contraseña, confirmación del correo y sincronización privada entre dispositivos.
+Primy es una PWA en castellano para crear y gestionar jugadas de **La Primitiva** y **EuroDreams**. La versión 12.5 conserva las cuentas multiusuario y la sincronización privada de v12.4, e incorpora una nueva identidad visual verde, crema y dorada, nuevas ilustraciones, tipografía Sora + Inter y un rediseño completo de acceso, dashboard, generador y boletos.
 
 ## Funciones principales
 
