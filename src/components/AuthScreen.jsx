@@ -91,43 +91,68 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
   const [title, subtitle] = titles[mode];
 
   return (
-    <main className="min-h-screen bg-app px-4 py-7 text-primary sm:py-10">
-      <div className="mx-auto grid w-full max-w-6xl overflow-hidden rounded-[2rem] border border-primy-100 bg-surface shadow-lift lg:grid-cols-[1fr_1fr]">
-        <section className="relative overflow-hidden bg-gradient-to-br from-primy-800 via-primy-700 to-primy-600 p-7 text-white sm:p-10 lg:min-h-[720px]">
-          <div className="relative z-10"><PrimyWordmark className="[&_p]:text-white"/></div>
-          <div className="relative z-10 mt-10 max-w-lg">
-            <p className="inline-flex rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold text-primy-50">Tu asistente privado de juego</p>
-            <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Tus jugadas, siempre contigo.</h1>
-            <p className="mt-5 max-w-md text-sm leading-7 text-primy-50">Una forma clara, bonita y responsable de crear combinaciones, guardar boletos y saber cuándo comprobarlos.</p>
+    <main className="min-h-screen bg-app px-4 py-4 text-primary sm:px-6 sm:py-6 lg:py-8">
+      <div className="mx-auto grid w-full max-w-7xl overflow-hidden rounded-[2rem] border border-primy-100 bg-surface shadow-lift lg:grid-cols-[1.02fr_.98fr]">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primy-800 via-primy-700 to-primy-600 p-6 text-white sm:p-8 lg:p-10">
+          <div className="relative z-10 flex h-full flex-col">
+            <PrimyWordmark className="[&_p]:text-white"/>
+
+            <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(280px,.9fr)] xl:items-center">
+              <div className="max-w-xl">
+                <p className="inline-flex rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-primy-50 shadow-sm">Tu asistente privado de juego</p>
+                <h1 className="mt-4 text-4xl font-semibold tracking-[-0.045em] text-white sm:text-5xl xl:text-[3.35rem]">Tus jugadas, siempre contigo.</h1>
+                <p className="mt-4 max-w-lg text-sm leading-7 text-primy-50 sm:text-[15px]">Crea combinaciones, guarda tus boletos y recuerda cuándo comprobarlos, con una experiencia clara, bonita y responsable.</p>
+
+                <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+                  {['Cuenta privada', 'Datos sincronizados', 'Control del gasto'].map(item => (
+                    <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-3 text-sm font-medium backdrop-blur-sm">
+                      <CheckIcon width="17" height="17"/>
+                      <span>{item}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <PrimyMascotGraphic className="mx-auto w-full max-w-[360px] xl:max-w-[400px]" size="hero" caption="Tu compañera de jugadas"/>
+            </div>
+
+            <div className="mt-8 grid gap-3 rounded-[1.6rem] border border-white/10 bg-white/10 p-4 text-sm leading-6 text-primy-50 md:grid-cols-3">
+              <div><p className="font-semibold text-white">Privado</p><p className="mt-1 text-primy-50/90">Solo tú ves tus jugadas y borradores.</p></div>
+              <div><p className="font-semibold text-white">Sin compra automática</p><p className="mt-1 text-primy-50/90">Primy organiza, pero no compra boletos por ti.</p></div>
+              <div><p className="font-semibold text-white">Responsable</p><p className="mt-1 text-primy-50/90">Controla presupuesto, frecuencia y comprobación.</p></div>
+            </div>
           </div>
-          <PrimyMascotGraphic className="relative z-10 mt-8 w-full max-w-xl" size="hero" caption="Tu compañera de jugadas"/>
-          <ul className="relative z-10 mt-6 grid gap-3 text-sm sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
-            {['Cuenta privada', 'Datos sincronizados', 'Control del gasto'].map(item => <li key={item} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-3 font-medium"><CheckIcon width="17" height="17"/>{item}</li>)}
-          </ul>
         </section>
 
-        <section className="flex items-center p-7 sm:p-10 lg:p-12">
-          <div className="w-full">
-            <div className="flex items-center gap-2 text-sm font-semibold text-primy-700"><ShieldIcon width="18" height="18"/>Cuenta Primy</div>
-            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">{title}</h2>
-            <p className="mt-3 text-sm leading-6 text-secondary">{subtitle}</p>
+        <section className="flex items-start p-6 sm:p-8 lg:p-10">
+          <div className="w-full max-w-xl">
+            <div className="rounded-[1.75rem] border border-primy-100 bg-white/90 p-6 shadow-soft backdrop-blur-sm sm:p-7">
+              <div className="flex items-center gap-2 text-sm font-semibold text-primy-700"><ShieldIcon width="18" height="18"/>Cuenta Primy</div>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-[2.6rem]">{title}</h2>
+              <p className="mt-3 max-w-lg text-sm leading-6 text-secondary">{subtitle}</p>
 
-            <form onSubmit={submit} className="mt-8 space-y-5">
-              {mode === 'signup' && <Field label="Nombre" value={displayName} onChange={setDisplayName} autoComplete="name" hint="Se utiliza únicamente para personalizar tu cuenta."/>}
-              {mode !== 'update-password' && <Field label="Correo electrónico" type="email" value={email} onChange={setEmail} autoComplete="email"/>}
-              {(mode === 'signin' || mode === 'signup' || mode === 'update-password') && <Field label={mode === 'update-password' ? 'Nueva contraseña' : 'Contraseña'} type="password" value={password} onChange={setPassword} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} minLength={8} hint={mode !== 'signin' ? 'Mínimo 8 caracteres.' : undefined}/>} 
-              {mode === 'signup' && <Field label="Repite la contraseña" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8}/>} 
-              {mode === 'update-password' && <Field label="Repite la nueva contraseña" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8}/>} 
-              {error && <p role="alert" className="rounded-2xl bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">{error}</p>}
-              {message && <p role="status" className="rounded-2xl bg-primy-50 p-4 text-sm font-semibold leading-6 text-primy-900">{message}</p>}
-              <button type="submit" disabled={busy} className="min-h-14 w-full rounded-2xl bg-primy-700 px-5 font-semibold text-white shadow-soft hover:bg-primy-800 disabled:opacity-60">
-                {busy ? 'Procesando…' : mode === 'signin' ? 'Iniciar sesión' : mode === 'signup' ? 'Crear cuenta' : mode === 'forgot' ? 'Enviar enlace' : 'Guardar nueva contraseña'}
-              </button>
-            </form>
+              <form onSubmit={submit} className="mt-7 space-y-4">
+                {mode === 'signup' && <Field label="Nombre" value={displayName} onChange={setDisplayName} autoComplete="name" hint="Se utiliza únicamente para personalizar tu cuenta."/>}
+                {mode !== 'update-password' && <Field label="Correo electrónico" type="email" value={email} onChange={setEmail} autoComplete="email"/>}
+                {(mode === 'signin' || mode === 'signup' || mode === 'update-password') && <Field label={mode === 'update-password' ? 'Nueva contraseña' : 'Contraseña'} type="password" value={password} onChange={setPassword} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} minLength={8} hint={mode !== 'signin' ? 'Mínimo 8 caracteres.' : undefined}/>} 
+                {mode === 'signup' && <Field label="Repite la contraseña" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8}/>} 
+                {mode === 'update-password' && <Field label="Repite la nueva contraseña" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8}/>} 
+                {error && <p role="alert" className="rounded-2xl bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">{error}</p>}
+                {message && <p role="status" className="rounded-2xl bg-primy-50 p-4 text-sm font-semibold leading-6 text-primy-900">{message}</p>}
+                <button type="submit" disabled={busy} className="min-h-14 w-full rounded-2xl bg-primy-700 px-5 font-semibold text-white shadow-soft hover:bg-primy-800 disabled:opacity-60">
+                  {busy ? 'Procesando…' : mode === 'signin' ? 'Iniciar sesión' : mode === 'signup' ? 'Crear cuenta' : mode === 'forgot' ? 'Enviar enlace' : 'Guardar nueva contraseña'}
+                </button>
+              </form>
 
-            <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-sm font-semibold">
-              {mode === 'signin' && <><button type="button" onClick={() => { setMode('signup'); setError(''); }} className="text-primy-700 hover:underline">Crear una cuenta</button><button type="button" onClick={() => { setMode('forgot'); setError(''); }} className="text-secondary hover:text-primary hover:underline">He olvidado mi contraseña</button></>}
-              {(mode === 'signup' || mode === 'forgot') && <button type="button" onClick={() => { setMode('signin'); setError(''); setMessage(''); }} className="text-primy-700 hover:underline">Volver a iniciar sesión</button>}
+              <div className="mt-6 flex flex-wrap gap-x-5 gap-y-3 text-sm font-semibold">
+                {mode === 'signin' && <><button type="button" onClick={() => { setMode('signup'); setError(''); }} className="text-primy-700 hover:underline">Crear una cuenta</button><button type="button" onClick={() => { setMode('forgot'); setError(''); }} className="text-secondary hover:text-primary hover:underline">He olvidado mi contraseña</button></>}
+                {(mode === 'signup' || mode === 'forgot') && <button type="button" onClick={() => { setMode('signin'); setError(''); setMessage(''); }} className="text-primy-700 hover:underline">Volver a iniciar sesión</button>}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 rounded-[1.5rem] border border-primy-100 bg-cream/60 p-4 text-sm leading-6 text-secondary sm:grid-cols-2">
+              <div><p className="font-semibold text-primary">Sin complicaciones</p><p className="mt-1">Empieza con email y contraseña, sin Google y sin pasos innecesarios.</p></div>
+              <div><p className="font-semibold text-primary">Acceso desde cualquier dispositivo</p><p className="mt-1">Tus jugadas se sincronizan en tu cuenta para que siempre las tengas a mano.</p></div>
             </div>
           </div>
         </section>

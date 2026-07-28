@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import HistoryLab from './HistoryLab.jsx';
+import { PrimyMascotGraphic } from './BrandVisuals.jsx';
 import { BellIcon, DatabaseIcon, DeviceIcon, DownloadIcon, InfoIcon, InstallIcon, MoonIcon, ShieldIcon, SunIcon, TrashIcon, UploadIcon } from './Icons.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
@@ -71,6 +72,8 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
       <section className="rounded-3xl border border-default bg-surface shadow-soft p-5 md:p-6"><h2 className="text-xl font-semibold text-primary">Copia de seguridad</h2><p className="mt-1 text-sm leading-6 text-secondary">Exporta las jugadas de tu cuenta en JSON o restaura una copia de seguridad de Primy.</p><div className="mt-5 flex flex-wrap gap-3"><button type="button" onClick={exportData} disabled={!history.length} className="flex min-h-11 items-center gap-2 rounded-2xl border border-default px-4 text-sm font-bold hover:bg-muted disabled:opacity-50"><DownloadIcon width="18" height="18"/>Exportar copia</button><button type="button" onClick={() => fileRef.current?.click()} className="flex min-h-11 items-center gap-2 rounded-2xl border border-default px-4 text-sm font-bold hover:bg-muted"><UploadIcon width="18" height="18"/>Importar copia</button><input ref={fileRef} type="file" accept="application/json,.json" onChange={importFile} className="sr-only"/></div></section>
 
       <section className="rounded-2xl border border-rose-200 bg-surface p-5 md:p-6"><h2 className="text-xl font-semibold text-rose-800">Eliminar las jugadas de la cuenta</h2><p className="mt-1 text-sm leading-6 text-secondary">Esta acción elimina definitivamente las jugadas y los borradores sincronizados con tu cuenta.</p><button type="button" onClick={onClear} disabled={!history.length} className="mt-5 flex min-h-11 items-center gap-2 rounded-xl bg-rose-700 px-4 text-sm font-semibold text-white hover:bg-rose-800 disabled:opacity-50"><TrashIcon width="18" height="18"/>Eliminar todo</button></section>
+      <section className="grid gap-5 rounded-[2rem] border border-primy-100 bg-gradient-to-br from-white via-[#fcfefc] to-[#f7fbf8] p-5 shadow-soft md:grid-cols-[minmax(0,1fr)_280px] md:p-6"><div className="flex flex-col justify-center"><p className="text-sm font-bold text-primy-700">Consejo de Primy</p><h2 className="mt-2 text-2xl font-semibold text-primary">Usa la app con calma y criterio</h2><p className="mt-3 text-sm leading-7 text-secondary">Nuestra mascota también recuerda que Primy está para organizar tus jugadas, no para empujarte a jugar más. Mantén siempre tus límites personales y disfruta del juego de forma responsable.</p></div><PrimyMascotGraphic className="mx-auto w-full max-w-[280px]" size="dashboard" caption="Tu guía para jugar con cabeza"/></section>
+
       <section className="rounded-2xl bg-primy-700 p-5 text-white md:p-6"><h2 className="text-xl font-semibold">Juego responsable</h2><p className="mt-2 text-sm leading-6 text-primy-100">Primy es una herramienta informativa para mayores de edad. No vende boletos, no predice sorteos ni garantiza premios. No persigas las pérdidas ni utilices dinero necesario para gastos esenciales.</p></section>
     </div>
   );

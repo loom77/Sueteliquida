@@ -80,17 +80,25 @@ export default function DashboardView({ now, history, monthlyStats, totals, dueB
   const primaryDraw = draws[0];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-8 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <section className="relative overflow-hidden rounded-[2rem] border border-primy-200 bg-gradient-to-br from-primy-50 via-surface to-cream p-6 dark:from-primy-950 dark:via-surface dark:to-surface shadow-soft sm:p-8">
-        <div className="grid items-center gap-7 lg:grid-cols-[1fr_.9fr]">
+    <div className="mx-auto max-w-6xl space-y-6 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
+      <section className="relative overflow-hidden rounded-[2rem] border border-primy-200 bg-gradient-to-br from-primy-50 via-surface to-cream p-5 dark:from-primy-950 dark:via-surface dark:to-surface shadow-soft sm:p-6">
+        <div className="grid items-center gap-6 lg:grid-cols-[1.05fr_.95fr]">
           <div className="relative z-10">
             <p className="inline-flex rounded-full bg-primy-100 px-3 py-1.5 text-xs font-semibold text-primy-800">Nueva jugada</p>
-            <h1 className="mt-5 max-w-2xl text-4xl font-semibold tracking-[-0.045em] text-primary sm:text-5xl">Tu próxima jugada empieza aquí.</h1>
-            <p className="mt-4 max-w-xl text-base leading-7 text-secondary">Elige el juego, ajusta tu presupuesto y deja que Primy prepare combinaciones coordinadas para ti.</p>
-            {primaryDraw && <p className="mt-5 flex items-center gap-2 text-sm font-semibold text-primy-800"><CalendarIcon width="18" height="18"/>Próximo sorteo: <span className="capitalize">{formatDrawDate(primaryDraw.drawDateTimeISO, { includeYear: false })}</span> a las {formatDrawTime(primaryDraw.drawDateTimeISO)}</p>}
-            <button type="button" onClick={() => onGenerate('primitiva')} className="mt-6 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-primy-700 px-6 py-3 font-semibold text-white shadow-soft hover:bg-primy-800">Crear jugada<ArrowRightIcon width="18" height="18"/></button>
+            <h1 className="mt-4 max-w-2xl text-4xl font-semibold tracking-[-0.045em] text-primary sm:text-[3.2rem]">Tu próxima jugada empieza aquí.</h1>
+            <p className="mt-3 max-w-xl text-base leading-7 text-secondary">Elige el juego, ajusta tu presupuesto y deja que Primy prepare combinaciones coordinadas para ti.</p>
+            {primaryDraw && <p className="mt-4 flex items-center gap-2 text-sm font-semibold text-primy-800"><CalendarIcon width="18" height="18"/>Próximo sorteo: <span className="capitalize">{formatDrawDate(primaryDraw.drawDateTimeISO, { includeYear: false })}</span> a las {formatDrawTime(primaryDraw.drawDateTimeISO)}</p>}
+            <div className="mt-5 flex flex-wrap gap-3">
+              <button type="button" onClick={() => onGenerate('primitiva')} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-primy-700 px-6 py-3 font-semibold text-white shadow-soft hover:bg-primy-800">Crear jugada<ArrowRightIcon width="18" height="18"/></button>
+              <button type="button" onClick={onAddExternal} className="inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl border border-primy-200 bg-surface px-5 py-3 font-semibold text-primy-800 hover:bg-primy-50"><EditIcon width="18" height="18"/>Añadir boleto</button>
+            </div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-primy-100 bg-white/70 p-3 text-sm"><p className="font-semibold text-primary">Privado</p><p className="mt-1 text-secondary">Tus jugadas se guardan solo en tu cuenta.</p></div>
+              <div className="rounded-2xl border border-primy-100 bg-white/70 p-3 text-sm"><p className="font-semibold text-primary">Claro</p><p className="mt-1 text-secondary">Sabes qué crear, qué registrar y qué comprobar.</p></div>
+              <div className="rounded-2xl border border-primy-100 bg-white/70 p-3 text-sm"><p className="font-semibold text-primary">Responsable</p><p className="mt-1 text-secondary">Con control del gasto y ritmo de juego.</p></div>
+            </div>
           </div>
-          <PrimyMascotGraphic className="mx-auto w-full max-w-lg" size="dashboard" caption="Hola, soy Primy"/>
+          <PrimyMascotGraphic className="mx-auto w-full max-w-[420px]" size="dashboard" caption="Hola, soy Primy"/>
         </div>
       </section>
 

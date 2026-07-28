@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AccessibleDialog from './AccessibleDialog.jsx';
 import { DatabaseIcon, PlusIcon, ShieldIcon, TicketIcon, XIcon } from './Icons.jsx';
+import { PrimyMascotGraphic } from './BrandVisuals.jsx';
 
 const STEPS = [
   { icon: PlusIcon, title: 'Crea columnas coordinadas', text: 'Elige el juego y el presupuesto. Primy reduce duplicados y solapamientos sin prometer números seguros.' },
@@ -21,7 +22,7 @@ export default function OnboardingDialog({ open, onComplete }) {
         <div><p className="text-sm font-bold text-primy-700">Bienvenido a Primy</p><h2 id="onboarding-title" className="mt-1 text-2xl font-semibold text-primary">Un asistente, no un vendedor de boletos</h2></div>
         <button type="button" onClick={finish} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted" aria-label="Cerrar introducción"><XIcon/></button>
       </div>
-      <div className="mt-7 rounded-3xl bg-muted p-6">
+      <div className="mt-6"><PrimyMascotGraphic className="mx-auto w-full max-w-[360px]" size="dashboard" caption="Te acompaño paso a paso"/></div><div className="mt-6 rounded-3xl bg-muted p-6">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primy-700 text-white"><Icon width="22" height="22"/></span>
         <h3 className="mt-5 text-xl font-semibold text-primary">{item.title}</h3>
         <p className="mt-2 text-base leading-7 text-secondary">{item.text}</p>

@@ -1,5 +1,19 @@
 # Registro de cambios
 
+## v12.5.3 — Reequilibrio visual de acceso y home
+
+- Rediseño completo de login y registro para eliminar espacios vacíos excesivos y mejorar el equilibrio entre hero, mascota y formulario.
+- Formulario de acceso desplazado hacia arriba y encapsulado en una tarjeta más clara y compacta.
+- Reordenación de textos, jerarquía y bloques informativos en la pantalla de autenticación.
+- Ajuste de la página principal/dashboard para reducir altura muerta, compactar la hero y mejorar la distribución de CTAs y contenido.
+
+## v12.5.2 — Mascota extendida en la experiencia
+
+- La mascota de Primy ahora aparece también en el estado vacío de Mis jugadas.
+- Integración en la introducción paso a paso para reforzar onboarding y personalidad.
+- Integración en la migración de datos locales a la cuenta.
+- Nuevo bloque “Consejo de Primy” en Ajustes para reforzar el juego responsable.
+
 ## v12.5.1 — Mascota Primy
 
 - Integración de la nueva mascota búho de Primy en las áreas hero.
