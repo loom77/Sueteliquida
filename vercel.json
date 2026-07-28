@@ -54,22 +54,30 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://vmzkhelxehgedorsvchl.supabase.co wss://vmzkhelxehgedorsvchl.supabase.co; worker-src 'self' blob:; manifest-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
         }
       ]
     }
   ],
   "rewrites": [
     {
-      "source": "/genera",
+      "source": "/generar",
       "destination": "/index.html"
     },
     {
-      "source": "/giocate",
+      "source": "/jugadas",
       "destination": "/index.html"
     },
     {
-      "source": "/impostazioni",
+      "source": "/ajustes",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/auth/confirm",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/auth/recovery",
       "destination": "/index.html"
     }
   ]
