@@ -45,7 +45,7 @@ function loadLegacyPlays() {
 
 function writeUserCache(userId, plays, pending) {
   if (!userId) return;
-  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: 12, plays, pending }));
+  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: 13, plays, pending }));
 }
 
 function mergePlays(...collections) {
@@ -465,6 +465,8 @@ export function useGameHistory(user) {
     syncStatus,
     lastSyncedAt,
     pendingLocalCount: pendingLocalPlays.length,
+    pendingSyncCount: pendingRef.current.length,
+    retrySync: flushPending,
     migrationBusy,
     importLocalData,
     dismissLocalData,

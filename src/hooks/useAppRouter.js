@@ -2,11 +2,16 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 const ROUTES = {
   dashboard: '/',
-  generate: '/generar',
-  plays: '/jugadas',
+  generate: '/crear',
+  explore: '/explorar',
+  plays: '/archivo',
   settings: '/ajustes',
 };
-const VIEWS = Object.fromEntries(Object.entries(ROUTES).map(([view, path]) => [path, view]));
+const VIEWS = {
+  ...Object.fromEntries(Object.entries(ROUTES).map(([view, path]) => [path, view])),
+  '/generar': 'generate',
+  '/jugadas': 'plays',
+};
 
 function viewFromLocation() {
   const path = window.location.pathname.replace(/\/+$/, '') || '/';

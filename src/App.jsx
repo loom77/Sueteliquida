@@ -17,9 +17,11 @@ import Toast from './components/Toast.jsx';
 import OnboardingDialog from './components/OnboardingDialog.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import LocalDataMigrationDialog from './components/LocalDataMigrationDialog.jsx';
+import ConfirmDialog from './components/ConfirmDialog.jsx';
 
 const DashboardView = lazy(() => import('./components/DashboardView.jsx'));
 const GenerateView = lazy(() => import('./components/GenerateView.jsx'));
+const ExploreView = lazy(() => import('./components/ExploreView.jsx'));
 const PlaysView = lazy(() => import('./components/PlaysView.jsx'));
 const SettingsView = lazy(() => import('./components/SettingsView.jsx'));
 const ManualPlayDialog = lazy(() => import('./components/ManualPlayDialog.jsx'));
@@ -37,6 +39,7 @@ function AuthenticatedApp({ auth }) {
   const [toast, setToast] = useState(null);
   const [manualOpen, setManualOpen] = useState(false);
   const [variantContext, setVariantContext] = useState(null);
+  const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
   const workerRef = useRef(null);
   const generationRequestRef = useRef(0);
 
@@ -47,7 +50,7 @@ function AuthenticatedApp({ auth }) {
     onNeedRefresh: update => setToast({ message: 'Hay una nueva versión de Primy disponible.', actionLabel: 'Actualizar ahora', action: update }),
     onOfflineReady: () => setToast({ message: 'Primy está lista para funcionar sin conexión en las funciones locales.' }),
   });
-  const historyData = useHistoryData(activeGame, { enabled: view === 'generate' });
+  const historyData = useHistoryData(activeGame, { enabled: view === 'settings' });
   const { preferences, updatePreferences, error: preferenceError } = usePreferences(auth.user);
   const game = getGameConfig(activeGame);
   const {
@@ -66,6 +69,8 @@ function AuthenticatedApp({ auth }) {
     syncStatus,
     lastSyncedAt,
     pendingLocalCount,
+    pendingSyncCount,
+    retrySync,
     migrationBusy,
     importLocalData,
     dismissLocalData,
@@ -73,7 +78,15 @@ function AuthenticatedApp({ auth }) {
 
   useEffect(() => () => workerRef.current?.terminate(), []);
   useEffect(() => {
-    const titles = { dashboard: 'Inicio', generate: 'Crear jugada', plays: 'Mis jugadas', settings: 'Ajustes' };
+    if (view === 'generate' || !busy) return;
+    generationRequestRef.current += 1;
+    workerRef.current?.terminate();
+    workerRef.current = null;
+    setBusy(false);
+    setProgress(0);
+  }, [view, busy]);
+  useEffect(() => {
+    const titles = { dashboard: 'Inicio', generate: 'Crear jugada', explore: 'Explorar', plays: 'Archivo', settings: 'Perfil' };
     document.title = `${titles[view]} · Primy`;
   }, [view]);
   useEffect(() => {
@@ -142,13 +155,10 @@ function AuthenticatedApp({ auth }) {
       workerRef.current = null;
     };
 
-    const samples = Math.min(28000, Math.max(6500, columnCount * 1100));
     worker.postMessage({
       requestId,
       gameId: activeGame,
-      analysis: historyData.analysis,
       columnCount,
-      samples,
       avoidColumns: variantContext?.columns || [],
       variantOf: variantContext?.id || null,
     });
@@ -273,26 +283,38 @@ function AuthenticatedApp({ auth }) {
     return output;
   }, { plays: 0, columns: 0 }), [history]);
 
-  const clearAll = () => {
-    if (!window.confirm('¿Eliminar definitivamente todas las jugadas y los borradores de tu cuenta?')) return;
+  const requestClearAll = () => setClearConfirmOpen(true);
+
+  const confirmClearAll = () => {
     clearHistory();
+    setClearConfirmOpen(false);
     setToast({ message: 'Se han eliminado todas las jugadas de tu cuenta.' });
   };
 
   return (
-    <AppShell view={view} onNavigate={navigate} dueCount={dueTotal} user={auth.user} onSignOut={auth.signOut} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt}>
+    <AppShell view={view} onNavigate={navigate} dueCount={dueTotal} user={auth.user} onSignOut={auth.signOut} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} pendingSyncCount={pendingSyncCount}>
       <Suspense fallback={<div className="rounded-2xl border border-border bg-surface p-6 text-sm text-secondary">Cargando pantalla…</div>}>
-      {view === 'dashboard' && <DashboardView now={now} history={history} monthlyStats={monthlyStats} totals={totals} dueByGame={dueByGame} drawOverview={drawOverview} onGenerate={openGenerate} onAddExternal={() => setManualOpen(true)} onOpenPlays={() => navigate('plays')} onCheckAll={checkAll} checking={checkingGame === 'all'}/>} 
+      {view === 'dashboard' && <DashboardView now={now} history={history} monthlyStats={monthlyStats} totals={totals} dueByGame={dueByGame} drawOverview={drawOverview} onGenerate={openGenerate} onAddExternal={() => setManualOpen(true)} onOpenPlays={() => navigate('plays')} onExplore={() => navigate('explore')} onCheckAll={checkAll} checking={checkingGame === 'all'}/>} 
+
+      {view === 'explore' && <ExploreView now={now} history={history} onCreate={openGenerate} onOpenArchive={() => navigate('plays')}/>}
 
       {view === 'generate' && <GenerateView game={game} activeGame={activeGame} onGameChange={selectGame} columnCount={columnCount} setColumnCount={setColumnCount} onGenerate={generate} busy={busy} progress={progress} generationError={generationError} monthlySpent={monthlyStats.spent} monthlyLimit={preferences.monthlyLimit} latest={latest} saveState={saveState} onSaveDraft={() => saveLatest(false)} onPurchase={() => saveLatest(true)} onDiscard={discardLatest} onOpenPlays={() => navigate('plays')} onToast={message => setToast({ message })} variantLabel={variantContext?.label || ''} onClearVariant={() => setVariantContext(null)}/>} 
 
-      {view === 'plays' && <PlaysView plays={history} dueByGame={dueByGame} verificationError={verificationError} checkingGame={checkingGame} onCheck={checkGame} onPurchase={purchaseExisting} onRemove={removeWithUndo} onSetPrize={setOfficialPrize} onFavorite={toggleFavorite} onRepeat={repeatExact} onVariant={createVariant} onAddExternal={() => setManualOpen(true)}/>} 
+      {view === 'plays' && <PlaysView plays={history} dueByGame={dueByGame} verificationError={verificationError} checkingGame={checkingGame} onCheck={checkGame} onPurchase={purchaseExisting} onRemove={removeWithUndo} onSetPrize={setOfficialPrize} onFavorite={toggleFavorite} onRepeat={repeatExact} onVariant={createVariant} onAddExternal={() => setManualOpen(true)} onCreate={() => openGenerate(activeGame)}/>} 
 
-      {view === 'settings' && <SettingsView activeGame={activeGame} onGameChange={selectGame} providerStatus={providerStatus} historyState={historyData} preferences={preferences} updatePreferences={updatePreferences} preferenceError={preferenceError} storageError={storageError} history={history} onImport={importHistory} onClear={clearAll} onToast={message => setToast({ message })} installPrompt={installPrompt} user={auth.user} onSignOut={auth.signOut} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt}/>} 
+      {view === 'settings' && <SettingsView activeGame={activeGame} onGameChange={selectGame} providerStatus={providerStatus} historyState={historyData} preferences={preferences} updatePreferences={updatePreferences} preferenceError={preferenceError} storageError={storageError} history={history} onImport={importHistory} onClear={requestClearAll} onToast={message => setToast({ message })} installPrompt={installPrompt} user={auth.user} onSignOut={auth.signOut} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} pendingSyncCount={pendingSyncCount} onRetrySync={retrySync}/>} 
 
       <ManualPlayDialog open={manualOpen} initialGame={activeGame} onClose={() => setManualOpen(false)} onSave={saveExternal}/>
       <OnboardingDialog open={!preferences.onboardingSeen} onComplete={() => updatePreferences({ onboardingSeen: true })}/>
       </Suspense>
+      <ConfirmDialog
+        open={clearConfirmOpen}
+        onClose={() => setClearConfirmOpen(false)}
+        onConfirm={confirmClearAll}
+        title="Eliminar todas las jugadas"
+        description="Esta acción eliminará definitivamente las jugadas y los borradores guardados en tu cuenta. No se puede deshacer."
+        confirmLabel="Sí, eliminar todo"
+      />
       <LocalDataMigrationDialog count={pendingLocalCount} busy={migrationBusy} onImport={importLocalData} onSkip={dismissLocalData}/>
       <Toast toast={toast} onClose={() => setToast(null)}/>
     </AppShell>

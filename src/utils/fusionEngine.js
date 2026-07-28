@@ -1,8 +1,6 @@
 import { getGameConfig } from './gameConfig.js';
 import { getNextDrawInfo } from './drawSchedule.js';
-import { getEvidenceProfile, probabilityAffinity } from './evidenceEngine.js';
-import { weightedCombination } from './predictiveModels.js';
-import { coverageMetrics, optimizeCoverage } from './portfolioOptimizer.js';
+import { coverageMetrics } from './portfolioOptimizer.js';
 
 const clamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 const mean = values => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
@@ -52,14 +50,18 @@ function shuffle(values, rng) {
   return output;
 }
 
-function randomCombination(gameId, game, profile, rng) {
-  if (profile.signalWeight > 0) return weightedCombination(gameId, profile.probabilities, rng.float);
+function randomCombination(game, rng) {
   const pool = Array.from({ length: game.numberPoolMax }, (_, index) => index + 1);
-  const output = [];
-  while (output.length < game.numbersToPick) {
-    output.push(pool.splice(rng.int(0, pool.length - 1), 1)[0]);
+
+  // Partial Fisher-Yates: every valid unordered combination has the same
+  // probability. No historical, structural or human-choice pattern is used
+  // to accept, reject or rank the generated numbers.
+  for (let index = 0; index < game.numbersToPick; index += 1) {
+    const other = rng.int(index, pool.length - 1);
+    [pool[index], pool[other]] = [pool[other], pool[index]];
   }
-  return output.sort((left, right) => left - right);
+
+  return pool.slice(0, game.numbersToPick).sort((left, right) => left - right);
 }
 
 function longestRun(numbers) {
@@ -144,29 +146,31 @@ export function scoreAntiShare(gameId, numbers) {
   };
 }
 
-export function resolveFusionProfile(gameId, analysis, evidenceOptions = {}) {
-  const evidence = getEvidenceProfile(gameId, analysis, evidenceOptions);
-  const historicalWeight = evidence.signalWeight || 0;
+export function resolveFusionProfile(gameId, analysis) {
+  const game = getGameConfig(gameId);
+  const uniformProbability = game.numbersToPick / game.numberPoolMax;
   return {
     hasHistory: Boolean(analysis?.totalDraws),
-    evidence,
+    evidence: {
+      eligible: false,
+      reason: 'El historial se conserva solo para análisis descriptivo.',
+      runs: 0,
+      models: [],
+    },
     audit: {
-      eligible: evidence.eligible,
-      reason: evidence.reason,
-      runs: evidence.runs,
-      delta: mean(evidence.models?.map(model => model.meanHitGain) || []),
-      lower95: Math.max(0, ...((evidence.models || []).map(model => model.lowerHitGain))),
+      eligible: false,
+      reason: 'La generación uniforme no utiliza modelos predictivos.',
+      runs: 0,
+      delta: 0,
+      lower95: 0,
       foldWinRate: null,
     },
-    probabilities: evidence.probabilities,
-    signalWeight: historicalWeight,
-    // Solo las estimaciones de probabilidad validadas influyen en la clasificación orientada al acierto.
-    // El equilibrio estructural y la reducción de coincidencias siguen siendo diagnósticos
-    // y nunca se presentan como evidencia predictiva.
+    probabilities: Array.from({ length: game.numberPoolMax + 1 }, (_, number) => number ? uniformProbability : 0),
+    signalWeight: 0,
     weights: {
-      predictive: historicalWeight,
-      historical: historicalWeight,
-      portfolioCoverage: 1,
+      predictive: 0,
+      historical: 0,
+      portfolioCoverage: 0,
       structural: 0,
       antiShare: 0,
     },
@@ -187,9 +191,7 @@ function anchorDiversityScore(numbers, avoidColumns = []) {
 function scoreCandidate(gameId, numbers, profile, avoidColumns = []) {
   const structural = scoreStructuralQuality(gameId, numbers);
   const antiShare = scoreAntiShare(gameId, numbers);
-  const predictive = profile.signalWeight > 0
-    ? probabilityAffinity(gameId, numbers, profile.probabilities)
-    : 50;
+  const predictive = 50;
   const diversity = anchorDiversityScore(numbers, avoidColumns);
   // Puntuación orientada al acierto: sin evidencia histórica, todas las combinaciones válidas
   // son neutrales. Los diagnósticos sobre patrones humanos y equilibrio visual quedan fuera
@@ -230,26 +232,31 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
   const seed = String(options.seed || createGenerationSeed());
   const rng = createSeededRandom(seed);
   const count = Math.max(1, Math.min(Number(columnCount) || 1, game.maxSimpleBets || 1));
-  const samples = Math.max(count * 250, Math.min(Number(options.samples) || Math.max(6000, count * 1000), 36000));
   const profile = resolveFusionProfile(gameId, analysis, options.evidenceOptions || options.auditOptions || {});
-  const candidates = [];
+  const selected = [];
   const seen = new Set();
+  const blockedExact = new Set((options.avoidColumns || []).map(column =>
+    [...(column.numbers || column.ticket || [])].sort((left, right) => left - right).join('-')
+  ));
+  let attempts = 0;
+  const maximumAttempts = Math.max(1000, count * 100);
 
-  for (let index = 0; index < samples; index += 1) {
-    const numbers = randomCombination(gameId, game, profile, rng);
+  while (selected.length < count && attempts < maximumAttempts) {
+    attempts += 1;
+    const numbers = randomCombination(game, rng);
     const key = numbers.join('-');
-    if (seen.has(key)) continue;
+    if (seen.has(key) || blockedExact.has(key)) continue;
     seen.add(key);
-    candidates.push(scoreCandidate(gameId, numbers, profile, options.avoidColumns || []));
-    if (options.onProgress && index % 500 === 0) options.onProgress(index / samples);
+    // Scores are retained only for backward-compatible diagnostics in the UI.
+    // They never influence acceptance, rejection or ordering.
+    selected.push(scoreCandidate(gameId, numbers, { ...profile, signalWeight: 0 }, []));
+    if (options.onProgress) options.onProgress(selected.length / count);
   }
 
-  const selected = optimizeCoverage(gameId, candidates, count, {
-    probabilities: profile.probabilities,
-    qualityWeight: profile.signalWeight > 0 ? 0.08 : 0,
-    rankCandidates: profile.signalWeight > 0,
-    localIterations: Math.min(220, 80 + count * 8),
-  });
+  if (selected.length !== count) {
+    throw new Error('No se pudieron generar suficientes columnas únicas.');
+  }
+
   const receiptExtra = game.extra.scope === 'receipt' ? rng.int(game.extra.min, game.extra.max) : null;
   const extras = game.extra.scope === 'receipt'
     ? Array(selected.length).fill(receiptExtra)
@@ -274,34 +281,41 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     ...(game.extra.scope === 'receipt' ? { receiptExtra } : {}),
     createdAt: new Date().toISOString(),
     ...draw,
-    method: 'primy-evidence',
+    method: 'primy-uniform',
     purchased: false,
     status: 'draft',
     metadata: {
-      engine: 'Motor de Evidencia de Primy',
-      engineVersion: '12.2',
+      engine: 'Motor uniforme de Primy',
+      engineVersion: '13.0-david-uniform',
       seed,
-      candidatesAnalyzed: candidates.length,
-      generationConfig: { samples, columns: count, gameId },
+      randomDraws: attempts,
+      generationConfig: { mode: 'uniform-without-replacement', columns: count, gameId },
       requestedColumns: count,
       quality: {
         ...metrics,
       },
       history: {
         available: profile.hasHistory,
-        used: profile.signalWeight > 0,
-        weight: Math.round(profile.signalWeight * 1000) / 10,
+        used: false,
+        weight: 0,
         audit: profile.audit,
         evidence: {
-          reason: profile.evidence.reason,
+          reason: 'El historial se conserva solo como análisis descriptivo y no interviene en la generación.',
           runs: profile.evidence.runs,
           models: profile.evidence.models,
         },
         draws: analysis?.totalDraws || 0,
         through: analysis?.to || null,
       },
-      weights: Object.fromEntries(Object.entries(profile.weights).map(([key, value]) => [key, Math.round(value * 1000) / 10])),
+      weights: {
+        predictive: 0,
+        historical: 0,
+        portfolioCoverage: 0,
+        structural: 0,
+        antiShare: 0,
+      },
       variantOf: options.variantOf || null,
     },
   };
 }
+

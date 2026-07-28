@@ -16,7 +16,8 @@ test('Fusión genera el número solicitado de columnas de La Primitiva', () => {
   assert.ok(play.columns.every(column => column.extra === play.receiptExtra));
   assert.ok(play.receiptExtra >= 0 && play.receiptExtra <= 9);
   assert.equal(new Set(play.columns.map(column => column.numbers.join('-'))).size, 5);
-  assert.equal(play.method, 'primy-evidence');
+  assert.equal(play.method, 'primy-uniform');
+  assert.equal(play.metadata.history.used, false);
 });
 
 test('Fusión también funciona con EuroDreams, distribuye el Sueño y respeta el máximo del boleto', () => {
@@ -54,4 +55,42 @@ test('la variante penaliza el solapamiento con la jugada de origen', () => {
   assert.equal(play.metadata.variantOf, 'source-play');
   assert.equal(play.columns.length, 4);
   assert.ok(play.columns.every(column => column.numbers.filter(number => source[0].numbers.includes(number)).length < 6));
+});
+
+
+test('la misma semilla reproduce exactamente los mismos números y extras', () => {
+  const first = generateFusionPlay('eurodreams', null, 6, { seed: 'david-uniform-test' });
+  const second = generateFusionPlay('eurodreams', null, 6, { seed: 'david-uniform-test' });
+  assert.deepEqual(
+    first.columns.map(column => ({ numbers: column.numbers, extra: column.extra })),
+    second.columns.map(column => ({ numbers: column.numbers, extra: column.extra })),
+  );
+});
+
+test('il motore non esclude sequenze o combinazioni con numeri bassi', () => {
+  let foundConsecutiveTriple = false;
+  let foundFewerThanTwoOver31 = false;
+  for (let index = 0; index < 3000 && !(foundConsecutiveTriple && foundFewerThanTwoOver31); index += 1) {
+    const play = generateFusionPlay('eurodreams', null, 1, { seed: `uniform-space-${index}` });
+    const numbers = play.columns[0].numbers;
+    let run = 1;
+    for (let position = 1; position < numbers.length; position += 1) {
+      run = numbers[position] === numbers[position - 1] + 1 ? run + 1 : 1;
+      if (run >= 3) foundConsecutiveTriple = true;
+    }
+    if (numbers.filter(number => number > 31).length < 2) foundFewerThanTwoOver31 = true;
+  }
+  assert.equal(foundConsecutiveTriple, true);
+  assert.equal(foundFewerThanTwoOver31, true);
+});
+
+test('il motore uniforme non usa lo storico per cambiare la giocata', () => {
+  const analysis = analyzeHistory('primitiva', primitivaDraws);
+  const withoutHistory = generateFusionPlay('primitiva', null, 4, { seed: 'history-neutrality' });
+  const withHistory = generateFusionPlay('primitiva', analysis, 4, { seed: 'history-neutrality' });
+  assert.deepEqual(
+    withoutHistory.columns.map(column => column.numbers),
+    withHistory.columns.map(column => column.numbers),
+  );
+  assert.equal(withHistory.metadata.history.used, false);
 });

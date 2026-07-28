@@ -54,22 +54,34 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://vmzkhelxehgedorsvchl.supabase.co wss://vmzkhelxehgedorsvchl.supabase.co; worker-src 'self' blob:; manifest-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self' https://vmzkhelxehgedorsvchl.supabase.co wss://vmzkhelxehgedorsvchl.supabase.co; worker-src 'self' blob:; manifest-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
         }
       ]
     }
   ],
   "rewrites": [
     {
+      "source": "/crear",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/explorar",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/archivo",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/ajustes",
+      "destination": "/index.html"
+    },
+    {
       "source": "/generar",
       "destination": "/index.html"
     },
     {
       "source": "/jugadas",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/ajustes",
       "destination": "/index.html"
     },
     {

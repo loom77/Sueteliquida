@@ -1,5 +1,18 @@
 # Registro de cambios
 
+## v13.0.0 — Primy Core Experience
+
+- Nueva arquitectura de experiencia: Inicio, Crear, Explorar, Archivo y Perfil.
+- Home simplificada y orientada a una única acción principal.
+- Nuevo flujo continuo `CreateJourney` para configurar, crear y presentar la jugada.
+- Resultado y Archivo rediseñados con mejor jerarquía, estados vacíos y acciones accesibles.
+- Perfil reorganizado con ajustes avanzados mediante divulgación progresiva.
+- Primy Core utiliza generación uniforme independiente del historial.
+- Eliminados del flujo de producción los modelos predictivos y el análisis histórico.
+- Mejoras de accesibilidad, reduced-motion, navegación por teclado y targets táctiles.
+- Rutas, cachés PWA, sincronización y modo offline actualizados a v13.
+- 41 pruebas matemáticas y de dominio superadas.
+
 ## v12.6.1 — Corrección del generador responsive
 
 - Corregida la superposición y compresión del tutorial al mostrar un boleto generado.

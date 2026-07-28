@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
+import { ChartIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
 import { PrimyMascotAvatar, PrimyWordmark } from './BrandVisuals.jsx';
 
 const NAV = [
   { id: 'dashboard', label: 'Inicio', icon: HomeIcon },
-  { id: 'generate', label: 'Crear jugada', icon: PlusIcon },
-  { id: 'plays', label: 'Mis jugadas', icon: ListIcon },
-  { id: 'settings', label: 'Ajustes', icon: SettingsIcon },
+  { id: 'generate', label: 'Crear', icon: PlusIcon },
+  { id: 'explore', label: 'Explorar', icon: ChartIcon },
+  { id: 'plays', label: 'Archivo', icon: ListIcon },
+  { id: 'settings', label: 'Perfil', icon: SettingsIcon },
 ];
 
 function NavButton({ item, active, onSelect, mobile = false, badge = 0 }) {
@@ -39,9 +40,9 @@ function NavButton({ item, active, onSelect, mobile = false, badge = 0 }) {
   );
 }
 
-function SyncLabel({ status, lastSyncedAt }) {
+function SyncLabel({ status, lastSyncedAt, pendingCount = 0 }) {
   if (status === 'syncing' || status === 'loading') return <span className="text-amber-700">Sincronizando…</span>;
-  if (status === 'offline') return <span className="text-amber-700">Pendiente de sincronizar</span>;
+  if (status === 'offline') return <span className="text-amber-700">{pendingCount ? `${pendingCount} ${pendingCount === 1 ? 'cambio pendiente' : 'cambios pendientes'}` : 'Pendiente de sincronizar'}</span>;
   if (status === 'error') return <span className="text-rose-700">Sin conexión con la cuenta</span>;
   if (status === 'synced') {
     const time = lastSyncedAt ? new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' }).format(lastSyncedAt) : '';
@@ -50,7 +51,7 @@ function SyncLabel({ status, lastSyncedAt }) {
   return <span className="text-secondary">Cuenta conectada</span>;
 }
 
-export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignOut, syncStatus, lastSyncedAt, children }) {
+export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignOut, syncStatus, lastSyncedAt, pendingSyncCount = 0, children }) {
   const [online, setOnline] = useState(() => navigator.onLine !== false);
   useEffect(() => {
     const update = () => setOnline(navigator.onLine !== false);
@@ -68,8 +69,8 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
       <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-primy-100 bg-surface/95 p-5 backdrop-blur lg:flex">
         <PrimyWordmark/>
         <div className="primy-card-enter mt-7 rounded-3xl bg-gradient-to-br from-primy-700 to-primy-900 p-5 text-white">
-          <p className="font-display text-lg font-semibold">Hoy puede empezar una nueva combinación.</p>
-          <p className="mt-2 text-xs leading-5 text-primy-100">Crea, guarda y comprueba tus jugadas sin perder el control del presupuesto.</p>
+          <p className="font-display text-lg font-semibold">Todo lo que necesitas para vivir cada sorteo con claridad.</p>
+          <p className="mt-2 text-xs leading-5 text-primy-100">Crea, organiza y comprueba tus jugadas desde un solo lugar.</p>
           <div className="mt-4 flex gap-2" aria-hidden="true">
             {[6, 14, 23, 31].map(number => <span key={number} className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-bold text-primy-800 shadow-sm">{number}</span>)}
           </div>
@@ -82,7 +83,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
             <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primy-200 bg-ivory"><PrimyMascotAvatar className="h-14 w-14"/></span>
             <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{displayName}</p><p className="truncate text-xs text-secondary">{user?.email}</p></div>
           </div>
-          <p className="mt-3 text-xs font-semibold"><SyncLabel status={syncStatus} lastSyncedAt={lastSyncedAt}/></p>
+          <p className="mt-3 text-xs font-semibold"><SyncLabel status={syncStatus} lastSyncedAt={lastSyncedAt} pendingCount={pendingSyncCount}/></p>
           <button type="button" onClick={onSignOut} className="mt-3 min-h-10 w-full rounded-xl border border-primy-200 bg-surface px-3 text-sm font-semibold text-primary hover:bg-primy-100">Cerrar sesión</button>
         </section>
       </aside>

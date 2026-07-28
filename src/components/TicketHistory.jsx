@@ -9,48 +9,122 @@ import { PrimyMascotGraphic } from './BrandVisuals.jsx';
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
 function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
   const receiptScopedExtra = game.extra.scope === 'receipt';
   const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
+
   return (
-    <div className="p-4 md:p-5">
+    <div className="p-4 md:p-6">
       {receiptScopedExtra && (
-        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center justify-between gap-4">
-            <div><p className="text-xs font-bold uppercase tracking-wide text-amber-800">Reintegro del resguardo</p><p className="mt-1 text-sm text-amber-950">Único para todas las columnas</p></div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wide text-amber-800">Reintegro del resguardo</p>
+              <p className="mt-1 text-sm text-amber-950">Único para todas las columnas</p>
+            </div>
             <NumberBall compact extra>{receiptExtra}</NumberBall>
           </div>
-          {play.receiptPrize && <div className="mt-3 border-t border-amber-200 pt-3 text-sm text-amber-950"><p className="font-semibold">{play.receiptPrize.category}</p><p>{play.receiptPrize.displayText}</p></div>}
+          {play.receiptPrize && (
+            <div className="mt-3 border-t border-amber-200 pt-3 text-sm text-amber-950">
+              <p className="font-semibold">{play.receiptPrize.category}</p>
+              <p>{play.receiptPrize.displayText}</p>
+            </div>
+          )}
           {play.metadata?.rulesMigrationWarning && <p className="mt-3 text-sm font-bold leading-6 text-rose-800">{play.metadata.rulesMigrationWarning}</p>}
         </div>
       )}
+
       <div className="grid gap-3 xl:grid-cols-2">
         {play.columns.map((column, index) => (
-          <div key={column.id} className="rounded-2xl bg-muted p-4">
-            <div className="flex items-center justify-between gap-3"><p className="text-xs font-bold uppercase tracking-wide text-secondary">Columna {index + 1}</p>{column.status === 'checked' && <p className="text-xs font-bold text-secondary">{column.matches || 0} números acertados</p>}</div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">{column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}{!receiptScopedExtra && <><span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/><NumberBall compact extra>{column.extra}</NumberBall><span className="text-sm font-bold text-secondary">{game.extra.label}</span></>}</div>
-            {column.status === 'checked' && <div className="mt-3 text-sm leading-6 text-primary"><p className="font-semibold text-primary">{column.prizeCategory || 'Sin premio'}</p><p>{column.prizeDisplay}</p>{column.prizeCategory && column.officialPrize == null && <label className="mt-3 block font-bold">Premio oficial (€)<input type="number" min="0" step="0.01" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal" onBlur={event => event.target.value && onSetPrize(play.id, column.id, event.target.value)}/></label>}</div>}
+          <div key={column.id} className="primy-archive-column rounded-2xl bg-muted p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-secondary">Columna {index + 1}</p>
+              {column.status === 'checked' && <p className="text-xs font-bold text-secondary">{column.matches || 0} números acertados</p>}
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}
+              {!receiptScopedExtra && (
+                <>
+                  <span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/>
+                  <NumberBall compact extra>{column.extra}</NumberBall>
+                  <span className="text-sm font-bold text-secondary">{game.extra.label}</span>
+                </>
+              )}
+            </div>
+            {column.status === 'checked' && (
+              <div className="mt-3 text-sm leading-6 text-primary">
+                <p className="font-semibold text-primary">{column.prizeCategory || 'Sin premio'}</p>
+                <p>{column.prizeDisplay}</p>
+                {column.prizeCategory && column.officialPrize == null && (
+                  <label className="mt-3 block font-bold">
+                    Premio oficial (€)
+                    <input type="number" min="0" step="0.01" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal" onBlur={event => event.target.value && onSetPrize(play.id, column.id, event.target.value)}/>
+                  </label>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
+
       {play.metadata?.externalReference && <p className="mt-4 rounded-xl bg-muted p-3 text-sm text-secondary"><strong>Referencia:</strong> {play.metadata.externalReference}</p>}
-      <div className="mt-5 flex flex-col gap-3 border-t border-default pt-5">
-        <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={() => onFavorite(play.id)} className="flex min-h-11 items-center gap-2 rounded-2xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted"><StarIcon width="17" height="17" className={play.favorite ? 'fill-amber-400 text-amber-500' : ''}/>{play.favorite ? 'Quitar de favoritos' : 'Favorito'}</button>
-          <button type="button" onClick={() => onRepeat(play)} className="flex min-h-11 items-center gap-2 rounded-2xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted"><CopyIcon width="17" height="17"/>Repetir números</button>
-          <button type="button" onClick={() => onVariant(play)} className="flex min-h-11 items-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 text-sm font-bold text-violet-800 hover:bg-violet-100"><RepeatIcon width="17" height="17"/>Crear variante</button>
+
+      <div className="mt-6 border-t border-default pt-5">
+        <p className="text-xs font-bold uppercase tracking-wide text-secondary">Acciones de la jugada</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-3">
+          <button type="button" onClick={() => onFavorite(play.id)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted">
+            <StarIcon width="17" height="17" className={play.favorite ? 'fill-amber-400 text-amber-500' : ''}/>{play.favorite ? 'Quitar favorito' : 'Favorito'}
+          </button>
+          <button type="button" onClick={() => onRepeat(play)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted">
+            <CopyIcon width="17" height="17"/>Repetir números
+          </button>
+          <button type="button" onClick={() => onVariant(play)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-violet-200 bg-violet-50 px-4 text-sm font-bold text-violet-800 hover:bg-violet-100">
+            <RepeatIcon width="17" height="17"/>Crear variante
+          </button>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          {!play.purchased ? <button type="button" onClick={() => onPurchase(play.id)} className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">He jugado este boleto · {euro.format(playCost(play))}</button> : <p className="text-sm font-semibold text-secondary">Registrada como jugada comprada</p>}
-          <button type="button" onClick={() => onRemove(play.id)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>
+
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          {!play.purchased ? (
+            <button type="button" onClick={() => onPurchase(play.id)} className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
+              He jugado este boleto · {euro.format(playCost(play))}
+            </button>
+          ) : (
+            <p className="text-sm font-semibold text-secondary">Registrada como jugada comprada</p>
+          )}
+
+          {!confirmDelete ? (
+            <button type="button" onClick={() => setConfirmDelete(true)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50">
+              <TrashIcon width="17" height="17"/>Eliminar
+            </button>
+          ) : (
+            <div className="flex flex-col gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:flex-row sm:items-center" role="group" aria-label="Confirmar eliminación">
+              <span className="text-sm font-semibold text-rose-900">¿Eliminar definitivamente?</span>
+              <button type="button" onClick={() => setConfirmDelete(false)} className="min-h-10 rounded-xl border border-rose-200 bg-white px-3 text-sm font-semibold text-rose-800">Cancelar</button>
+              <button type="button" onClick={() => onRemove(play.id)} className="min-h-10 rounded-xl bg-rose-700 px-3 text-sm font-semibold text-white hover:bg-rose-800">Sí, eliminar</button>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-export default function TicketHistory({ plays, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
+function ArchiveSummary({ plays }) {
+  const purchased = plays.filter(play => play.purchased).length;
+  const awaiting = plays.filter(play => play.computedStatus === 'awaiting_check').length;
+  const checked = plays.filter(play => play.computedStatus === 'checked').length;
+  return (
+    <div className="grid gap-3 sm:grid-cols-3" aria-label="Resumen del archivo">
+      <div className="primy-archive-stat"><span>Guardadas</span><strong>{plays.length}</strong></div>
+      <div className="primy-archive-stat"><span>Jugadas</span><strong>{purchased}</strong></div>
+      <div className="primy-archive-stat"><span>{awaiting ? 'Por comprobar' : 'Comprobadas'}</span><strong>{awaiting || checked}</strong></div>
+    </div>
+  );
+}
+
+export default function TicketHistory({ plays, onCreate, onAddExternal, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const [gameFilter, setGameFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sort, setSort] = useState('newest');
@@ -66,40 +140,96 @@ export default function TicketHistory({ plays, onPurchase, onRemove, onSetPrize,
       .sort((a, b) => sort === 'oldest' ? String(a.createdAt || '').localeCompare(String(b.createdAt || '')) : String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
   }, [plays, gameFilter, statusFilter, sort, query]);
 
-  const filters = <div className="grid gap-3 rounded-3xl border border-default bg-surface shadow-soft p-4 md:grid-cols-4 md:p-5">
-    <label className="text-sm font-bold text-primary">Buscar<span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-default px-3"><SearchIcon width="18" height="18"/><input value={query} onChange={event => setQuery(event.target.value)} className="w-full border-0 bg-transparent p-0 text-sm font-normal outline-none" placeholder="Fecha o juego"/></span></label>
-    <label className="text-sm font-bold text-primary">Juego<select value={gameFilter} onChange={event => setGameFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="primitiva">La Primitiva</option><option value="eurodreams">EuroDreams</option></select></label>
-    <label className="text-sm font-bold text-primary">Estado<select value={statusFilter} onChange={event => setStatusFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="draft">Borradores</option><option value="scheduled">Pendientes</option><option value="awaiting_check">Por comprobar</option><option value="checked">Comprobadas</option></select></label>
-    <label className="text-sm font-bold text-primary">Orden<select value={sort} onChange={event => setSort(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="newest">Más recientes</option><option value="oldest">Menos recientes</option></select></label>
-  </div>;
+  const hasActiveFilters = gameFilter !== 'all' || statusFilter !== 'all' || Boolean(query.trim());
+  const resetFilters = () => { setGameFilter('all'); setStatusFilter('all'); setSort('newest'); setQuery(''); };
 
-  if (!filtered.length) return <section>{filters}<div className="mt-5 grid gap-5 rounded-[2rem] border border-dashed border-primy-200 bg-gradient-to-br from-ivory via-white to-sky/30 p-6 md:grid-cols-[minmax(0,1fr)_300px] md:p-8"><div className="flex flex-col justify-center"><p className="text-sm font-bold text-primy-700">Tu espacio está listo</p><p className="mt-2 text-2xl font-semibold text-primary">Todavía no hay jugadas que mostrar</p><p className="mt-3 max-w-xl text-sm leading-7 text-secondary">Cambia los filtros o crea una jugada nueva. Primy te ayudará a organizar tus boletos y comprobarlos cuando llegue el sorteo.</p></div><PrimyMascotGraphic className="w-full max-w-[300px] justify-self-center" variant="empty" size="dashboard" caption="Cuando tengas jugadas, las guardaré aquí"/></div></section>;
+  const filters = (
+    <div className="primy-archive-filters grid gap-3 rounded-3xl border border-default bg-surface p-4 shadow-soft md:grid-cols-4 md:p-5">
+      <label className="text-sm font-bold text-primary">Buscar<span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-default px-3"><SearchIcon width="18" height="18"/><input value={query} onChange={event => setQuery(event.target.value)} className="w-full border-0 bg-transparent p-0 text-sm font-normal outline-none" placeholder="Fecha o juego"/></span></label>
+      <label className="text-sm font-bold text-primary">Juego<select value={gameFilter} onChange={event => setGameFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="primitiva">La Primitiva</option><option value="eurodreams">EuroDreams</option></select></label>
+      <label className="text-sm font-bold text-primary">Estado<select value={statusFilter} onChange={event => setStatusFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="draft">Borradores</option><option value="scheduled">Pendientes</option><option value="awaiting_check">Por comprobar</option><option value="checked">Comprobadas</option></select></label>
+      <label className="text-sm font-bold text-primary">Orden<select value={sort} onChange={event => setSort(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="newest">Más recientes</option><option value="oldest">Menos recientes</option></select></label>
+    </div>
+  );
 
   return (
-    <section>
+    <section className="space-y-5">
+      <ArchiveSummary plays={plays}/>
       {filters}
 
-      <div className="mt-5 space-y-3 lg:hidden">
-        {filtered.map(play => {
-          const game = getGameConfig(play.gameId);
-          const isExpanded = expanded === play.id;
-          const awarded = play.columns.filter(column => column.prizeCategory).length;
-          return <article key={play.id} className="rounded-3xl border border-default bg-surface shadow-soft"><button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="grid min-h-20 w-full items-center gap-4 p-4 text-left" aria-expanded={isExpanded}><div><div className="flex items-center gap-2"><p className="font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="fill-amber-400 text-amber-500"/>}</div><p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'}</p></div><div className="flex items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wide text-secondary">{play.status === 'checked' ? `${awarded} premiadas · ${euro.format(playKnownPrize(play))}` : euro.format(playCost(play))}</p></div><div className="flex items-center gap-3"><TicketStatus status={play.computedStatus}/><ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="19" height="19"/></div></div></button>{isExpanded && <div className="border-t border-default"><PlayDetails play={play} onPurchase={onPurchase} onRemove={onRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></div>}</article>;
-        })}
-      </div>
+      {!filtered.length ? (
+        <div className="grid gap-5 rounded-[2rem] border border-dashed border-primy-200 bg-gradient-to-br from-ivory via-white to-sky/30 p-6 md:grid-cols-[minmax(0,1fr)_300px] md:p-8">
+          <div className="flex flex-col justify-center">
+            <p className="text-sm font-bold text-primy-700">{hasActiveFilters ? 'Sin coincidencias' : 'Tu espacio está listo'}</p>
+            <p className="mt-2 text-2xl font-semibold text-primary">{hasActiveFilters ? 'No encontramos jugadas con estos filtros' : 'Todavía no hay jugadas que mostrar'}</p>
+            <p className="mt-3 max-w-xl text-sm leading-7 text-secondary">{hasActiveFilters ? 'Prueba con otros criterios o restablece la búsqueda para volver a ver todo tu archivo.' : 'Crea una jugada o añade un boleto. Primy los organizará aquí y te ayudará a comprobarlos cuando llegue el sorteo.'}</p>
+            {hasActiveFilters ? (
+              <button type="button" onClick={resetFilters} className="mt-5 min-h-11 w-fit rounded-xl border border-primy-200 bg-surface px-4 text-sm font-semibold text-primy-800 hover:bg-primy-50">Restablecer filtros</button>
+            ) : (
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                <button type="button" onClick={onCreate} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">Crear mi jugada</button>
+                <button type="button" onClick={onAddExternal} className="min-h-11 rounded-xl border border-primy-200 bg-surface px-5 text-sm font-semibold text-primy-800 hover:bg-primy-50">Añadir boleto</button>
+              </div>
+            )}
+          </div>
+          <PrimyMascotGraphic className="w-full max-w-[300px] justify-self-center" variant="empty" size="dashboard" caption={hasActiveFilters ? 'Probemos con otra búsqueda' : 'Cuando tengas jugadas, las guardaré aquí'}/>
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-secondary" aria-live="polite">{filtered.length} {filtered.length === 1 ? 'jugada encontrada' : 'jugadas encontradas'}</p>
 
-      <div className="mt-5 hidden overflow-hidden rounded-3xl border border-default bg-surface shadow-soft lg:block">
-        <table className="w-full border-collapse text-left">
-          <thead className="bg-muted text-xs uppercase tracking-wide text-secondary"><tr><th className="px-5 py-4">Sorteo</th><th className="px-5 py-4">Juego</th><th className="px-5 py-4">Columnas</th><th className="px-5 py-4">Coste</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4 text-right">Detalles</th></tr></thead>
-          <tbody className="divide-y divide-default">
+          <div className="space-y-3 lg:hidden">
             {filtered.map(play => {
               const game = getGameConfig(play.gameId);
               const isExpanded = expanded === play.id;
-              return <React.Fragment key={play.id}><tr className="hover:bg-muted"><td className="px-5 py-4 font-bold capitalize text-primary">{formatDrawDate(play.drawDateISO, { short: true })}</td><td className="px-5 py-4"><div className="flex items-center gap-2 font-semibold text-primary">{game.name}{play.favorite && <StarIcon width="15" height="15" className="fill-amber-400 text-amber-500"/>}</div></td><td className="px-5 py-4 text-secondary">{play.columns.length}</td><td className="px-5 py-4 font-bold text-primary">{euro.format(playCost(play))}</td><td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios: {euro.format(playKnownPrize(play))}</p>}</td><td className="px-5 py-4 text-right"><button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-primy-700 hover:bg-primy-50" aria-expanded={isExpanded}>{isExpanded ? 'Cerrar' : 'Abrir'}<ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="17" height="17"/></button></td></tr>{isExpanded && <tr><td colSpan="6" className="border-t border-default bg-muted/40"><PlayDetails play={play} onPurchase={onPurchase} onRemove={onRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></td></tr>}</React.Fragment>;
+              const awarded = play.columns.filter(column => column.prizeCategory).length;
+              return (
+                <article key={play.id} className={`primy-archive-card rounded-3xl border bg-surface shadow-soft ${isExpanded ? 'is-open border-primy-200' : 'border-default'}`}>
+                  <button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="w-full p-4 text-left" aria-expanded={isExpanded} aria-controls={`mobile-play-details-${play.id}`}>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2"><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
+                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'}</p>
+                      </div>
+                      <TicketStatus status={play.computedStatus}/>
+                    </div>
+                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-default pt-3">
+                      <p className="text-sm font-semibold text-primary">{play.status === 'checked' ? `${awarded} premiadas · ${euro.format(playKnownPrize(play))}` : euro.format(playCost(play))}</p>
+                      <span className="flex items-center gap-2 text-sm font-bold text-primy-700">{isExpanded ? 'Cerrar' : 'Ver jugada'}<ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="19" height="19"/></span>
+                    </div>
+                  </button>
+                  {isExpanded && <div id={`mobile-play-details-${play.id}`} className="border-t border-default"><PlayDetails play={play} onPurchase={onPurchase} onRemove={onRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></div>}
+                </article>
+              );
             })}
-          </tbody>
-        </table>
-      </div>
+          </div>
+
+          <div className="hidden overflow-hidden rounded-3xl border border-default bg-surface shadow-soft lg:block">
+            <table className="w-full border-collapse text-left">
+              <thead className="bg-muted text-xs uppercase tracking-wide text-secondary"><tr><th className="px-5 py-4">Sorteo</th><th className="px-5 py-4">Juego</th><th className="px-5 py-4">Columnas</th><th className="px-5 py-4">Coste</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4 text-right">Jugada</th></tr></thead>
+              <tbody className="divide-y divide-default">
+                {filtered.map(play => {
+                  const game = getGameConfig(play.gameId);
+                  const isExpanded = expanded === play.id;
+                  return (
+                    <React.Fragment key={play.id}>
+                      <tr className={isExpanded ? 'bg-primy-50/50' : 'hover:bg-muted'}>
+                        <td className="px-5 py-4 font-bold capitalize text-primary">{formatDrawDate(play.drawDateISO, { short: true })}</td>
+                        <td className="px-5 py-4"><div className="flex items-center gap-2 font-semibold text-primary">{game.name}{play.favorite && <StarIcon width="15" height="15" className="fill-amber-400 text-amber-500"/>}</div></td>
+                        <td className="px-5 py-4 text-secondary">{play.columns.length}</td>
+                        <td className="px-5 py-4 font-bold text-primary">{euro.format(playCost(play))}</td>
+                        <td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios: {euro.format(playKnownPrize(play))}</p>}</td>
+                        <td className="px-5 py-4 text-right"><button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-primy-700 hover:bg-primy-50" aria-expanded={isExpanded} aria-controls={`desktop-play-details-${play.id}`}>{isExpanded ? 'Cerrar' : 'Ver jugada'}<ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="17" height="17"/></button></td>
+                      </tr>
+                      {isExpanded && <tr id={`desktop-play-details-${play.id}`}><td colSpan="6" className="border-t border-default bg-muted/40"><PlayDetails play={play} onPurchase={onPurchase} onRemove={onRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></td></tr>}
+                    </React.Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
     </section>
   );
 }

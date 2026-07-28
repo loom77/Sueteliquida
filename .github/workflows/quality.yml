@@ -1,0 +1,26 @@
+name: Controles de calidad
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Instalar dependencias
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --ignore-scripts --no-audit --no-fund
+          else
+            echo 'No existe package-lock.json: se usará npm install. Crea el archivo de bloqueo antes de una publicación pública.'
+            npm install --ignore-scripts --no-audit --no-fund
+          fi
+      - run: npm test
+      - run: npm run build
