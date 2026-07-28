@@ -91,45 +91,37 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
   const [title, subtitle] = titles[mode];
 
   return (
-    <main className="min-h-screen bg-app px-4 py-4 text-primary sm:px-6 sm:py-6 lg:py-8">
-      <div className="mx-auto grid w-full max-w-7xl overflow-hidden rounded-[2rem] border border-primy-100 bg-surface shadow-lift lg:grid-cols-[1.02fr_.98fr]">
-        <section className="relative overflow-hidden bg-gradient-to-br from-primy-800 via-primy-700 to-primy-600 p-6 text-white sm:p-8 lg:p-10">
+    <main className="min-h-screen bg-app px-4 py-3 text-primary sm:px-6 sm:py-4 lg:py-6">
+      <div className="mx-auto grid w-full max-w-[1180px] overflow-hidden rounded-[2rem] border border-primy-100 bg-surface shadow-lift lg:grid-cols-[minmax(380px,460px)_minmax(420px,520px)] lg:justify-center">
+        <section className="relative overflow-hidden bg-gradient-to-br from-primy-800 via-primy-700 to-primy-600 p-6 text-white sm:p-8 lg:p-8">
           <div className="relative z-10 flex h-full flex-col">
             <PrimyWordmark className="[&_p]:text-white"/>
 
-            <div className="mt-8 grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(280px,.9fr)] xl:items-center">
-              <div className="max-w-xl">
-                <p className="inline-flex rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-primy-50 shadow-sm">Tu asistente privado de juego</p>
-                <h1 className="mt-4 text-4xl font-semibold tracking-[-0.045em] text-white sm:text-5xl xl:text-[3.35rem]">Tus jugadas, siempre contigo.</h1>
-                <p className="mt-4 max-w-lg text-sm leading-7 text-primy-50 sm:text-[15px]">Crea combinaciones, guarda tus boletos y recuerda cuándo comprobarlos, con una experiencia clara, bonita y responsable.</p>
-
-                <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
-                  {['Cuenta privada', 'Datos sincronizados', 'Control del gasto'].map(item => (
-                    <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-3 text-sm font-medium backdrop-blur-sm">
-                      <CheckIcon width="17" height="17"/>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <PrimyMascotGraphic className="mx-auto w-full max-w-[360px] xl:max-w-[400px]" size="hero" caption="Tu compañera de jugadas"/>
+            <div className="mt-8">
+              <p className="inline-flex rounded-full bg-white/12 px-3 py-1.5 text-xs font-semibold text-primy-50 shadow-sm">Tu asistente privado de juego</p>
+              <h1 className="mt-4 max-w-md text-4xl font-semibold tracking-[-0.045em] text-white sm:text-[3.25rem]">Tus jugadas, siempre contigo.</h1>
+              <p className="mt-4 max-w-md text-sm leading-7 text-primy-50 sm:text-[15px]">Crea combinaciones, guarda tus boletos y recuerda cuándo comprobarlos con una experiencia clara, bonita y responsable.</p>
             </div>
 
-            <div className="mt-8 grid gap-3 rounded-[1.6rem] border border-white/10 bg-white/10 p-4 text-sm leading-6 text-primy-50 md:grid-cols-3">
-              <div><p className="font-semibold text-white">Privado</p><p className="mt-1 text-primy-50/90">Solo tú ves tus jugadas y borradores.</p></div>
-              <div><p className="font-semibold text-white">Sin compra automática</p><p className="mt-1 text-primy-50/90">Primy organiza, pero no compra boletos por ti.</p></div>
-              <div><p className="font-semibold text-white">Responsable</p><p className="mt-1 text-primy-50/90">Controla presupuesto, frecuencia y comprobación.</p></div>
+            <PrimyMascotGraphic className="mt-6 w-full max-w-[360px]" size="hero" caption="Tu compañera de jugadas"/>
+
+            <div className="mt-6 grid gap-3">
+              {['Cuenta privada', 'Datos sincronizados', 'Control del gasto'].map(item => (
+                <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-3 text-sm font-medium backdrop-blur-sm">
+                  <CheckIcon width="17" height="17"/>
+                  <span>{item}</span>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        <section className="flex items-start p-6 sm:p-8 lg:p-10">
-          <div className="w-full max-w-xl">
-            <div className="rounded-[1.75rem] border border-primy-100 bg-white/90 p-6 shadow-soft backdrop-blur-sm sm:p-7">
+        <section className="flex items-start justify-center bg-[linear-gradient(180deg,#ffffff_0%,#fbfdfb_100%)] p-5 sm:p-7 lg:p-8">
+          <div className="w-full max-w-[460px]">
+            <div className="rounded-[1.75rem] border border-primy-100 bg-white p-6 shadow-soft sm:p-7">
               <div className="flex items-center gap-2 text-sm font-semibold text-primy-700"><ShieldIcon width="18" height="18"/>Cuenta Primy</div>
-              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] sm:text-[2.6rem]">{title}</h2>
-              <p className="mt-3 max-w-lg text-sm leading-6 text-secondary">{subtitle}</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-primary sm:text-[2.45rem]">{title}</h2>
+              <p className="mt-3 max-w-md text-sm leading-6 text-secondary">{subtitle}</p>
 
               <form onSubmit={submit} className="mt-7 space-y-4">
                 {mode === 'signup' && <Field label="Nombre" value={displayName} onChange={setDisplayName} autoComplete="name" hint="Se utiliza únicamente para personalizar tu cuenta."/>}
@@ -150,7 +142,7 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
               </div>
             </div>
 
-            <div className="mt-4 grid gap-3 rounded-[1.5rem] border border-primy-100 bg-cream/60 p-4 text-sm leading-6 text-secondary sm:grid-cols-2">
+            <div className="mt-4 grid gap-3 rounded-[1.5rem] border border-primy-100 bg-cream/60 p-4 text-sm leading-6 text-secondary">
               <div><p className="font-semibold text-primary">Sin complicaciones</p><p className="mt-1">Empieza con email y contraseña, sin Google y sin pasos innecesarios.</p></div>
               <div><p className="font-semibold text-primary">Acceso desde cualquier dispositivo</p><p className="mt-1">Tus jugadas se sincronizan en tu cuenta para que siempre las tengas a mano.</p></div>
             </div>

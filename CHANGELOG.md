@@ -1,5 +1,12 @@
 # Registro de cambios
 
+## v12.5.4 — Auth layout tightened and rebalanced
+
+- Reducción fuerte del ancho útil del bloque de autenticación para eliminar el espacio blanco excesivo en desktop.
+- Columnas de acceso con anchuras controladas y centradas, evitando la sensación de pantalla vacía.
+- Mascota, titular y formulario mejor proporcionados entre sí.
+- Ajuste de padding vertical para acercar el contenido a la parte alta del viewport.
+
 ## v12.5.3 — Reequilibrio visual de acceso y home
 
 - Rediseño completo de login y registro para eliminar espacios vacíos excesivos y mejorar el equilibrio entre hero, mascota y formulario.
