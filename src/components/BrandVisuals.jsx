@@ -29,6 +29,43 @@ export function PrimyWordmark({ compact = false, className = '' }) {
   );
 }
 
+
+export function PrimyMascotGraphic({ className = '', size = "hero", caption = 'Tu mascota de la suerte' }) {
+  const wrapper = size === 'dashboard'
+    ? 'rounded-[2rem] border border-primy-100 bg-gradient-to-br from-[#f6fff8] via-[#eef9f1] to-[#fff9ea] p-4 shadow-soft'
+    : 'rounded-[2rem] border border-white/15 bg-white/10 p-4 backdrop-blur-sm shadow-soft';
+
+  return (
+    <div className={`${wrapper} ${className}`} role="img" aria-label="Mascota de Primy con bolas de lotería y boleto digital">
+      <div className="relative overflow-hidden rounded-[1.6rem] bg-[radial-gradient(circle_at_top,_rgba(255,255,255,.68),_rgba(255,255,255,.14)_52%,_transparent_78%)]">
+        <div className="pointer-events-none absolute inset-0 opacity-80" aria-hidden="true">
+          <span className="absolute left-5 top-6 h-3 w-3 rounded-full bg-gold/80"/>
+          <span className="absolute right-8 top-10 h-2.5 w-2.5 rounded-full bg-primy-300/90"/>
+          <span className="absolute bottom-8 left-8 h-4 w-4 rounded-full bg-white/60"/>
+        </div>
+        <img
+          src="/primy-mascot.webp"
+          alt=""
+          className="relative z-10 mx-auto w-full max-w-[420px] object-contain drop-shadow-[0_24px_35px_rgba(0,122,70,0.18)]"
+          loading="eager"
+          decoding="async"
+        />
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primy-700/90">Mascota Primy</p>
+          <p className="mt-1 text-sm font-medium text-secondary">{caption}</p>
+        </div>
+        <div className="flex items-center gap-2" aria-hidden="true">
+          {[7, 10, 5].map(number => (
+            <span key={number} className="flex h-9 w-9 items-center justify-center rounded-full border border-primy-200 bg-white font-display text-sm font-bold text-primy-800 shadow-sm">{number}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const balls = [
   { n: 6, x: 62, y: 74, r: 25, fill: '#FFFFFF', text: '#007A46' },
   { n: 14, x: 151, y: 52, r: 31, fill: '#FFC83D', text: '#101828' },

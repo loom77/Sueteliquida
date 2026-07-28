@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CheckIcon, ShieldIcon } from './Icons.jsx';
-import { LotteryHeroGraphic, MailGraphic, PrimyWordmark } from './BrandVisuals.jsx';
+import { MailGraphic, PrimyMascotGraphic, PrimyWordmark } from './BrandVisuals.jsx';
 
 function Field({ label, type = 'text', value, onChange, autoComplete, minLength, required = true, hint }) {
   return (
@@ -100,7 +100,7 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
             <h1 className="mt-5 text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">Tus jugadas, siempre contigo.</h1>
             <p className="mt-5 max-w-md text-sm leading-7 text-primy-50">Una forma clara, bonita y responsable de crear combinaciones, guardar boletos y saber cuándo comprobarlos.</p>
           </div>
-          <LotteryHeroGraphic className="relative z-10 mt-8 w-full max-w-xl"/>
+          <PrimyMascotGraphic className="relative z-10 mt-8 w-full max-w-xl" size="hero" caption="Tu compañera de jugadas"/>
           <ul className="relative z-10 mt-6 grid gap-3 text-sm sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
             {['Cuenta privada', 'Datos sincronizados', 'Control del gasto'].map(item => <li key={item} className="flex items-center gap-2 rounded-2xl bg-white/10 px-3 py-3 font-medium"><CheckIcon width="17" height="17"/>{item}</li>)}
           </ul>

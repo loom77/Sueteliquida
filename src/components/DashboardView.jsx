@@ -3,7 +3,7 @@ import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { formatDrawDate, formatDrawTime, formatSyncTime, getNextDrawInfo } from '../utils/drawSchedule.js';
 import { playCost, playKnownPrize } from '../utils/playModel.js';
 import { TicketStatus } from './TicketUI.jsx';
-import { LotteryHeroGraphic, EmptyTicketGraphic } from './BrandVisuals.jsx';
+import { PrimyMascotGraphic, EmptyTicketGraphic } from './BrandVisuals.jsx';
 import { ArrowRightIcon, CalendarIcon, EditIcon, RefreshIcon, TicketIcon, WalletIcon } from './Icons.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
@@ -90,7 +90,7 @@ export default function DashboardView({ now, history, monthlyStats, totals, dueB
             {primaryDraw && <p className="mt-5 flex items-center gap-2 text-sm font-semibold text-primy-800"><CalendarIcon width="18" height="18"/>Próximo sorteo: <span className="capitalize">{formatDrawDate(primaryDraw.drawDateTimeISO, { includeYear: false })}</span> a las {formatDrawTime(primaryDraw.drawDateTimeISO)}</p>}
             <button type="button" onClick={() => onGenerate('primitiva')} className="mt-6 inline-flex min-h-[52px] items-center justify-center gap-2 rounded-2xl bg-primy-700 px-6 py-3 font-semibold text-white shadow-soft hover:bg-primy-800">Crear jugada<ArrowRightIcon width="18" height="18"/></button>
           </div>
-          <LotteryHeroGraphic className="mx-auto w-full max-w-lg"/>
+          <PrimyMascotGraphic className="mx-auto w-full max-w-lg" size="dashboard" caption="Hola, soy Primy"/>
         </div>
       </section>
 
