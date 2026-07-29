@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { formatDrawDate, formatDrawTime } from '../utils/drawSchedule.js';
 import { playCost } from '../utils/playModel.js';
 import { NumberBall } from './TicketUI.jsx';
@@ -21,7 +21,17 @@ function Metric({ label, value, detail }) {
 export default function TicketPreview({ play, game, saveState = 'unsaved', onSaveDraft, onPurchase, onRegenerate, onDiscard, onOpenPlays, onToast }) {
   const [expanded, setExpanded] = useState(false);
   const [confirmPurchase, setConfirmPurchase] = useState(false);
-  useEffect(() => { setExpanded(false); setConfirmPurchase(false); }, [play?.id]);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const confirmationRef = useRef(null);
+  useEffect(() => {
+    setExpanded(false);
+    setConfirmPurchase(false);
+    setConfirmDiscard(false);
+  }, [play?.id]);
+  useEffect(() => {
+    if (!confirmPurchase && !confirmDiscard) return;
+    confirmationRef.current?.focus();
+  }, [confirmPurchase, confirmDiscard]);
 
   if (!play) {
     return (
@@ -117,7 +127,7 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
         )}
 
         {confirmPurchase ? (
-          <div className="mt-6 rounded-2xl border border-primy-200 bg-primy-50 p-5" role="group" aria-labelledby="confirm-purchase-title">
+          <div ref={confirmationRef} tabIndex="-1" className="primy-action-confirm mt-6 rounded-2xl border border-primy-200 bg-primy-50 p-5 outline-none" role="group" aria-labelledby="confirm-purchase-title">
             <h3 id="confirm-purchase-title" className="text-lg font-semibold text-primy-950">¿Has comprado este boleto?</h3>
             <p className="mt-2 text-sm leading-6 text-primy-900">{game.name} · {play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'} · {euro.format(playCost(play))}</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -163,8 +173,19 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
 
         <div className="mt-4 flex flex-wrap justify-center gap-2">
           <button type="button" onClick={onRegenerate} className="min-h-11 rounded-xl px-4 text-sm font-semibold text-primy-700 hover:bg-primy-50">Crear otra jugada</button>
-          <button type="button" onClick={onDiscard} className="min-h-11 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50">Descartar esta</button>
+          <button type="button" onClick={() => setConfirmDiscard(true)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50">Descartar esta</button>
         </div>
+
+        {confirmDiscard && (
+          <div ref={confirmationRef} tabIndex="-1" className="primy-action-confirm mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-5 outline-none" role="alertdialog" aria-modal="true" aria-labelledby="confirm-discard-title" aria-describedby="confirm-discard-description">
+            <h3 id="confirm-discard-title" className="text-lg font-semibold text-rose-950">¿Descartar esta jugada?</h3>
+            <p id="confirm-discard-description" className="mt-2 text-sm leading-6 text-rose-900">Todavía no está guardada. Al descartarla no podrás recuperarla desde el Archivo.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => setConfirmDiscard(false)} className="min-h-12 rounded-xl border border-rose-200 bg-surface px-5 text-sm font-semibold text-primary hover:bg-rose-100">Conservar jugada</button>
+              <button type="button" onClick={() => { setConfirmDiscard(false); onDiscard(); }} className="min-h-12 rounded-xl bg-rose-700 px-5 text-sm font-semibold text-white hover:bg-rose-800">Sí, descartar</button>
+            </div>
+          </div>
+        )}
       </article>
     </section>
   );

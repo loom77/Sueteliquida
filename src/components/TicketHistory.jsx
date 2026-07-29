@@ -7,6 +7,25 @@ import { ChevronDownIcon, CopyIcon, RepeatIcon, SearchIcon, StarIcon, TrashIcon 
 import { PrimyMascotGraphic } from './BrandVisuals.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
+const priority = { awaiting_check: 0, scheduled: 1, draft: 2, checked: 3 };
+
+function ResultSummary({ play }) {
+  if (play.computedStatus !== 'checked') return null;
+  const awarded = play.columns.filter(column => column.prizeCategory).length;
+  const knownPrize = playKnownPrize(play);
+  return (
+    <section className={`mb-5 rounded-2xl border p-4 ${awarded > 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`} aria-label="Resumen del resultado">
+      <p className={`text-xs font-bold uppercase tracking-wide ${awarded > 0 ? 'text-emerald-800' : 'text-slate-600'}`}>Resultado comprobado</p>
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xl font-semibold text-primary">{awarded > 0 ? `${awarded} ${awarded === 1 ? 'columna premiada' : 'columnas premiadas'}` : 'Esta jugada no tiene premio'}</p>
+          <p className="mt-1 text-sm text-secondary">Los números marcados corresponden al resultado oficial guardado.</p>
+        </div>
+        {knownPrize > 0 && <p className="text-2xl font-bold tabular-nums text-emerald-800">{euro.format(knownPrize)}</p>}
+      </div>
+    </section>
+  );
+}
 
 function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -17,6 +36,17 @@ function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRep
 
   return (
     <div className="p-4 md:p-6">
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-default bg-surface p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-secondary">Detalle de la jugada</p>
+          <h3 className="mt-1 text-xl font-semibold text-primary">{game.name} · {formatDrawDate(play.drawDateISO)}</h3>
+          <p className="mt-1 text-sm text-secondary">{play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'} · Coste registrado {euro.format(playCost(play))}</p>
+        </div>
+        <TicketStatus status={play.computedStatus}/>
+      </div>
+
+      <ResultSummary play={play}/>
+
       {receiptScopedExtra && (
         <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
           <div className="flex items-center justify-between gap-4">
@@ -37,36 +67,42 @@ function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRep
       )}
 
       <div className="grid gap-3 xl:grid-cols-2">
-        {play.columns.map((column, index) => (
-          <div key={column.id} className="primy-archive-column rounded-2xl bg-muted p-4">
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-secondary">Columna {index + 1}</p>
-              {column.status === 'checked' && <p className="text-xs font-bold text-secondary">{column.matches || 0} números acertados</p>}
-            </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}
-              {!receiptScopedExtra && (
-                <>
-                  <span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/>
-                  <NumberBall compact extra>{column.extra}</NumberBall>
-                  <span className="text-sm font-bold text-secondary">{game.extra.label}</span>
-                </>
-              )}
-            </div>
-            {column.status === 'checked' && (
-              <div className="mt-3 text-sm leading-6 text-primary">
-                <p className="font-semibold text-primary">{column.prizeCategory || 'Sin premio'}</p>
-                <p>{column.prizeDisplay}</p>
-                {column.prizeCategory && column.officialPrize == null && (
-                  <label className="mt-3 block font-bold">
-                    Premio oficial (€)
-                    <input type="number" min="0" step="0.01" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal" onBlur={event => event.target.value && onSetPrize(play.id, column.id, event.target.value)}/>
-                  </label>
+        {play.columns.map((column, index) => {
+          const hasPrize = column.status === 'checked' && Boolean(column.prizeCategory);
+          return (
+            <div key={column.id} className={`primy-archive-column rounded-2xl border p-4 ${hasPrize ? 'border-emerald-200 bg-emerald-50/70' : 'border-default bg-muted'}`}>
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-secondary">Columna {index + 1}</p>
+                  {column.status === 'checked' && <p className={`mt-1 text-sm font-semibold ${hasPrize ? 'text-emerald-800' : 'text-secondary'}`}>{column.prizeCategory || 'Sin premio'}</p>}
+                </div>
+                {column.status === 'checked' && <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-secondary">{column.matches || 0} aciertos</span>}
+              </div>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                {column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}
+                {!receiptScopedExtra && (
+                  <>
+                    <span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/>
+                    <NumberBall compact extra>{column.extra}</NumberBall>
+                    <span className="text-sm font-bold text-secondary">{game.extra.label}</span>
+                  </>
                 )}
               </div>
-            )}
-          </div>
-        ))}
+              {column.status === 'checked' && (
+                <div className="mt-4 border-t border-default pt-3 text-sm leading-6 text-primary">
+                  <p>{column.prizeDisplay}</p>
+                  {column.officialPrize != null && <p className="mt-1 font-bold tabular-nums text-emerald-800">Premio oficial: {euro.format(Number(column.officialPrize) || 0)}</p>}
+                  {column.prizeCategory && column.officialPrize == null && (
+                    <label className="mt-3 block font-bold">
+                      Premio oficial (€)
+                      <input type="number" min="0" step="0.01" inputMode="decimal" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal" onBlur={event => event.target.value && onSetPrize(play.id, column.id, event.target.value)}/>
+                    </label>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {play.metadata?.externalReference && <p className="mt-4 rounded-xl bg-muted p-3 text-sm text-secondary"><strong>Referencia:</strong> {play.metadata.externalReference}</p>}
@@ -91,7 +127,7 @@ function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRep
               He jugado este boleto · {euro.format(playCost(play))}
             </button>
           ) : (
-            <p className="text-sm font-semibold text-secondary">Registrada como jugada comprada</p>
+            <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">Registrada como jugada comprada</p>
           )}
 
           {!confirmDelete ? (
@@ -127,9 +163,14 @@ function ArchiveSummary({ plays }) {
 export default function TicketHistory({ plays, onCreate, onAddExternal, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const [gameFilter, setGameFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sort, setSort] = useState('newest');
+  const [sort, setSort] = useState('action');
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(null);
+
+  const statusCounts = useMemo(() => plays.reduce((counts, play) => {
+    counts[play.computedStatus] = (counts[play.computedStatus] || 0) + 1;
+    return counts;
+  }, {}), [plays]);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -137,25 +178,46 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
       .filter(play => gameFilter === 'all' || play.gameId === gameFilter)
       .filter(play => statusFilter === 'all' || play.computedStatus === statusFilter)
       .filter(play => !normalizedQuery || `${getGameConfig(play.gameId).name} ${play.drawDateKey || ''}`.toLowerCase().includes(normalizedQuery))
-      .sort((a, b) => sort === 'oldest' ? String(a.createdAt || '').localeCompare(String(b.createdAt || '')) : String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+      .sort((a, b) => {
+        if (sort === 'action') {
+          const statusDiff = (priority[a.computedStatus] ?? 9) - (priority[b.computedStatus] ?? 9);
+          if (statusDiff) return statusDiff;
+        }
+        return sort === 'oldest'
+          ? String(a.createdAt || '').localeCompare(String(b.createdAt || ''))
+          : String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+      });
   }, [plays, gameFilter, statusFilter, sort, query]);
 
+  const quickStatuses = [
+    ['all', 'Todas', plays.length],
+    ['awaiting_check', 'Por comprobar', statusCounts.awaiting_check || 0],
+    ['scheduled', 'Próximas', statusCounts.scheduled || 0],
+    ['draft', 'Borradores', statusCounts.draft || 0],
+    ['checked', 'Comprobadas', statusCounts.checked || 0],
+  ];
   const hasActiveFilters = gameFilter !== 'all' || statusFilter !== 'all' || Boolean(query.trim());
-  const resetFilters = () => { setGameFilter('all'); setStatusFilter('all'); setSort('newest'); setQuery(''); };
-
-  const filters = (
-    <div className="primy-archive-filters grid gap-3 rounded-3xl border border-default bg-surface p-4 shadow-soft md:grid-cols-4 md:p-5">
-      <label className="text-sm font-bold text-primary">Buscar<span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-default px-3"><SearchIcon width="18" height="18"/><input value={query} onChange={event => setQuery(event.target.value)} className="w-full border-0 bg-transparent p-0 text-sm font-normal outline-none" placeholder="Fecha o juego"/></span></label>
-      <label className="text-sm font-bold text-primary">Juego<select value={gameFilter} onChange={event => setGameFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="primitiva">La Primitiva</option><option value="eurodreams">EuroDreams</option></select></label>
-      <label className="text-sm font-bold text-primary">Estado<select value={statusFilter} onChange={event => setStatusFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="draft">Borradores</option><option value="scheduled">Pendientes</option><option value="awaiting_check">Por comprobar</option><option value="checked">Comprobadas</option></select></label>
-      <label className="text-sm font-bold text-primary">Orden<select value={sort} onChange={event => setSort(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="newest">Más recientes</option><option value="oldest">Menos recientes</option></select></label>
-    </div>
-  );
+  const resetFilters = () => { setGameFilter('all'); setStatusFilter('all'); setSort('action'); setQuery(''); };
 
   return (
     <section className="space-y-5">
       <ArchiveSummary plays={plays}/>
-      {filters}
+
+      <div className="overflow-x-auto pb-1" aria-label="Filtros rápidos por estado">
+        <div className="flex min-w-max gap-2">
+          {quickStatuses.map(([value, label, count]) => (
+            <button key={value} type="button" aria-pressed={statusFilter === value} onClick={() => setStatusFilter(value)} className={`min-h-10 rounded-full border px-4 text-sm font-semibold transition ${statusFilter === value ? 'border-primy-700 bg-primy-700 text-white' : 'border-default bg-surface text-primary hover:bg-muted'}`}>
+              {label} <span className="ml-1 tabular-nums opacity-80">{count}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="primy-archive-filters grid gap-3 rounded-3xl border border-default bg-surface p-4 shadow-soft md:grid-cols-3 md:p-5">
+        <label className="text-sm font-bold text-primary">Buscar<span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-default px-3"><SearchIcon width="18" height="18"/><input value={query} onChange={event => setQuery(event.target.value)} className="w-full border-0 bg-transparent p-0 text-sm font-normal outline-none" placeholder="Fecha o juego"/></span></label>
+        <label className="text-sm font-bold text-primary">Juego<select value={gameFilter} onChange={event => setGameFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="primitiva">La Primitiva</option><option value="eurodreams">EuroDreams</option></select></label>
+        <label className="text-sm font-bold text-primary">Orden<select value={sort} onChange={event => setSort(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="action">Acción necesaria</option><option value="newest">Más recientes</option><option value="oldest">Menos recientes</option></select></label>
+      </div>
 
       {!filtered.length ? (
         <div className="grid gap-5 rounded-[2rem] border border-dashed border-primy-200 bg-gradient-to-br from-ivory via-white to-sky/30 p-6 md:grid-cols-[minmax(0,1fr)_300px] md:p-8">

@@ -37,7 +37,6 @@ const MASCOT_VARIANTS = {
     motion: 'primy-mascot-float',
     surface: 'from-primy-50 via-ivory to-cream',
     accent: 'bg-gold',
-    numbers: [7, 10, 5],
   },
   helper: {
     src: '/mascot/primy-helper.webp',
@@ -45,7 +44,6 @@ const MASCOT_VARIANTS = {
     motion: 'primy-mascot-helper',
     surface: 'from-sky/60 via-ivory to-primy-50',
     accent: 'bg-sky',
-    numbers: [6, 14, 23],
   },
   thinking: {
     src: '/mascot/primy-thinking.webp',
@@ -53,7 +51,6 @@ const MASCOT_VARIANTS = {
     motion: 'primy-mascot-thinking',
     surface: 'from-lavender via-ivory to-primy-50',
     accent: 'bg-lavender',
-    numbers: [3, 19, 31],
   },
   celebration: {
     src: '/mascot/primy-celebration.webp',
@@ -61,7 +58,6 @@ const MASCOT_VARIANTS = {
     motion: 'primy-mascot-celebration',
     surface: 'from-amber-50 via-ivory to-peach/50',
     accent: 'bg-gold',
-    numbers: [5, 10, 31],
   },
   empty: {
     src: '/mascot/primy-empty.webp',
@@ -69,7 +65,6 @@ const MASCOT_VARIANTS = {
     motion: 'primy-mascot-empty',
     surface: 'from-sky/40 via-ivory to-primy-50',
     accent: 'bg-sky',
-    numbers: [0, 7, 10],
   },
   responsible: {
     src: '/mascot/primy-responsible.webp',
@@ -77,7 +72,6 @@ const MASCOT_VARIANTS = {
     motion: 'primy-mascot-responsible',
     surface: 'from-sky/50 via-ivory to-primy-50',
     accent: 'bg-primy-100',
-    numbers: [5, 10, 25],
   },
 };
 
@@ -85,7 +79,7 @@ export function PrimyMascotGraphic({
   className = '',
   variant = 'welcome',
   size = 'hero',
-  caption = 'Tu mascota de la suerte',
+  caption = 'Tu guía Primy',
   showCaption = true,
   animate = true,
   compact = false,
@@ -120,11 +114,10 @@ export function PrimyMascotGraphic({
             <p className="mt-0.5 text-xs font-medium leading-5 text-secondary">{caption}</p>
           </div>
           {!compact && (
-            <div className="flex items-center gap-1.5" aria-hidden="true">
-              {config.numbers.map(number => (
-                <span key={number} className="flex h-8 w-8 items-center justify-center rounded-full border border-primy-200 bg-ivory font-display text-xs font-bold text-primy-800 shadow-sm">{number}</span>
-              ))}
-            </div>
+            <span className="primy-fold-signature" aria-hidden="true">
+              <span className="primy-fold-signature__line" />
+              <span className="primy-fold-signature__dot" />
+            </span>
           )}
         </div>
       )}

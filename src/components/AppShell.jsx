@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ChartIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
-import { PrimyMascotAvatar, PrimyWordmark } from './BrandVisuals.jsx';
+import { PrimyMark, PrimyMascotAvatar, PrimyWordmark } from './BrandVisuals.jsx';
 
 const NAV = [
   { id: 'dashboard', label: 'Inicio', icon: HomeIcon },
@@ -71,8 +71,10 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
         <div className="primy-card-enter mt-7 rounded-3xl bg-gradient-to-br from-primy-700 to-primy-900 p-5 text-white">
           <p className="font-display text-lg font-semibold">Todo lo que necesitas para vivir cada sorteo con claridad.</p>
           <p className="mt-2 text-xs leading-5 text-primy-100">Crea, organiza y comprueba tus jugadas desde un solo lugar.</p>
-          <div className="mt-4 flex gap-2" aria-hidden="true">
-            {[6, 14, 23, 31].map(number => <span key={number} className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-xs font-bold text-primy-800 shadow-sm">{number}</span>)}
+          <div className="mt-4 flex items-center gap-3" aria-hidden="true">
+            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/95 shadow-sm"><PrimyMark className="h-8 w-8" title="" /></span>
+            <span className="h-px flex-1 bg-white/30" />
+            <span className="h-3 w-3 rounded-full bg-gold shadow-[0_0_0_5px_rgba(244,200,74,.15)]" />
           </div>
         </div>
         <nav className="mt-7 space-y-2" aria-label="Navegación principal">

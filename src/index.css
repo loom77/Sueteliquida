@@ -584,3 +584,183 @@ html[data-theme='dark'] .primy-profile-choice.is-selected {
   .primy-profile-section,
   .primy-profile-advanced { border-radius: 1.4rem; }
 }
+
+/* Primy v14 — Operation Diamond / Premium Home */
+.primy-home-hero {
+  isolation: isolate;
+  grid-template-columns: minmax(0, 1.08fr) minmax(280px, .92fr);
+  min-height: min(650px, calc(100vh - 7.5rem));
+  gap: clamp(1.5rem, 4vw, 4rem);
+  background:
+    radial-gradient(circle at 87% 15%, rgb(240 200 90 / .2), transparent 16rem),
+    radial-gradient(circle at 8% 100%, rgb(24 165 102 / .14), transparent 24rem),
+    linear-gradient(135deg, rgb(var(--c-surface)), rgb(var(--c-muted)));
+}
+.primy-home-hero::before {
+  content: '';
+  position: absolute;
+  inset: auto -5rem -8rem auto;
+  width: 23rem;
+  aspect-ratio: 1;
+  border-radius: 44% 56% 48% 52%;
+  border: 1px solid rgb(24 165 102 / .14);
+  background: rgb(24 165 102 / .035);
+  transform: rotate(-12deg);
+  z-index: -1;
+}
+.primy-home-hero__copy { position: relative; z-index: 2; max-width: 42rem; }
+.primy-home-hero__title {
+  margin-top: 1.25rem;
+  max-width: 11ch;
+  font-size: clamp(2.75rem, 6vw, 4.8rem);
+  font-weight: 650;
+  letter-spacing: -.06em;
+  line-height: .98;
+  color: rgb(var(--c-text-primary));
+  text-wrap: balance;
+}
+.primy-home-hero__lead {
+  margin-top: 1.35rem;
+  max-width: 36rem;
+  font-size: clamp(1.05rem, 1.8vw, 1.22rem);
+  line-height: 1.65;
+  color: rgb(var(--c-text-secondary));
+}
+.primy-home-hero__actions { display: flex; flex-direction: column; gap: .75rem; margin-top: 1.75rem; }
+.primy-home-hero__note { margin-top: 1rem; max-width: 38rem; font-size: .75rem; line-height: 1.5; color: rgb(var(--c-text-secondary)); }
+.primy-home-hero__visual { position: relative; z-index: 2; display: grid; place-items: center; min-width: 0; }
+.primy-home-mascot { width: min(100%, 25rem); }
+.primy-home-hero__fold {
+  position: absolute;
+  right: 4%;
+  top: 3%;
+  width: clamp(3.5rem, 7vw, 5.25rem);
+  opacity: .14;
+  transform: rotate(8deg);
+  filter: saturate(.8);
+}
+.primy-brand-signal {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  min-height: 1.9rem;
+  border: 1px solid rgb(240 200 90 / .45);
+  border-radius: 999px;
+  background: rgb(255 249 238 / .7);
+  padding: .35rem .7rem;
+  color: rgb(var(--c-text-primary));
+  font-size: .7rem;
+  font-weight: 750;
+  letter-spacing: .02em;
+}
+.primy-brand-signal__dot,
+.primy-fold-signature__dot {
+  width: .55rem;
+  height: .55rem;
+  border-radius: 999px;
+  background: #f0c85a;
+  box-shadow: 0 0 0 .25rem rgb(240 200 90 / .15);
+}
+.primy-next-draw {
+  display: inline-flex;
+  align-items: center;
+  gap: .75rem;
+  margin-top: 1.35rem;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 1rem;
+  background: rgb(var(--c-surface) / .72);
+  padding: .65rem .85rem;
+  backdrop-filter: blur(12px);
+}
+.primy-next-draw__icon { display: grid; place-items: center; width: 2.3rem; height: 2.3rem; border-radius: .75rem; background: rgb(217 245 229); color: #075f3a; }
+.primy-next-draw__label { font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; color: rgb(var(--c-text-secondary)); }
+.primy-next-draw__value { margin-top: .1rem; font-size: .85rem; font-weight: 700; color: rgb(var(--c-text-primary)); }
+.primy-fold-signature { display: inline-flex; align-items: center; gap: .6rem; min-width: 4rem; }
+.primy-fold-signature__line { display: block; width: 2.6rem; height: 2px; border-radius: 999px; background: linear-gradient(90deg, #18a566, #075f3a); opacity: .55; }
+.primy-home-footer { margin-top: 2.5rem; display: flex; flex-direction: column; gap: .6rem; border-top: 1px solid rgb(var(--c-border)); padding-top: 1.25rem; font-size: .75rem; line-height: 1.5; color: rgb(var(--c-text-secondary)); }
+
+@media (min-width: 640px) {
+  .primy-home-hero__actions { flex-direction: row; }
+  .primy-home-footer { flex-direction: row; align-items: center; justify-content: space-between; }
+}
+@media (min-width: 768px) and (max-width: 1023px) {
+  .primy-home-hero { grid-template-columns: minmax(0, 1.08fr) minmax(240px, .72fr); min-height: 34rem; }
+  .primy-home-mascot { width: min(100%, 20rem); }
+}
+@media (max-width: 767px) {
+  .primy-home-hero { grid-template-columns: 1fr; min-height: auto; gap: .75rem; padding: 1.35rem; }
+  .primy-home-hero__title { max-width: 12ch; font-size: clamp(2.55rem, 12vw, 3.6rem); }
+  .primy-home-hero__visual { order: -1; min-height: 13rem; }
+  .primy-home-mascot { width: min(78vw, 17.5rem); }
+  .primy-home-hero__fold { right: 8%; top: 0; }
+  .primy-home-hero__note { font-size: .72rem; }
+}
+html[data-theme='dark'] .primy-brand-signal { background: rgb(43 44 37 / .7); }
+html[data-theme='dark'] .primy-next-draw__icon { background: rgb(28 61 43); color: rgb(167 243 208); }
+
+/* Primy v14 — Result actions and confirmations */
+.primy-action-confirm {
+  animation: primy-confirm-enter 180ms ease-out both;
+  box-shadow: 0 14px 36px rgb(15 23 42 / .08);
+}
+.primy-action-confirm:focus-visible {
+  box-shadow: 0 0 0 3px rgb(24 165 102 / .22), 0 14px 36px rgb(15 23 42 / .08);
+}
+@keyframes primy-confirm-enter {
+  from { opacity: 0; transform: translateY(-.35rem) scale(.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .primy-action-confirm { animation: none; }
+}
+
+/* Primy v14 — Archive information architecture */
+.primy-archive-status-nav {
+  display: flex;
+  gap: .6rem;
+  overflow-x: auto;
+  padding: .15rem .05rem .35rem;
+  scrollbar-width: thin;
+}
+.primy-archive-status-chip {
+  display: inline-flex;
+  min-height: 2.75rem;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: .65rem;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 999px;
+  background: rgb(var(--c-surface));
+  padding: .55rem .85rem .55rem 1rem;
+  color: rgb(var(--c-text-secondary));
+  font-size: .82rem;
+  font-weight: 800;
+  transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+.primy-archive-status-chip strong {
+  display: grid;
+  min-width: 1.65rem;
+  height: 1.65rem;
+  place-items: center;
+  border-radius: 999px;
+  background: rgb(var(--c-muted));
+  color: rgb(var(--c-text-primary));
+  font-size: .72rem;
+}
+.primy-archive-status-chip:hover {
+  border-color: rgb(18 160 92 / .3);
+  color: rgb(var(--c-text-primary));
+}
+.primy-archive-status-chip.is-active {
+  border-color: rgb(11 122 73 / .35);
+  background: rgb(11 122 73 / .08);
+  color: rgb(11 122 73);
+  box-shadow: 0 8px 24px rgb(11 122 73 / .08);
+}
+.primy-archive-status-chip.is-active strong {
+  background: rgb(11 122 73);
+  color: white;
+}
+@media (prefers-reduced-motion: reduce) {
+  .primy-archive-status-chip { transition: none; }
+}

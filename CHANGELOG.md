@@ -1,3 +1,17 @@
+# Changelog
+
+## v14.0.0 — Operation Diamond
+
+- Home premium modulare con Hero, azioni rapide, sorteggi pendenti e firma visuale Primy Fold.
+- Mascotte responsive su smartphone, tablet e desktop; onboarding e copy aggiornati.
+- Create Experience con avanzamento percepibile, animazione Primy Core e presentazione premium della giocata.
+- Conferme accessibili per registrazione, scarto ed eliminazione; distinzione chiara fra bozza e giocata acquistata.
+- Archivio con filtri rapidi, contatori e ordinamento predefinito “Acción necesaria”.
+- Dettaglio delle giocate con stato, costo, data, premi, acerti e importi ufficiali più leggibili.
+- Pagina pubblica di gioco responsabile, asset e cache PWA aggiornati.
+- 44 test di dominio e matematica superati.
+- Nessuna modifica al motore uniforme, alle probabilità o alle regole SELAE.
+
 # Registro de cambios
 
 ## v13.0.0 — Primy Core Experience
