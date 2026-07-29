@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
 
-const KEY = 'primy_preferences_v3';
-const LEGACY_KEYS = ['primy_preferences_v2', 'primy_preferences_v1'];
+const KEY = 'primy_preferences_v4';
+const LEGACY_KEYS = ['primy_preferences_v3', 'primy_preferences_v2', 'primy_preferences_v1'];
 const DEFAULTS = {
   monthlyLimit: null,
   appearance: 'system',
   notifications: false,
   defaultGame: 'primitiva',
   onboardingSeen: false,
+  ageConfirmed: false,
+  ageConfirmedAt: null,
 };
 
 function userKey(userId) {
@@ -29,6 +31,8 @@ function normalizePreferences(parsed = {}) {
     notifications: Boolean(parsed.notifications),
     defaultGame: parsed.defaultGame === 'eurodreams' ? 'eurodreams' : 'primitiva',
     onboardingSeen: Boolean(parsed.onboardingSeen),
+    ageConfirmed: Boolean(parsed.ageConfirmed),
+    ageConfirmedAt: parsed.ageConfirmed && typeof parsed.ageConfirmedAt === 'string' ? parsed.ageConfirmedAt : null,
   };
 }
 
@@ -51,7 +55,7 @@ function resolveTheme(appearance) {
 }
 
 export function usePreferences(user) {
-  const [preferences, setPreferences] = useState(DEFAULTS);
+  const [preferences, setPreferences] = useState(() => loadPreferences(user?.id));
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -73,8 +77,16 @@ export function usePreferences(user) {
       }
       if (data?.data) {
         const remote = normalizePreferences(data.data);
-        setPreferences(remote);
-        localStorage.setItem(userKey(user.id), JSON.stringify(remote));
+        setPreferences(current => {
+          const merged = current.ageConfirmed && !remote.ageConfirmed
+            ? { ...remote, ageConfirmed: true, ageConfirmedAt: current.ageConfirmedAt }
+            : remote;
+          localStorage.setItem(userKey(user.id), JSON.stringify(merged));
+          if (merged.ageConfirmed && !remote.ageConfirmed) {
+            supabase.from('primy_user_settings').upsert({ user_id: user.id, data: merged, updated_at: new Date().toISOString() });
+          }
+          return merged;
+        });
       } else {
         await supabase.from('primy_user_settings').upsert({ user_id: user.id, data: local, updated_at: new Date().toISOString() });
       }

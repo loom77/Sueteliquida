@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { extractDrawItems, fetchDrawRange, normalizeProviderDraw, providerBase, providerRequest } from '../api/_loteriasApi.js';
+import { extractDrawItems, fetchDrawRange, fetchLatestDraw, normalizeProviderDraw, providerBase, providerRequest } from '../api/_loteriasApi.js';
 import { GAMES } from '../src/utils/gameConfig.js';
 
 test('usa la URL base oficial de LoteriasAPI', () => {
@@ -51,4 +51,18 @@ test('recupera y normaliza un historial por intervalo', async () => {
 test('normaliza el bote del próximo sorteo', () => {
   const draw = normalizeProviderDraw({ draw_date: '2026-07-25', numbers: [1, 5, 18, 36, 37, 42], complementary: 17, reintegro: 2, jackpot_next: 5200000 }, GAMES.primitiva);
   assert.equal(draw.jackpotNext, 5200000);
+});
+
+
+test('consulta el último sorteo con una sola petición', async () => {
+  let requests = 0;
+  const fetchImpl = async url => {
+    requests += 1;
+    assert.match(url, /\/results\/primitiva\/latest$/);
+    return new Response(JSON.stringify({ draw_date: '2026-07-25', numbers: [1, 2, 3, 4, 5, 6], complementary: 7, reintegro: 8 }), { status: 200 });
+  };
+  const result = await fetchLatestDraw({ game: GAMES.primitiva, key: 'key', fetchImpl });
+  assert.equal(requests, 1);
+  assert.equal(result.draws.length, 1);
+  assert.equal(result.limited, true);
 });

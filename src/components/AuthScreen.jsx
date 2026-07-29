@@ -26,6 +26,7 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
   const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [adultDeclaration, setAdultDeclaration] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -39,11 +40,12 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
     event.preventDefault();
     if ((mode === 'signup' || mode === 'update-password') && password !== confirmPassword) return setError('Las contraseñas no coinciden.');
     if ((mode === 'signup' || mode === 'update-password') && password.length < 8) return setError('La contraseña debe tener al menos 8 caracteres.');
+    if (mode === 'signup' && !adultDeclaration) return setError('Debes confirmar que tienes 18 años o más para crear una cuenta.');
     run(async () => {
       if (mode === 'signin') {
         const result = await auth.signIn({ email, password }); if (result.error) setError(result.error);
       } else if (mode === 'signup') {
-        const result = await auth.signUp({ email, password, displayName });
+        const result = await auth.signUp({ email, password, displayName, adultDeclaration });
         if (result.error) setError(result.error); else if (result.needsConfirmation) setMode('check-email');
       } else if (mode === 'forgot') {
         const result = await auth.requestPasswordReset(email);
@@ -126,6 +128,12 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
               {(mode === 'signin' || mode === 'signup' || mode === 'update-password') && <Field label={mode === 'update-password' ? 'Nueva contraseña' : 'Contraseña'} type="password" value={password} onChange={setPassword} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} minLength={8} hint={mode !== 'signin' ? 'Mínimo 8 caracteres.' : undefined}/>}
               {mode === 'signup' && <Field label="Repite la contraseña" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8}/>}
               {mode === 'update-password' && <Field label="Repite la nueva contraseña" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8}/>}
+              {mode === 'signup' && (
+                <label className="flex items-start gap-3 rounded-2xl bg-muted p-4 text-sm leading-6 text-primary">
+                  <input type="checkbox" checked={adultDeclaration} onChange={event => setAdultDeclaration(event.target.checked)} className="mt-1 h-5 w-5 shrink-0 accent-primy-700"/>
+                  <span>Confirmo que tengo 18 años o más. Al entrar por primera vez, Primy verificará la edad mediante la fecha de nacimiento sin guardarla.</span>
+                </label>
+              )}
               {error && <p role="alert" className="rounded-2xl bg-rose-50 p-4 text-sm font-semibold leading-6 text-rose-900">{error}</p>}
               {message && <p role="status" className="rounded-2xl bg-primy-50 p-4 text-sm font-semibold leading-6 text-primy-900">{message}</p>}
               <button type="submit" disabled={busy} className="primy-shimmer min-h-14 w-full rounded-2xl bg-primy-700 px-5 font-semibold text-white shadow-soft hover:bg-primy-800 disabled:opacity-60">

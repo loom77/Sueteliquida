@@ -257,7 +257,17 @@ export async function fetchDrawRange({
     if (!allowRecentFallback || !['PLAN_RESTRICTED', 'PROVIDER_REJECTED', 'ENDPOINT_NOT_FOUND'].includes(error.code)) throw error;
   }
 
-  const { payload, base } = await providerRequest(`${path}/latest`, { key, timeoutMs, fetchImpl });
+  return fetchLatestDraw({ game, key, timeoutMs, fetchImpl });
+}
+
+export async function fetchLatestDraw({
+  game,
+  key,
+  timeoutMs = 9000,
+  fetchImpl = globalThis.fetch,
+} = {}) {
+  const path = `/results/${game.apiSlug}/latest`;
+  const { payload, base } = await providerRequest(path, { key, timeoutMs, fetchImpl });
   const draws = dedupeDraws(
     extractDrawItems(payload).map(item => normalizeProviderDraw(item, game)).filter(Boolean)
   );
@@ -265,6 +275,6 @@ export async function fetchDrawRange({
     draws,
     providerBase: base,
     limited: true,
-    notice: 'No se ha devuelto el historial completo: solo está disponible el último sorteo.',
+    notice: 'Solo está disponible el último sorteo.',
   };
 }

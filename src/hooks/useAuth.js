@@ -69,7 +69,7 @@ export function useAuth() {
     };
   }, []);
 
-  const signUp = useCallback(async ({ email, password, displayName }) => {
+  const signUp = useCallback(async ({ email, password, displayName, adultDeclaration }) => {
     if (!supabase) return { error: 'Supabase no está configurado.' };
     const { data, error } = await supabase.auth.signUp({
       email: email.trim().toLowerCase(),
@@ -79,6 +79,7 @@ export function useAuth() {
         data: {
           display_name: displayName.trim(),
           i18n: 'es',
+          adult_declaration_at: adultDeclaration ? new Date().toISOString() : null,
         },
       },
     });

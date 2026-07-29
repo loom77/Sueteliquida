@@ -8,7 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: null,
-      includeAssets: ['icon-192x192.png', 'icon-512x512.png', 'apple-touch-icon.png', 'favicon.svg', 'primy-mark.svg', 'primy-logo.svg', 'offline.html', 'mascot/*.webp'],
+      includeAssets: ['icon-192x192-v14-1.png', 'icon-512x512-v14-1.png', 'apple-touch-icon-v14-1.png', 'favicon-v14-1.svg', 'primy-mark.svg', 'primy-logo.svg', 'offline.html', 'mascot/*.webp'],
       workbox: {
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
@@ -17,24 +17,24 @@ export default defineConfig({
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/bootstrap'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'primy-bootstrap-v13', networkTimeoutSeconds: 6, expiration: { maxEntries: 8, maxAgeSeconds: 1800 } },
+            options: { cacheName: 'primy-bootstrap-v14-1', networkTimeoutSeconds: 6, expiration: { maxEntries: 8, maxAgeSeconds: 1800 } },
           },
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/history'),
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'primy-history-v13', expiration: { maxEntries: 12, maxAgeSeconds: 21600 } },
+            options: { cacheName: 'primy-history-v14-1', expiration: { maxEntries: 12, maxAgeSeconds: 86400 } },
           },
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/check-results'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'primy-results-v13', networkTimeoutSeconds: 4, expiration: { maxEntries: 24, maxAgeSeconds: 300 } },
+            options: { cacheName: 'primy-results-v14-1', networkTimeoutSeconds: 4, expiration: { maxEntries: 24, maxAgeSeconds: 300 } },
           },
         ],
       },
       manifest: {
-        name: 'Primy — Asistente privado de juego',
+        name: 'Primy — Tus jugadas, a tu manera',
         short_name: 'Primy',
-        description: 'Crea tus jugadas, registra boletos y comprueba resultados desde una experiencia privada, clara y responsable.',
+        description: 'Crea, guarda y comprueba tus jugadas desde una experiencia clara, privada y responsable.',
         start_url: '/',
         scope: '/',
         display: 'standalone',
@@ -44,8 +44,8 @@ export default defineConfig({
         background_color: '#FBF8EF',
         categories: ['utilities', 'entertainment'],
         icons: [
-          { src: '/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-192x192-v14-1.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-512x512-v14-1.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
     }),

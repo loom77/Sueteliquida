@@ -1,5 +1,15 @@
 # Changelog
 
+## v14.0.1 — Age Gate, History Stability & Brand Icon Fix
+
+- Aplicados los activos definitivos de Michela Brand Core a la app, PWA, favicon y Apple Touch Icon.
+- Añadida verificación obligatoria de mayoría de edad antes de acceder a las funciones de Primy.
+- La fecha de nacimiento se calcula localmente y no se almacena.
+- Reducidas las llamadas a LoteriasAPI cuando el plan solo permite el último sorteo.
+- Añadidos caché, enfriamiento de actualización y recuperación silenciosa con la última copia válida.
+- Simplificados los avisos de historial y aclarado que no interviene en Primy Core.
+- 50 pruebas automatizadas superadas.
+
 ## v14.0.0 — Operation Diamond
 
 - Home premium modulare con Hero, azioni rapide, sorteggi pendenti e firma visuale Primy Fold.

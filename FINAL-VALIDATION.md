@@ -1,30 +1,32 @@
-# Primy v14.0.0 — Final validation
+# Primy v14.0.1 — Final validation
 
-Data: 29 luglio 2026
+## Estado
 
-## Contenuto della release
+Paquete corregido con los tres puntos revisados:
 
-- Premium Home Experience modulare.
-- Nuovo sistema visuale Primy Fold / Signal Gold.
-- Mascotte responsive e onboarding aggiornato.
-- Create & Result Experience con avanzamento, conferme e protezione dalle azioni involontarie.
-- Archivio con filtri rapidi, ordinamento per azione necessaria e dettaglio premium delle giocate.
-- Pagina pubblica di gioco responsabile e aggiornamenti PWA.
-- Motore matematico e regole di dominio mantenuti invariati.
+1. iconografía de Michela Brand Core aplicada y versionada;
+2. verificación obligatoria de mayoría de edad;
+3. estabilización del historial y reducción de errores de LoteriasAPI.
 
-## Verifiche eseguite
+## Pruebas
 
-- `npm test`: 44 test superati, 0 falliti.
-- Archivio completo del progetto preparato senza `node_modules` e senza file temporanei.
+- `npm test`: **50/50 superadas**.
+- Validación sintáctica JS/JSX mediante TypeScript: superada.
+- Integridad de importaciones locales: superada.
+- Integridad del ZIP: superada.
 
-## Build
+## Límite del entorno de validación
 
-La build Vite non è stata eseguita in questo ambiente perché il registry npm interno non rende disponibile `@supabase/supabase-js@2.57.4`. Il comando di installazione fallisce con errore 404 prima di installare Vite. Questo non costituisce una prova di errore del sorgente; la build va eseguita in un ambiente npm standard con accesso al registry pubblico.
+No fue posible ejecutar `npm install` ni `npm run build` porque el registro npm interno del entorno no dispone de `@supabase/supabase-js@2.57.4` ni `@vitejs/plugin-react@4.3.1`. No se cambiaron estas dependencias por sustitutos no oficiales.
 
-Comandi consigliati:
+En un entorno npm estándar:
 
 ```bash
 npm install
 npm test
 npm run build
 ```
+
+## Nota sobre el icono instalado
+
+Los activos usan nombres nuevos para invalidar la caché. En iOS/iPadOS, una instalación antigua en la pantalla de inicio puede requerir eliminar el acceso anterior y volver a añadir Primy después del despliegue.

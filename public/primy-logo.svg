@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80">
-  <defs><linearGradient id="g" x1="8" y1="8" x2="56" y2="56"><stop stop-color="#12A05C"/><stop offset="1" stop-color="#0B7A49"/></linearGradient></defs>
-  <g transform="translate(5 5)"><rect width="70" height="70" rx="22" fill="url(#g)"/><circle cx="34" cy="31" r="17" fill="#fff"/><path d="M25 55V22h12c10 0 16 5 16 13 0 8-6 13-16 13h-3v7h-9Zm9-15h3c4 0 7-2 7-5s-2-5-7-5h-3v10Z" fill="#0B7A49"/><circle cx="57" cy="15" r="6" fill="#F4C84A"/></g>
-  <text x="92" y="51" font-family="Sora,Arial,sans-serif" font-size="43" font-weight="700" fill="#132238">Primy</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 80" role="img" aria-label="Primy">
+<defs><linearGradient id="g" x1="8" y1="6" x2="57" y2="58" gradientUnits="userSpaceOnUse"><stop stop-color="#18A566"/><stop offset="1" stop-color="#075F3A"/></linearGradient></defs>
+<g transform="translate(5 5) scale(1.09375)"><rect x="3" y="3" width="58" height="58" rx="19" fill="url(#g)"/><path d="M19 16h17c9.6 0 16 5.5 16 14.1 0 8.8-6.7 14.7-16.4 14.7H31V52H19V16Z" fill="#FFFDF7"/><path d="M31 26h4.7c3.4 0 5.5 1.6 5.5 4.4 0 2.9-2.2 4.6-5.7 4.6H31v-9Z" fill="#0A7045"/><path d="M31 44.8 42.8 33H31v11.8Z" fill="#D9F5E5"/><circle cx="50" cy="14" r="4.5" fill="#F0C85A"/></g>
+<text x="91" y="52" font-family="Sora,Arial,sans-serif" font-size="43" font-weight="700" letter-spacing="-1.5" fill="#132238">Primy</text>
 </svg>

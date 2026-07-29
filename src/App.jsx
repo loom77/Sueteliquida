@@ -15,6 +15,7 @@ import { playCost, playKnownPrize } from './utils/playModel.js';
 import AppShell from './components/AppShell.jsx';
 import Toast from './components/Toast.jsx';
 import OnboardingDialog from './components/OnboardingDialog.jsx';
+import AgeVerificationDialog from './components/AgeVerificationDialog.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
 import LocalDataMigrationDialog from './components/LocalDataMigrationDialog.jsx';
 import ConfirmDialog from './components/ConfirmDialog.jsx';
@@ -291,6 +292,18 @@ function AuthenticatedApp({ auth }) {
     setToast({ message: 'Se han eliminado todas las jugadas de tu cuenta.' });
   };
 
+  if (!preferences.ageConfirmed) {
+    return (
+      <main className="min-h-screen bg-app text-primary">
+        <AgeVerificationDialog
+          open
+          onConfirm={({ confirmedAt }) => updatePreferences({ ageConfirmed: true, ageConfirmedAt: confirmedAt })}
+          onReject={auth.signOut}
+        />
+      </main>
+    );
+  }
+
   return (
     <AppShell view={view} onNavigate={navigate} dueCount={dueTotal} user={auth.user} onSignOut={auth.signOut} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} pendingSyncCount={pendingSyncCount}>
       <Suspense fallback={<div className="rounded-2xl border border-border bg-surface p-6 text-sm text-secondary">Cargando pantalla…</div>}>
@@ -305,7 +318,7 @@ function AuthenticatedApp({ auth }) {
       {view === 'settings' && <SettingsView activeGame={activeGame} onGameChange={selectGame} providerStatus={providerStatus} historyState={historyData} preferences={preferences} updatePreferences={updatePreferences} preferenceError={preferenceError} storageError={storageError} history={history} onImport={importHistory} onClear={requestClearAll} onToast={message => setToast({ message })} installPrompt={installPrompt} user={auth.user} onSignOut={auth.signOut} syncStatus={syncStatus} lastSyncedAt={lastSyncedAt} pendingSyncCount={pendingSyncCount} onRetrySync={retrySync}/>} 
 
       <ManualPlayDialog open={manualOpen} initialGame={activeGame} onClose={() => setManualOpen(false)} onSave={saveExternal}/>
-      <OnboardingDialog open={!preferences.onboardingSeen} onComplete={() => updatePreferences({ onboardingSeen: true })}/>
+      <OnboardingDialog open={preferences.ageConfirmed && !preferences.onboardingSeen} onComplete={() => updatePreferences({ onboardingSeen: true })}/>
       </Suspense>
       <ConfirmDialog
         open={clearConfirmOpen}

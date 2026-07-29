@@ -1,7 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs><linearGradient id="g" x1="8" y1="8" x2="56" y2="56"><stop stop-color="#12A05C"/><stop offset="1" stop-color="#0B7A49"/></linearGradient></defs>
-  <rect x="3" y="3" width="58" height="58" rx="20" fill="url(#g)"/>
-  <circle cx="31" cy="28" r="15" fill="#fff"/>
-  <path d="M23 47V20h10.5c8.5 0 13.5 4.2 13.5 11 0 7-5.2 11.5-13.7 11.5H31V47h-8Zm8-12h2.1c3.7 0 5.8-1.4 5.8-4.2 0-2.6-1.9-4-5.5-4H31V35Z" fill="#0B7A49"/>
-  <circle cx="49" cy="13" r="5" fill="#F4C84A"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Primy">
+<defs><linearGradient id="g" x1="8" y1="6" x2="57" y2="58" gradientUnits="userSpaceOnUse"><stop stop-color="#18A566"/><stop offset="1" stop-color="#075F3A"/></linearGradient></defs>
+<rect x="3" y="3" width="58" height="58" rx="19" fill="url(#g)"/>
+<path d="M19 16h17c9.6 0 16 5.5 16 14.1 0 8.8-6.7 14.7-16.4 14.7H31V52H19V16Z" fill="#FFFDF7"/>
+<path d="M31 26h4.7c3.4 0 5.5 1.6 5.5 4.4 0 2.9-2.2 4.6-5.7 4.6H31v-9Z" fill="#0A7045"/>
+<path d="M31 44.8 42.8 33H31v11.8Z" fill="#D9F5E5"/>
+<circle cx="50" cy="14" r="4.5" fill="#F0C85A"/>
 </svg>

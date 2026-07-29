@@ -7,6 +7,7 @@ import { Eyebrow } from './DesignSystem.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const syncTime = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
+const verificationDate = new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium' });
 
 const ProfileSection = memo(function ProfileSection({ title, description, icon: Icon, children, className = '' }) {
   return (
@@ -138,6 +139,13 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
         </div>
 
         <div className="space-y-5">
+          <ProfileSection title="Verificación de edad" description="Primy solo permite el acceso a personas de 18 años o más." icon={ShieldIcon}>
+            <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-900">
+              <p className="font-semibold">Edad confirmada</p>
+              <p className="mt-1 text-sm leading-6">{preferences.ageConfirmedAt ? `Verificada el ${verificationDate.format(new Date(preferences.ageConfirmedAt))}.` : 'Verificación completada.'} La fecha de nacimiento no se almacena.</p>
+            </div>
+          </ProfileSection>
+
           <ProfileSection title="Avisos" description="Recibe un aviso cuando Primy encuentre jugadas listas para comprobar." icon={BellIcon}>
             <button type="button" onClick={preferences.notifications ? () => updatePreferences({ notifications:false }) : enableNotifications} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">
               {preferences.notifications ? 'Desactivar notificaciones' : 'Activar notificaciones'}

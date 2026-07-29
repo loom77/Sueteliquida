@@ -1,15 +1,29 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { analyzeHistory } from '../utils/historyAnalytics.js';
 
-const KEY = 'primy_history_cache_v3';
-const LEGACY_KEY = 'primy_history_cache_v2';
+const KEY = 'primy_history_cache_v4';
+const LEGACY_KEYS = ['primy_history_cache_v3', 'primy_history_cache_v2'];
 const CACHE_TTL = 6 * 60 * 60 * 1000;
+const LIMITED_CACHE_TTL = 24 * 60 * 60 * 1000;
+const MIN_MANUAL_REFRESH_MS = 60 * 1000;
 
 function readCache() {
   try {
-    const parsed = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(LEGACY_KEY) || '{}');
-    return parsed && typeof parsed === 'object' ? parsed : {};
-  } catch { return {}; }
+    for (const key of [KEY, ...LEGACY_KEYS]) {
+      const value = localStorage.getItem(key);
+      if (!value) continue;
+      const parsed = JSON.parse(value);
+      if (parsed && typeof parsed === 'object') return parsed;
+    }
+  } catch { /* cache opzionale */ }
+  return {};
+}
+
+function cleanNotice(value, { latestOnly = false, totalDraws = 0 } = {}) {
+  if (latestOnly || totalDraws <= 1) {
+    return 'El plan conectado solo permite consultar el último sorteo. Primy lo muestra como referencia; el análisis histórico completo permanece desactivado.';
+  }
+  return typeof value === 'string' ? value : '';
 }
 
 async function readJson(response) {
@@ -20,82 +34,159 @@ async function readJson(response) {
 }
 
 const initialState = {
-  loading: false, loaded: false, error: '', notice: '', analysis: null, source: '',
-  limited: false, sufficientForAudit: false,
+  loading: false,
+  loaded: false,
+  error: '',
+  warning: '',
+  notice: '',
+  analysis: null,
+  source: '',
+  limited: false,
+  latestOnly: false,
+  stale: false,
+  sufficientForAudit: false,
+  retryAt: 0,
+  savedAt: 0,
 };
 
 export function useHistoryData(gameId, { enabled = false } = {}) {
   const [state, setState] = useState(initialState);
   const controllerRef = useRef(null);
+  const lastManualRefreshRef = useRef(0);
+  const retryAtRef = useRef(0);
 
   const load = useCallback(async (force = false) => {
     const cache = readCache();
     const hit = cache[gameId];
-    const fresh = hit && Date.now() - Number(hit.savedAt || 0) < CACHE_TTL;
+    const ttl = hit?.latestOnly || hit?.limited ? LIMITED_CACHE_TTL : CACHE_TTL;
+    const fresh = hit && Date.now() - Number(hit.savedAt || 0) < ttl;
 
     if (!force && fresh && Array.isArray(hit.draws)) {
+      const totalDraws = hit.draws.length;
+      retryAtRef.current = 0;
       setState({
-        loading: false, loaded: true, error: '', notice: hit.notice || '',
-        analysis: hit.draws.length ? analyzeHistory(gameId, hit.draws) : null,
-        source: hit.source || '', limited: Boolean(hit.limited),
+        loading: false,
+        loaded: true,
+        error: '',
+        warning: '',
+        notice: cleanNotice(hit.notice, { latestOnly: Boolean(hit.latestOnly), totalDraws }),
+        analysis: totalDraws ? analyzeHistory(gameId, hit.draws) : null,
+        source: hit.source || '',
+        limited: Boolean(hit.limited),
+        latestOnly: Boolean(hit.latestOnly) || totalDraws <= 1,
+        stale: Boolean(hit.stale),
         sufficientForAudit: Boolean(hit.sufficientForAudit),
+        retryAt: 0,
+        savedAt: Number(hit.savedAt || 0),
       });
       return;
+    }
+
+    if (force) {
+      const now = Date.now();
+      const retryAt = Math.max(retryAtRef.current, lastManualRefreshRef.current + MIN_MANUAL_REFRESH_MS);
+      if (retryAt > now) {
+        const seconds = Math.max(1, Math.ceil((retryAt - now) / 1000));
+        setState(current => ({ ...current, warning: `Espera ${seconds} segundos antes de volver a actualizar el historial.` }));
+        return;
+      }
+      lastManualRefreshRef.current = now;
+    } else {
+      lastManualRefreshRef.current = Date.now();
     }
 
     controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
-    setState(current => ({ ...current, loading: true, error: '', notice: '' }));
+    setState(current => ({ ...current, loading: true, error: '', warning: '', notice: current.notice || '' }));
+
     try {
       const response = await fetch(`/api/history?game=${encodeURIComponent(gameId)}&years=10`, {
-        headers: { Accept: 'application/json' }, signal: controller.signal,
+        headers: { Accept: 'application/json' },
+        signal: controller.signal,
       });
       const data = await readJson(response);
       if (!response.ok || !data.success) {
         const error = new Error(data.message || `Error del archivo histórico (HTTP ${response.status}).`);
         error.code = data.code;
+        error.retryAfter = Number(data.retryAfter || response.headers.get('retry-after')) || 0;
         throw error;
       }
 
       const draws = Array.isArray(data.draws) ? data.draws : [];
+      const totalDraws = draws.length;
       const stored = {
-        draws, source: data.source || '', notice: data.notice || '', limited: Boolean(data.limited),
-        sufficientForAudit: Boolean(data.sufficientForAudit), savedAt: Date.now(),
+        draws,
+        source: data.source || '',
+        notice: cleanNotice(data.notice, { latestOnly: Boolean(data.latestOnly), totalDraws }),
+        limited: Boolean(data.limited),
+        latestOnly: Boolean(data.latestOnly) || totalDraws <= 1,
+        stale: Boolean(data.stale),
+        sufficientForAudit: Boolean(data.sufficientForAudit),
+        savedAt: Date.now(),
       };
       try { localStorage.setItem(KEY, JSON.stringify({ ...cache, [gameId]: stored })); } catch { /* cache opzionale */ }
+      retryAtRef.current = 0;
       setState({
-        loading: false, loaded: true, error: '', notice: stored.notice,
-        analysis: draws.length ? analyzeHistory(gameId, draws) : null,
-        source: stored.source, limited: stored.limited, sufficientForAudit: stored.sufficientForAudit,
+        loading: false,
+        loaded: true,
+        error: '',
+        warning: stored.stale ? 'No se ha podido actualizar el proveedor; se conserva la última copia disponible.' : '',
+        notice: stored.notice,
+        analysis: totalDraws ? analyzeHistory(gameId, draws) : null,
+        source: stored.source,
+        limited: stored.limited,
+        latestOnly: stored.latestOnly,
+        stale: stored.stale,
+        sufficientForAudit: stored.sufficientForAudit,
+        retryAt: 0,
+        savedAt: stored.savedAt,
       });
     } catch (error) {
       if (error?.name === 'AbortError') return;
+      const retrySeconds = error.retryAfter || (error.code === 'RATE_LIMITED' || error.code === 'LOCAL_RATE_LIMIT' ? 60 : 0);
+      const retryAt = retrySeconds ? Date.now() + retrySeconds * 1000 : 0;
+      retryAtRef.current = retryAt;
+
       if (hit?.draws?.length) {
+        const totalDraws = hit.draws.length;
         setState({
-          loading: false, loaded: true, error: `Conexión no disponible: se usa la caché local. ${error.message}`,
-          notice: hit.notice || '', analysis: analyzeHistory(gameId, hit.draws), source: hit.source || '',
-          limited: Boolean(hit.limited), sufficientForAudit: Boolean(hit.sufficientForAudit),
+          loading: false,
+          loaded: true,
+          error: '',
+          warning: error.code === 'RATE_LIMITED' || error.code === 'LOCAL_RATE_LIMIT'
+            ? 'El proveedor ha limitado temporalmente las actualizaciones. Se conserva la última copia local.'
+            : 'No se ha podido actualizar el historial. Se conserva la última copia local.',
+          notice: cleanNotice(hit.notice, { latestOnly: Boolean(hit.latestOnly), totalDraws }),
+          analysis: analyzeHistory(gameId, hit.draws),
+          source: hit.source || '',
+          limited: Boolean(hit.limited),
+          latestOnly: Boolean(hit.latestOnly) || totalDraws <= 1,
+          stale: true,
+          sufficientForAudit: Boolean(hit.sufficientForAudit),
+          retryAt,
+          savedAt: Number(hit.savedAt || 0),
         });
       } else {
         const guidance = error.code === 'KEY_NOT_CONFIGURED'
-          ? ' Configura LOTERIA_API_KEY en las variables de entorno de Vercel y vuelve a desplegar el proyecto.'
-          : error.code === 'AUTH_INVALID' ? ' Comprueba la clave en el panel de LoteriasAPI.'
-            : error.code === 'PLAN_RESTRICTED' ? ' El plan actual puede no incluir el historial solicitado.' : '';
-        const code = error.code ? ` [${error.code}]` : '';
-        setState({ ...initialState, loaded: true, error: `${error.message}${code}${guidance}` });
+          ? ' Configura LOTERIA_API_KEY en Vercel y vuelve a desplegar.'
+          : error.code === 'AUTH_INVALID'
+            ? ' Comprueba la clave en el panel de LoteriasAPI.'
+            : error.code === 'PLAN_RESTRICTED'
+              ? ' El plan conectado no incluye el historial solicitado.'
+              : '';
+        setState({ ...initialState, loaded: true, retryAt, error: `${error.message}${guidance}` });
       }
     }
   }, [gameId]);
 
   useEffect(() => {
+    setState(initialState);
+    lastManualRefreshRef.current = 0;
+    retryAtRef.current = 0;
     if (enabled) load(false);
     return () => controllerRef.current?.abort();
-  }, [enabled, load]);
-
-  useEffect(() => {
-    setState(current => current.loaded ? { ...initialState } : current);
-  }, [gameId]);
+  }, [gameId, enabled, load]);
 
   return { ...state, reload: () => load(true), load: () => load(false) };
 }
