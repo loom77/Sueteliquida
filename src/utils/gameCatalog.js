@@ -81,8 +81,8 @@ export const GAME_CATALOG = {
     familyId: 'numbers',
     description: 'Combinación numérica y número clave con estructura propia.',
     betModel: 'Combinación numérica con clave',
-    availability: 'rules-review',
-    capabilities: REVIEW_CAPABILITIES,
+    availability: 'active',
+    capabilities: ACTIVE_CAPABILITIES,
   },
   eurodreams: {
     id: 'eurodreams',

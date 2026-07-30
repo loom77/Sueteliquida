@@ -2,6 +2,7 @@ import { getGameConfig } from './gameConfig.js';
 import { getNextDrawInfo } from './drawSchedule.js';
 import { coverageMetrics } from './portfolioOptimizer.js';
 import { bonolotoEquivalentBets, isBonolotoSystemSize } from './bonoloto.js';
+import { gordoEquivalentBets, isGordoSystemSize } from './gordoPrimitiva.js';
 
 const clamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 const mean = values => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
@@ -255,12 +256,15 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
   const minimumSimpleBets = game.minSimpleBets || 1;
   const count = Math.max(minimumSimpleBets, Math.min(Number(columnCount) || minimumSimpleBets, game.maxSimpleBets || 1));
   const profile = resolveFusionProfile(gameId, analysis, options.evidenceOptions || options.auditOptions || {});
-  if (gameId === 'bonoloto' && options.betType === 'multiple') {
+  if (options.betType === 'multiple' && ['bonoloto', 'gordoprimitiva'].includes(gameId)) {
     const systemSize = Number(options.systemSize);
-    if (!isBonolotoSystemSize(systemSize)) throw new Error('Selecciona una múltiple válida de Bonoloto.');
+    const isBonoloto = gameId === 'bonoloto';
+    const valid = isBonoloto ? isBonolotoSystemSize(systemSize) : isGordoSystemSize(systemSize);
+    if (!valid) throw new Error(`Selecciona una múltiple válida de ${game.name}.`);
     const numbers = randomSelection(game, systemSize, rng);
     const draw = getNextDrawInfo(gameId);
-    const equivalentBets = bonolotoEquivalentBets(systemSize);
+    const equivalentBets = isBonoloto ? bonolotoEquivalentBets(systemSize) : gordoEquivalentBets(systemSize);
+    const extra = isBonoloto ? null : rng.int(game.extra.min, game.extra.max);
     return {
       id: crypto.randomUUID(),
       gameId,
@@ -268,8 +272,8 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
       systemSelection: numbers,
       systemSize,
       equivalentBets,
-      columns: [{ id: crypto.randomUUID(), index: 1, numbers, isSystem: true, status: 'draft' }],
-      receiptExtra: null,
+      columns: [{ id: crypto.randomUUID(), index: 1, numbers, ...(extra == null ? {} : { extra }), isSystem: true, status: 'draft' }],
+      ...(isBonoloto ? { receiptExtra: null } : {}),
       createdAt: new Date().toISOString(),
       ...draw,
       method: 'primy-uniform-system',
@@ -277,10 +281,10 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
       status: 'draft',
       metadata: {
         engine: 'Motor uniforme de Primy',
-        engineVersion: '15.4-bonoloto-uniform',
+        engineVersion: '15.5-gordo-uniform',
         seed,
         requestedColumns: 1,
-        receiptExtraPending: true,
+        ...(isBonoloto ? { receiptExtraPending: true } : {}),
         generationConfig: { mode: 'uniform-system-selection', gameId, systemSize, equivalentBets },
         quality: { uniqueNumbers: numbers.length, coverageRatio: numbers.length / game.numberPoolMax, averageOverlap: 0 },
         history: { available: Boolean(analysis?.totalDraws), used: false, weight: 0, draws: analysis?.totalDraws || 0, through: analysis?.to || null },
@@ -350,7 +354,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     status: 'draft',
     metadata: {
       engine: 'Motor uniforme de Primy',
-      engineVersion: '15.4-bonoloto-uniform',
+      engineVersion: '15.5-gordo-uniform',
       seed,
       randomDraws: attempts,
       generationConfig: { mode: 'uniform-without-replacement', columns: count, gameId, secondaryMode: game.secondary ? 'uniform-without-replacement' : null },

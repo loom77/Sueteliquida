@@ -1,11 +1,12 @@
 import React from 'react';
 import { GAMES } from '../utils/gameConfig.js';
 
-const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'euromillones', 'eurodreams'];
+const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'gordoprimitiva', 'euromillones', 'eurodreams'];
 
 function selectedTone(gameId) {
   if (gameId === 'primitiva') return 'bg-primy-700 text-white shadow-soft';
   if (gameId === 'bonoloto') return 'primy-bonoloto-action shadow-soft';
+  if (gameId === 'gordoprimitiva') return 'primy-gordo-action shadow-soft';
   if (gameId === 'euromillones') return 'primy-euromillones-action shadow-soft';
   return 'bg-eurodreams text-white shadow-soft';
 }
@@ -14,7 +15,7 @@ export default function GameSwitch({ active, onChange, label = 'Juego' }) {
   return (
     <fieldset>
       <legend className="mb-2 text-sm font-semibold text-primary">{label}</legend>
-      <div className="grid grid-cols-1 gap-2 rounded-2xl bg-muted-strong p-1.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 rounded-2xl bg-muted-strong p-1.5 sm:grid-cols-2 xl:grid-cols-5">
         {ACTIVE_GAME_ORDER.map(gameId => GAMES[gameId]).filter(Boolean).map(game => {
           const selected = active === game.id;
           return (

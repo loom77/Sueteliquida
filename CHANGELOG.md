@@ -1,3 +1,12 @@
+# Primy v15.5.1 — El Gordo + Primy Core popup refinement
+
+- refuerzo visual y narrativo de Primy Core en la cabecera del generador
+- nuevo popup explicativo con copy simplificado, foco en análisis avanzado y comprobación automática de premios
+- variante gráfica renovada del bloque con la mascota dentro del popup
+- integración final de El Gordo de la Primitiva como juego activo
+- soporte para apuestas múltiples de El Gordo (6 y 7 números)
+- mejora del panel generador con aviso específico del número clave
+
 # 15.4.0 — Bonoloto completa
 
 - Activa Bonoloto en Crear, Registrar, Archivo, Comprobar e Historial.

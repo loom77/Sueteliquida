@@ -222,7 +222,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
 
             <div>
               <h3 className="text-lg font-semibold text-primary">Cómo funciona Primy Core</h3>
-              <p className="mt-1 text-sm leading-6 text-secondary">Primy Core crea combinaciones válidas de forma independiente. El historial se muestra aparte y nunca determina la próxima jugada.</p>
+              <p className="mt-1 text-sm leading-6 text-secondary">Primy Core usa un motor inteligente de análisis avanzado para generar combinaciones válidas, mostrar estadísticas informativas y ayudarte a comprobar resultados sin prometer premios.</p>
               <div className="mt-4"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego que analizar"/></div>
               <div className="mt-5"><HistoryLab historyState={historyState}/></div>
             </div>

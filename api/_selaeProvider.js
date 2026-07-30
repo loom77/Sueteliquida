@@ -25,6 +25,11 @@ const SOURCES = {
     codes: ['LAPR'],
     label: 'La Primitiva',
   },
+  gordoprimitiva: {
+    file: 'gordoprimitiva.html',
+    codes: ['ELGR'],
+    label: 'El Gordo de la Primitiva',
+  },
   eurodreams: {
     file: 'eurodreams.html',
     // EDMS is documented on the current Spanish SELAE page. EUDR remains as a
@@ -316,7 +321,9 @@ export function parseSelaeHtml(html, game, { requestedDate = '', endpoint = '' }
     : [];
   const extra = game.id === 'eurodreams'
     ? extractLabelNumber(text, ['sue(?:ñ|n)o'], game.extra.min, game.extra.max, raw)
-    : game.extra ? extractLabelNumber(text, ['reintegro'], game.extra.min, game.extra.max, raw) : null;
+    : game.id === 'gordoprimitiva'
+      ? extractLabelNumber(text, ['n(?:u|ú)mero\s+clave', 'clave'], game.extra.min, game.extra.max, raw)
+      : game.extra ? extractLabelNumber(text, ['reintegro'], game.extra.min, game.extra.max, raw) : null;
   const complementary = game.hasComplementary
     ? extractLabelNumber(text, ['complementario'], 1, game.numberPoolMax, raw)
     : null;

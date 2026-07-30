@@ -14,10 +14,10 @@ test('Primy Core recibe una presentación destacada y accesible', () => {
 });
 
 test('el diálogo explica con lenguaje simple qué hace y qué no hace Primy Core', () => {
-  assert.match(generator, /Entiende cada juego/);
-  assert.match(generator, /Crea de forma independiente/);
-  assert.match(generator, /Comprueba antes de entregar/);
-  assert.match(generator, /No compra boletos, no predice resultados y no puede garantizar premios/);
+  assert.match(generator, /Analiza y ordena/);
+  assert.match(generator, /Usa un motor inteligente de análisis avanzado/);
+  assert.match(generator, /Comprueba y acompaña/);
+  assert.match(generator, /No asegura ninguna ganancia, no compra boletos y no puede garantizar premios ni resultados futuros/);
   assert.match(generator, /PrimyMascotGraphic variant="helper"/);
 });
 

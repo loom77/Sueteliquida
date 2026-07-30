@@ -95,3 +95,32 @@ test('Euromillones aplica sus trece categorías con coincidencias de estrellas',
   assert.equal(none.category, null);
   assert.equal(none.officialAmount, 0);
 });
+
+
+test('El Gordo de la Primitiva genera cinco números y una clave por columna', () => {
+  const play = generateFusionPlay('gordoprimitiva', null, 6, { seed: 'gordo-six-columns' });
+  assert.equal(play.columns.length, 6);
+  assert.equal(play.receiptExtra, undefined);
+  for (const column of play.columns) {
+    assert.equal(column.numbers.length, 5);
+    assert.equal(new Set(column.numbers).size, 5);
+    assert.ok(column.numbers.every(number => number >= 1 && number <= 54));
+    assert.ok(Number.isInteger(column.extra));
+    assert.ok(column.extra >= 0 && column.extra <= 9);
+  }
+});
+
+test('El Gordo de la Primitiva liquida las categorías por combinación y clave', () => {
+  const draw = { winningNumbers: [1, 2, 3, 4, 5], extra: 7, prizes: [] };
+  const first = calculatePlayPayout({ gameId: 'gordoprimitiva', columns: [{ numbers: [1, 2, 3, 4, 5], extra: 7 }] }, draw).columns[0];
+  const seventh = calculatePlayPayout({ gameId: 'gordoprimitiva', columns: [{ numbers: [1, 2, 20, 21, 22], extra: 7 }] }, draw).columns[0];
+  const none = calculatePlayPayout({ gameId: 'gordoprimitiva', columns: [{ numbers: [1, 20, 21, 22, 23], extra: 4 }] }, draw).columns[0];
+  assert.match(first.category, /1\.ª categoría/);
+  assert.equal(first.matches, 5);
+  assert.equal(first.extraMatch, true);
+  assert.match(seventh.category, /7\.ª categoría/);
+  assert.equal(seventh.matches, 2);
+  assert.equal(seventh.extraMatch, true);
+  assert.equal(none.category, null);
+  assert.equal(none.officialAmount, 0);
+});

@@ -1,6 +1,7 @@
 import { GAMES, getGameConfig } from './gameConfig.js';
 import { toLocalDateKey } from './drawSchedule.js';
 import { bonolotoEquivalentBets, isBonolotoSystemSize } from './bonoloto.js';
+import { gordoEquivalentBets, isGordoSystemSize } from './gordoPrimitiva.js';
 
 function sanitizeSecondaryNumbers(game, column) {
   if (!game.secondary) return null;
@@ -67,6 +68,23 @@ function sanitizeBonolotoMultiple(play) {
   if (!selection || !isBonolotoSystemSize(selection.length)) return null;
   const equivalentBets = bonolotoEquivalentBets(selection.length);
   const column = sanitizeColumn('bonoloto', {
+    ...(play.columns?.[0] || {}),
+    numbers: selection,
+    isSystem: true,
+  }, 1, { system: true });
+  if (!column) return null;
+  return { selection, equivalentBets, column };
+}
+
+function sanitizeGordoMultiple(play) {
+  const game = GAMES.gordoprimitiva;
+  const selection = sanitizeNumbers(play.systemSelection || play.columns?.[0]?.numbers, {
+    count: Number(play.systemSize || play.systemSelection?.length || play.columns?.[0]?.numbers?.length),
+    max: game.numberPoolMax,
+  });
+  if (!selection || !isGordoSystemSize(selection.length)) return null;
+  const equivalentBets = gordoEquivalentBets(selection.length);
+  const column = sanitizeColumn('gordoprimitiva', {
     ...(play.columns?.[0] || {}),
     numbers: selection,
     isSystem: true,
@@ -150,6 +168,26 @@ export function sanitizePlay(play) {
     };
   }
 
+  if (play.gameId === 'gordoprimitiva' && play.betType === 'multiple') {
+    const system = sanitizeGordoMultiple(play);
+    if (!system) return null;
+    return {
+      ...play,
+      id: typeof play.id === 'string' ? play.id : crypto.randomUUID(),
+      gameId: 'gordoprimitiva',
+      betType: 'multiple',
+      systemSelection: system.selection,
+      systemSize: system.selection.length,
+      equivalentBets: system.equivalentBets,
+      columns: [system.column],
+      metadata: play.metadata || {},
+      purchased,
+      purchasedAt: purchased ? (play.purchasedAt || play.createdAt || new Date().toISOString()) : undefined,
+      status: play.status === 'checked' ? 'checked' : purchased ? 'scheduled' : 'draft',
+      drawDateKey: play.drawDateKey || toLocalDateKey(play.drawDateISO),
+    };
+  }
+
   let columns = play.columns
     .map((column, index) => sanitizeColumn(play.gameId, column, index + 1))
     .filter(Boolean)
@@ -197,7 +235,7 @@ export function sanitizePlays(raw) {
 
 export function playBetCount(play) {
   return play?.betType === 'multiple'
-    ? Number(play.equivalentBets || bonolotoEquivalentBets(play.systemSize)) || 0
+    ? Number(play.equivalentBets || (play.gameId === 'gordoprimitiva' ? gordoEquivalentBets(play.systemSize) : bonolotoEquivalentBets(play.systemSize))) || 0
     : (play?.columns?.length || 0);
 }
 

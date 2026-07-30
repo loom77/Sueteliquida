@@ -4,13 +4,14 @@ import { PrimyMascotGraphic } from './BrandVisuals.jsx';
 import AccessibleDialog from './AccessibleDialog.jsx';
 import { AlertIcon, CheckIcon, InfoIcon, ShieldIcon, SparklesIcon, WalletIcon, XIcon } from './Icons.jsx';
 import { BONOLOTO_SYSTEM_SIZES, bonolotoEquivalentBets } from '../utils/bonoloto.js';
+import { GORDO_SYSTEM_SIZES, gordoEquivalentBets } from '../utils/gordoPrimitiva.js';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
 const CORE_STEPS = [
-  { icon: InfoIcon, title: 'Entiende cada juego', text: 'Reconoce cuántos números, estrellas o elementos extra corresponden, qué rangos son válidos y cómo se calcula el coste.' },
-  { icon: SparklesIcon, title: 'Crea de forma independiente', text: 'Genera cada selección sin copiar columnas y sin usar el historial para prometer qué saldrá en el próximo sorteo.' },
-  { icon: CheckIcon, title: 'Comprueba antes de entregar', text: 'Revisa duplicados, cantidades, reglas del boleto y presupuesto antes de mostrarte el resultado.' },
+  { icon: InfoIcon, title: 'Analiza y ordena', text: 'Interpreta las reglas del juego, calcula el coste y organiza la jugada para que todo quede claro desde el primer vistazo.' },
+  { icon: SparklesIcon, title: 'Usa un motor inteligente de análisis avanzado', text: 'Combina automatización, estadísticas informativas y lógica de validación para preparar cada columna con rapidez y coherencia.' },
+  { icon: CheckIcon, title: 'Comprueba y acompaña', text: 'Conecta la generación con la revisión del boleto y la comprobación de premios para que puedas seguir todo desde Primy.' },
 ];
 
 const GAME_THEMES = {
@@ -23,6 +24,11 @@ const GAME_THEMES = {
     label: 'text-lime-800', icon: 'bg-lime-100 text-lime-900', strong: 'primy-bonoloto-action',
     panel: 'border-lime-200 bg-gradient-to-br from-lime-50 via-ivory to-cream dark:from-lime-950 dark:to-surface',
     helper: 'border-lime-200 bg-lime-50/70', progress: 'bg-lime-700',
+  },
+  gordoprimitiva: {
+    label: 'text-amber-800', icon: 'bg-amber-100 text-amber-900', strong: 'primy-gordo-action',
+    panel: 'border-amber-200 bg-gradient-to-br from-amber-50 via-ivory to-cream dark:from-amber-950 dark:to-surface',
+    helper: 'border-amber-200 bg-amber-50/70', progress: 'bg-amber-600',
   },
   euromillones: {
     label: 'text-sky-700', icon: 'bg-sky-100 text-sky-800', strong: 'primy-euromillones-action',
@@ -42,11 +48,15 @@ export default function GeneratorPanel({
   onGenerate, onCancel, busy, progress = 0, generationError,
   monthlySpent = 0, monthlyLimit = null, variantLabel = '', onClearVariant, layout = 'wide',
 }) {
+  const supportsMultiple = Boolean(game.supportsMultiple);
   const isBonoloto = activeGame === 'bonoloto';
-  const isMultiple = isBonoloto && betType === 'multiple';
+  const isGordo = activeGame === 'gordoprimitiva';
+  const isMultiple = supportsMultiple && betType === 'multiple';
   const minColumns = game.minSimpleBets || 1;
   const maxColumns = game.maxSimpleBets || 1;
-  const equivalentBets = isMultiple ? bonolotoEquivalentBets(systemSize) : columnCount;
+  const systemSizes = isGordo ? GORDO_SYSTEM_SIZES : BONOLOTO_SYSTEM_SIZES;
+  const equivalentBetsFor = isGordo ? gordoEquivalentBets : bonolotoEquivalentBets;
+  const equivalentBets = isMultiple ? equivalentBetsFor(systemSize) : columnCount;
   const totalCost = game.price * equivalentBets;
   const exceedsLimit = monthlyLimit != null && monthlyLimit > 0 && monthlySpent + totalCost > monthlyLimit;
   const compactLayout = layout === 'compact';
@@ -54,16 +64,16 @@ export default function GeneratorPanel({
   const [coreInfoOpen, setCoreInfoOpen] = useState(false);
 
   useEffect(() => {
-    if (isBonoloto && betType === 'simple' && columnCount < minColumns) setColumnCount(minColumns);
-  }, [betType, columnCount, isBonoloto, minColumns, setColumnCount]);
+    if (supportsMultiple && betType === 'simple' && columnCount < minColumns) setColumnCount(minColumns);
+  }, [betType, columnCount, supportsMultiple, minColumns, setColumnCount]);
 
   const coreStage = useMemo(() => {
     if (!busy) return null;
     if (progress < 0.28) return { title: 'Primy Core está preparando tu selección', detail: 'Configurando el juego y el tipo de apuesta.' };
-    if (progress < 0.68) return { title: 'Construyendo tus combinaciones', detail: isMultiple ? 'Generando una selección múltiple válida.' : 'Cada columna se crea de forma independiente y sin duplicados.' };
+    if (progress < 0.68) return { title: 'Construyendo tus combinaciones', detail: isMultiple ? `Generando una selección múltiple válida de ${game.name}.` : 'Cada columna se crea de forma independiente y sin duplicados.' };
     if (progress < 0.96) return { title: 'Últimas comprobaciones', detail: 'Verificando que el boleto cumpla todas las reglas del juego.' };
     return { title: 'Tu jugada está casi lista', detail: 'Preparando el resultado para mostrarlo.' };
-  }, [busy, isMultiple, progress]);
+  }, [busy, game.name, isMultiple, progress]);
 
   const actionLabel = isMultiple
     ? `Crear múltiple de ${systemSize} números · ${euro.format(totalCost)}`
@@ -81,10 +91,10 @@ export default function GeneratorPanel({
               <span className="primy-core-spotlight__status" aria-hidden="true" />
               Primy Core
             </span>
-            <span className="text-xs font-semibold text-secondary">El corazón de cada jugada</span>
+            <span className="text-xs font-semibold text-secondary">Sistema sofisticado para preparar y revisar cada boleto</span>
           </div>
           <h2 className="mt-2 text-2xl font-semibold tracking-tight text-primary">Prepara tu jugada</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary">Elige el juego y configura el boleto. Primy Core aplica las reglas, crea la selección y comprueba que todo encaje antes de mostrártela.</p>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary">Elige el juego y configura el boleto. Primy Core usa un motor inteligente de análisis avanzado para aplicar reglas, apoyar la lectura de estadísticas y comprobar que todo encaje antes de mostrarte la jugada.</p>
           <button
             type="button"
             className="primy-core-learn"
@@ -93,7 +103,7 @@ export default function GeneratorPanel({
             aria-controls="primy-core-info-dialog"
           >
             <InfoIcon width="18" height="18"/>
-            Descubre más sobre Primy Core
+Descubre más sobre Primy Core
           </button>
         </div>
       </div>
@@ -102,14 +112,14 @@ export default function GeneratorPanel({
 
       <div className="mt-7"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego elegido"/></div>
 
-      {isBonoloto && (
+      {supportsMultiple && (
         <fieldset className="mt-6">
           <legend className="mb-2 text-sm font-semibold text-primary">Tipo de apuesta</legend>
           <div className="grid grid-cols-2 gap-2 rounded-2xl bg-muted-strong p-1.5">
-            <button type="button" aria-pressed={!isMultiple} onClick={() => setBetType?.('simple')} disabled={busy} className={`min-h-12 rounded-xl px-4 text-sm font-semibold ${!isMultiple ? 'primy-bonoloto-action text-white' : 'text-secondary hover:bg-surface hover:text-primary'}`}>Sencilla</button>
-            <button type="button" aria-pressed={isMultiple} onClick={() => setBetType?.('multiple')} disabled={busy} className={`min-h-12 rounded-xl px-4 text-sm font-semibold ${isMultiple ? 'primy-bonoloto-action text-white' : 'text-secondary hover:bg-surface hover:text-primary'}`}>Múltiple</button>
+            <button type="button" aria-pressed={!isMultiple} onClick={() => setBetType?.('simple')} disabled={busy} className={`min-h-12 rounded-xl px-4 text-sm font-semibold ${!isMultiple ? `${theme.strong} text-white` : 'text-secondary hover:bg-surface hover:text-primary'}`}>Sencilla</button>
+            <button type="button" aria-pressed={isMultiple} onClick={() => setBetType?.('multiple')} disabled={busy} className={`min-h-12 rounded-xl px-4 text-sm font-semibold ${isMultiple ? `${theme.strong} text-white` : 'text-secondary hover:bg-surface hover:text-primary'}`}>Múltiple</button>
           </div>
-          <p className="mt-2 text-xs leading-5 text-secondary">La sencilla genera de 2 a 8 apuestas. La múltiple crea una única selección que equivale a varias apuestas oficiales.</p>
+          <p className="mt-2 text-xs leading-5 text-secondary">{activeGame === 'bonoloto' ? 'La sencilla genera de 2 a 8 apuestas. La múltiple crea una única selección que equivale a varias apuestas oficiales.' : 'La sencilla crea columnas independientes. La múltiple genera una selección ampliada que se desarrolla en varias apuestas oficiales.'}</p>
         </fieldset>
       )}
 
@@ -119,15 +129,15 @@ export default function GeneratorPanel({
 
           {isMultiple ? (
             <div className="mt-6 rounded-2xl border border-white/80 bg-surface p-4 shadow-sm">
-              <label className="text-sm font-semibold text-primary" htmlFor="bonoloto-system-size">Números de la selección múltiple</label>
-              <select id="bonoloto-system-size" value={systemSize} onChange={event => setSystemSize?.(Number(event.target.value))} disabled={busy} className="mt-2 min-h-12 w-full rounded-xl border border-default bg-surface px-3 text-base text-primary">
-                {BONOLOTO_SYSTEM_SIZES.map(size => <option key={size} value={size}>{size} números · {bonolotoEquivalentBets(size)} apuestas</option>)}
+              <label className="text-sm font-semibold text-primary" htmlFor="system-size">Números de la selección múltiple</label>
+              <select id="system-size" value={systemSize} onChange={event => setSystemSize?.(Number(event.target.value))} disabled={busy} className="mt-2 min-h-12 w-full rounded-xl border border-default bg-surface px-3 text-base text-primary">
+                {(game.multipleSelectionSizes || systemSizes).map(size => <option key={size} value={size}>{size} números · {equivalentBetsFor(size)} apuestas</option>)}
               </select>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-xl bg-lime-50 p-3"><p className="text-xs font-bold uppercase tracking-wide text-lime-800">Apuestas equivalentes</p><p className="mt-1 text-2xl font-semibold tabular-nums text-primary">{equivalentBets}</p></div>
-                <div className="rounded-xl bg-lime-50 p-3"><p className="text-xs font-bold uppercase tracking-wide text-lime-800">Coste por sorteo</p><p className="mt-1 text-2xl font-semibold tabular-nums text-primary">{euro.format(totalCost)}</p></div>
+                <div className="rounded-xl bg-amber-50 p-3"><p className="text-xs font-bold uppercase tracking-wide text-amber-800">Apuestas equivalentes</p><p className="mt-1 text-2xl font-semibold tabular-nums text-primary">{equivalentBets}</p></div>
+                <div className="rounded-xl bg-amber-50 p-3"><p className="text-xs font-bold uppercase tracking-wide text-amber-800">Coste por sorteo</p><p className="mt-1 text-2xl font-semibold tabular-nums text-primary">{euro.format(totalCost)}</p></div>
               </div>
-              {equivalentBets >= 84 && <div className="mt-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950"><AlertIcon className="mt-0.5 shrink-0" width="18" height="18"/><p>Esta múltiple desarrolla {equivalentBets} apuestas y tiene un coste elevado. Revisa el importe antes de continuar.</p></div>}
+              {equivalentBets >= 20 && <div className="mt-4 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-950"><AlertIcon className="mt-0.5 shrink-0" width="18" height="18"/><p>Esta múltiple desarrolla {equivalentBets} apuestas y tiene un coste elevado. Revisa el importe antes de continuar.</p></div>}
             </div>
           ) : (
             <>
@@ -142,6 +152,7 @@ export default function GeneratorPanel({
 
           {game.secondary && <p className="mt-2 text-center text-xs leading-5 text-secondary">Cada columna incluye {game.numbersToPick} números y {game.secondary.count} {game.secondary.label.toLocaleLowerCase('es-ES')} independientes.</p>}
           {game.extra?.assignment === 'official-receipt' && <p className="mt-3 rounded-xl border border-lime-200 bg-lime-50 p-3 text-center text-xs leading-5 text-lime-950">Primy no genera el reintegro. Lo introducirás al registrar el boleto comprado, exactamente como aparece en el resguardo.</p>}
+          {isGordo && <p className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-3 text-center text-xs leading-5 text-amber-950">Cada apuesta incluye 5 números del 1 al 54 y un número clave del 0 al 9. La clave forma parte de la combinación y se comprueba por separado.</p>}
 
           <div className="mt-6 grid gap-2">
             <button type="button" onClick={onGenerate} disabled={busy} aria-label={`Crear una jugada de ${game.name}`} data-game-action={activeGame} className={`primy-shimmer flex min-h-14 w-full min-w-0 items-center justify-center gap-2 rounded-2xl px-4 text-center text-base font-semibold leading-6 text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-60 ${theme.strong}`}>
@@ -171,13 +182,13 @@ export default function GeneratorPanel({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-primy-700">El corazón de Primy</p>
-              <h2 id="primy-core-dialog-title" className="mt-2 text-2xl font-semibold tracking-tight text-primary sm:text-3xl">Así funciona Primy Core</h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-secondary sm:text-base">Primy Core es el sistema que convierte las reglas oficiales del juego que eliges en una jugada válida, clara y lista para revisar.</p>
+              <h2 id="primy-core-dialog-title" className="mt-2 text-2xl font-semibold tracking-tight text-primary sm:text-3xl">Descubre cómo funciona Primy Core</h2>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-secondary sm:text-base">Primy Core es el corazón operativo de Primy: un sistema sofisticado que usa un motor inteligente de análisis avanzado para ayudarte a preparar jugadas válidas, consultar estadísticas descriptivas y comprobar premios desde un mismo lugar.</p>
             </div>
             <button type="button" onClick={() => setCoreInfoOpen(false)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-default bg-surface text-primary hover:bg-muted" aria-label="Cerrar información sobre Primy Core"><XIcon width="20" height="20"/></button>
           </div>
 
-          <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_240px]">
             <div className="space-y-3">
               {CORE_STEPS.map(step => {
                 const StepIcon = step.icon;
@@ -190,25 +201,34 @@ export default function GeneratorPanel({
               })}
             </div>
 
-            <div className="primy-core-dialog__mascot">
-              <PrimyMascotGraphic variant="helper" size="dashboard" compact showCaption={false} className="w-full" />
-              <p className="mt-3 text-center text-sm font-semibold leading-6 text-primary">Tú eliges el juego y cuánto quieres jugar. Primy Core se ocupa de que la jugada cumpla las reglas.</p>
+            <div className="primy-core-dialog__mascot primy-core-dialog__mascot--feature">
+              <div className="primy-core-dialog__mascot-art">
+                <PrimyMascotGraphic variant="helper" size="dashboard" compact showCaption={false} className="w-full" />
+              </div>
+              <div className="primy-core-dialog__speech">
+                <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-primy-700">Primy te lo pone fácil</p>
+                <p className="mt-2 text-sm font-semibold leading-6 text-primary">Tú eliges el juego y el presupuesto. Yo preparo la jugada, te ayudo a revisarla y después sigo contigo para comprobarla.</p>
+              </div>
             </div>
           </div>
 
-          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-primy-200 bg-primy-50/80 p-4">
               <p className="flex items-center gap-2 font-semibold text-primy-900"><CheckIcon width="18" height="18"/>Lo que sí hace</p>
-              <p className="mt-2 text-sm leading-6 text-primy-900/80">Aplica reglas, valida combinaciones, calcula el coste y evita errores dentro del boleto.</p>
+              <p className="mt-2 text-sm leading-6 text-primy-900/80">Aplica reglas, calcula costes, ordena estadísticas descriptivas y deja cada jugada lista para revisar.</p>
+            </div>
+            <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+              <p className="flex items-center gap-2 font-semibold text-sky-950"><InfoIcon width="18" height="18"/>Lo que automatiza</p>
+              <p className="mt-2 text-sm leading-6 text-sky-950/80">Se conecta automáticamente para consultar sorteos y comprobar premios cuando la fuente oficial está disponible.</p>
             </div>
             <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="flex items-center gap-2 font-semibold text-amber-950"><ShieldIcon width="18" height="18"/>Lo que nunca hace</p>
-              <p className="mt-2 text-sm leading-6 text-amber-950/80">No compra boletos, no predice resultados y no puede garantizar premios.</p>
+              <p className="flex items-center gap-2 font-semibold text-amber-950"><ShieldIcon width="18" height="18"/>Lo que nunca promete</p>
+              <p className="mt-2 text-sm leading-6 text-amber-950/80">No asegura ninguna ganancia, no compra boletos y no puede garantizar premios ni resultados futuros.</p>
             </div>
           </div>
 
           <div className="mt-6 flex flex-col-reverse gap-3 border-t border-default pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs leading-5 text-secondary">El historial es informativo y permanece separado de la generación.</p>
+            <p className="text-xs leading-5 text-secondary">Primy Core usa automatización y análisis como apoyo. Las estadísticas son informativas y nunca aseguran una ganancia.</p>
             <button type="button" onClick={() => setCoreInfoOpen(false)} className="primy-button primy-button-primary">Entendido, seguir preparando</button>
           </div>
         </div>

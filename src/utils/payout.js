@@ -145,10 +145,36 @@ function euromillones(ticket, results) {
   return result(category.label, matches, amount, amount == null ? 'Premio variable' : null, amount == null ? 'variable' : 'cash', { secondaryMatches });
 }
 
+
+function gordoPrimitiva(ticket, results) {
+  const matches = countMatches(ticket.ticket, results.winningNumbers);
+  const keyMatch = Number(ticket.extra) === Number(results.extra);
+  const categories = new Map([
+    ['5+1', { number: 1, label: '1.ª categoría (5 + Clave)' }],
+    ['5+0', { number: 2, label: '2.ª categoría (5 números)' }],
+    ['4+1', { number: 3, label: '3.ª categoría (4 + Clave)' }],
+    ['4+0', { number: 4, label: '4.ª categoría (4 números)' }],
+    ['3+1', { number: 5, label: '5.ª categoría (3 + Clave)' }],
+    ['3+0', { number: 6, label: '6.ª categoría (3 números)' }],
+    ['2+1', { number: 7, label: '7.ª categoría (2 + Clave)' }],
+    ['2+0', { number: 8, label: '8.ª categoría (2 números)' }],
+  ]);
+  const category = categories.get(`${matches}+${keyMatch ? 1 : 0}`);
+  if (!category) return result(null, matches, 0, 'Sin premio', 'cash', { extraMatch: keyMatch });
+  const amount = findOfficialPrize(results, [
+    `${category.number}ª`,
+    `${matches}+${keyMatch ? 1 : 0}`,
+    category.label,
+    keyMatch ? 'clave' : 'numeros',
+  ]);
+  return result(category.label, matches, amount, amount == null ? 'Premio variable' : null, amount == null ? 'variable' : 'cash', { extraMatch: keyMatch });
+}
+
 export function calculatePayout(ticket, results) {
   if (ticket.gameId === 'primitiva') return primitiva(ticket, results);
   if (ticket.gameId === 'euromillones') return euromillones(ticket, results);
   if (ticket.gameId === 'bonoloto') return bonolotoBet(ticket, results);
+  if (ticket.gameId === 'gordoprimitiva') return gordoPrimitiva(ticket, results);
   return euroDreams(ticket, results);
 }
 
