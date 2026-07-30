@@ -33,7 +33,7 @@ export default function HistoryLab({ historyState }) {
       {!loaded && !loading && (
         <div className="mt-5 rounded-xl bg-muted p-4">
           <p className="font-semibold text-primary">Carga bajo demanda</p>
-          <p className="mt-1 text-sm leading-6 text-secondary">Primy conserva una copia temporal para evitar solicitudes repetidas y reducir los bloqueos del proveedor.</p>
+          <p className="mt-1 text-sm leading-6 text-secondary">Primy consulta SELAE y conserva una copia del resultado para evitar solicitudes repetidas.</p>
         </div>
       )}
 
@@ -65,7 +65,7 @@ export default function HistoryLab({ historyState }) {
         <summary className="cursor-pointer text-sm font-bold text-primary">Mostrar detalles técnicos</summary>
         <div className="mt-3 space-y-3 text-sm leading-6 text-secondary">
           <p>Primy calcula únicamente métricas descriptivas. Los sorteos pasados no hacen que un número esté «pendiente» y no convierten una lotería aleatoria en un sistema predecible.</p>
-          <p>Cuando el proveedor limita el historial, Primy evita repetir consultas y mantiene la última copia válida disponible.</p>
+          <p>Los resultados proceden de SELAE y se guardan en el archivo de Primy. La importación histórica puede completarse de forma progresiva sin depender de una cuota comercial.</p>
           <p>Fuente: {source || 'sin cargar'}.</p>
         </div>
       </details>

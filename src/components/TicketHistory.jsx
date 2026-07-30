@@ -2,9 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { formatDrawDate } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
 import { playCost, playKnownPrize } from '../utils/playModel.js';
+import { getPlayDeleteDescription } from '../utils/playDeletion.js';
 import { NumberBall, TicketStatus } from './TicketUI.jsx';
 import { ChevronDownIcon, CopyIcon, RepeatIcon, SearchIcon, StarIcon, TrashIcon } from './Icons.jsx';
 import { PrimyMascotGraphic } from './BrandVisuals.jsx';
+import ConfirmDialog from './ConfirmDialog.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const priority = { awaiting_check: 0, scheduled: 1, draft: 2, checked: 3 };
@@ -27,8 +29,7 @@ function ResultSummary({ play }) {
   );
 }
 
-function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
-  const [confirmDelete, setConfirmDelete] = useState(false);
+function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
   const receiptScopedExtra = game.extra.scope === 'receipt';
@@ -130,17 +131,9 @@ function PlayDetails({ play, onPurchase, onRemove, onSetPrize, onFavorite, onRep
             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">Registrada como jugada comprada</p>
           )}
 
-          {!confirmDelete ? (
-            <button type="button" onClick={() => setConfirmDelete(true)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50">
-              <TrashIcon width="17" height="17"/>Eliminar
-            </button>
-          ) : (
-            <div className="flex flex-col gap-2 rounded-2xl border border-rose-200 bg-rose-50 p-3 sm:flex-row sm:items-center" role="group" aria-label="Confirmar eliminación">
-              <span className="text-sm font-semibold text-rose-900">¿Eliminar definitivamente?</span>
-              <button type="button" onClick={() => setConfirmDelete(false)} className="min-h-10 rounded-xl border border-rose-200 bg-white px-3 text-sm font-semibold text-rose-800">Cancelar</button>
-              <button type="button" onClick={() => onRemove(play.id)} className="min-h-10 rounded-xl bg-rose-700 px-3 text-sm font-semibold text-white hover:bg-rose-800">Sí, eliminar</button>
-            </div>
-          )}
+          <button type="button" onClick={() => onRequestRemove(play)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50" aria-label={`Eliminar ${game.name} del ${formatDrawDate(play.drawDateISO)}`}>
+            <TrashIcon width="17" height="17"/>Eliminar
+          </button>
         </div>
       </div>
     </div>
@@ -166,6 +159,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
   const [sort, setSort] = useState('action');
   const [query, setQuery] = useState('');
   const [expanded, setExpanded] = useState(null);
+  const [pendingDelete, setPendingDelete] = useState(null);
 
   const statusCounts = useMemo(() => plays.reduce((counts, play) => {
     counts[play.computedStatus] = (counts[play.computedStatus] || 0) + 1;
@@ -198,6 +192,16 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
   ];
   const hasActiveFilters = gameFilter !== 'all' || statusFilter !== 'all' || Boolean(query.trim());
   const resetFilters = () => { setGameFilter('all'); setStatusFilter('all'); setSort('action'); setQuery(''); };
+  const requestRemove = play => setPendingDelete(play);
+  const closeDeleteConfirm = () => setPendingDelete(null);
+  const confirmRemove = () => {
+    if (!pendingDelete) return;
+    onRemove(pendingDelete.id);
+    setExpanded(current => current === pendingDelete.id ? null : current);
+    setPendingDelete(null);
+  };
+  const pendingDeleteGame = pendingDelete ? getGameConfig(pendingDelete.gameId) : null;
+  const deleteDescription = getPlayDeleteDescription(pendingDelete, pendingDeleteGame?.name);
 
   return (
     <section className="space-y-5">
@@ -247,7 +251,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
               const awarded = play.columns.filter(column => column.prizeCategory).length;
               return (
                 <article key={play.id} className={`primy-archive-card rounded-3xl border bg-surface shadow-soft ${isExpanded ? 'is-open border-primy-200' : 'border-default'}`}>
-                  <button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="w-full p-4 text-left" aria-expanded={isExpanded} aria-controls={`mobile-play-details-${play.id}`}>
+                  <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
@@ -255,12 +259,17 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                       </div>
                       <TicketStatus status={play.computedStatus}/>
                     </div>
-                    <div className="mt-4 flex items-center justify-between gap-3 border-t border-default pt-3">
-                      <p className="text-sm font-semibold text-primary">{play.status === 'checked' ? `${awarded} premiadas · ${euro.format(playKnownPrize(play))}` : euro.format(playCost(play))}</p>
-                      <span className="flex items-center gap-2 text-sm font-bold text-primy-700">{isExpanded ? 'Cerrar' : 'Ver jugada'}<ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="19" height="19"/></span>
+                    <div className="mt-4 flex items-center gap-2 border-t border-default pt-3">
+                      <p className="min-w-0 flex-1 text-sm font-semibold text-primary">{play.status === 'checked' ? `${awarded} premiadas · ${euro.format(playKnownPrize(play))}` : euro.format(playCost(play))}</p>
+                      <button type="button" onClick={() => requestRemove(play)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-rose-700 hover:bg-rose-50" aria-label={`Eliminar ${game.name} del ${formatDrawDate(play.drawDateISO)}`} title="Eliminar jugada">
+                        <TrashIcon width="18" height="18"/>
+                      </button>
+                      <button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-primy-700 hover:bg-primy-50" aria-expanded={isExpanded} aria-controls={`mobile-play-details-${play.id}`}>
+                        {isExpanded ? 'Cerrar' : 'Ver jugada'}<ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="19" height="19"/>
+                      </button>
                     </div>
-                  </button>
-                  {isExpanded && <div id={`mobile-play-details-${play.id}`} className="border-t border-default"><PlayDetails play={play} onPurchase={onPurchase} onRemove={onRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></div>}
+                  </div>
+                  {isExpanded && <div id={`mobile-play-details-${play.id}`} className="border-t border-default"><PlayDetails play={play} onPurchase={onPurchase} onRequestRemove={requestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></div>}
                 </article>
               );
             })}
@@ -268,7 +277,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
 
           <div className="hidden overflow-hidden rounded-3xl border border-default bg-surface shadow-soft lg:block">
             <table className="w-full border-collapse text-left">
-              <thead className="bg-muted text-xs uppercase tracking-wide text-secondary"><tr><th className="px-5 py-4">Sorteo</th><th className="px-5 py-4">Juego</th><th className="px-5 py-4">Columnas</th><th className="px-5 py-4">Coste</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4 text-right">Jugada</th></tr></thead>
+              <thead className="bg-muted text-xs uppercase tracking-wide text-secondary"><tr><th className="px-5 py-4">Sorteo</th><th className="px-5 py-4">Juego</th><th className="px-5 py-4">Columnas</th><th className="px-5 py-4">Coste</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4 text-right">Acciones</th></tr></thead>
               <tbody className="divide-y divide-default">
                 {filtered.map(play => {
                   const game = getGameConfig(play.gameId);
@@ -281,9 +290,16 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                         <td className="px-5 py-4 text-secondary">{play.columns.length}</td>
                         <td className="px-5 py-4 font-bold text-primary">{euro.format(playCost(play))}</td>
                         <td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios: {euro.format(playKnownPrize(play))}</p>}</td>
-                        <td className="px-5 py-4 text-right"><button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-primy-700 hover:bg-primy-50" aria-expanded={isExpanded} aria-controls={`desktop-play-details-${play.id}`}>{isExpanded ? 'Cerrar' : 'Ver jugada'}<ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="17" height="17"/></button></td>
+                        <td className="px-5 py-4 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <button type="button" onClick={() => requestRemove(play)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-rose-700 hover:bg-rose-50" aria-label={`Eliminar ${game.name} del ${formatDrawDate(play.drawDateISO)}`} title="Eliminar jugada">
+                              <TrashIcon width="17" height="17"/>
+                            </button>
+                            <button type="button" onClick={() => setExpanded(isExpanded ? null : play.id)} className="inline-flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-primy-700 hover:bg-primy-50" aria-expanded={isExpanded} aria-controls={`desktop-play-details-${play.id}`}>{isExpanded ? 'Cerrar' : 'Ver jugada'}<ChevronDownIcon className={isExpanded ? 'rotate-180' : ''} width="17" height="17"/></button>
+                          </div>
+                        </td>
                       </tr>
-                      {isExpanded && <tr id={`desktop-play-details-${play.id}`}><td colSpan="6" className="border-t border-default bg-muted/40"><PlayDetails play={play} onPurchase={onPurchase} onRemove={onRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></td></tr>}
+                      {isExpanded && <tr id={`desktop-play-details-${play.id}`}><td colSpan="6" className="border-t border-default bg-muted/40"><PlayDetails play={play} onPurchase={onPurchase} onRequestRemove={requestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></td></tr>}
                     </React.Fragment>
                   );
                 })}
@@ -292,6 +308,15 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={Boolean(pendingDelete)}
+        onClose={closeDeleteConfirm}
+        onConfirm={confirmRemove}
+        title="Eliminar jugada"
+        description={deleteDescription}
+        confirmLabel="Sí, eliminar jugada"
+      />
     </section>
   );
 }

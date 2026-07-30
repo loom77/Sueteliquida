@@ -1,8 +1,12 @@
 import React, { memo } from 'react';
 import { formatDrawDate, formatDrawTime, formatSyncTime } from '../utils/drawSchedule.js';
+import { getGameConfig } from '../utils/gameConfig.js';
 import { PrimyMascotGraphic, PrimyMark } from './BrandVisuals.jsx';
-import { CalendarIcon, EditIcon, ListIcon, RefreshIcon, SparklesIcon, TicketIcon } from './Icons.jsx';
+import { CalendarIcon, EditIcon, ListIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
 import { ActionCard, Eyebrow, PrimaryButton, SecondaryButton } from './DesignSystem.jsx';
+
+const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
+const shortDate = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' });
 
 export const BrandSignal = memo(function BrandSignal({ label = 'Primy Core' }) {
   return (
@@ -85,15 +89,58 @@ export const PendingDraws = memo(function PendingDraws({ dueTotal, checking, onC
   );
 });
 
-export const HomeQuickActions = memo(function HomeQuickActions({ historyCount, dueTotal, onExplore, onOpenPlays, onAddExternal }) {
+export const HomeOverview = memo(function HomeOverview({ monthlyStats, totals }) {
+  const metrics = [
+    { label: 'Gasto este mes', value: euro.format(monthlyStats.spent || 0), detail: `${monthlyStats.plays || 0} ${monthlyStats.plays === 1 ? 'jugada comprada' : 'jugadas compradas'}` },
+    { label: 'Premios registrados', value: euro.format(monthlyStats.won || 0), detail: 'Solo importes conocidos' },
+    { label: 'Archivo total', value: totals.plays || 0, detail: `${totals.columns || 0} ${totals.columns === 1 ? 'columna' : 'columnas'}` },
+  ];
+  return (
+    <section className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Resumen de tu actividad">
+      {metrics.map(metric => (
+        <div key={metric.label} className="rounded-2xl border border-default bg-surface p-4">
+          <p className="text-xs font-bold uppercase tracking-[.12em] text-secondary">{metric.label}</p>
+          <p className="mt-2 font-display text-2xl font-semibold text-primary">{metric.value}</p>
+          <p className="mt-1 text-xs leading-5 text-secondary">{metric.detail}</p>
+        </div>
+      ))}
+    </section>
+  );
+});
+
+export const RecentPlays = memo(function RecentPlays({ plays, onOpenPlays }) {
+  const recent = plays.slice(0, 2);
+  if (!recent.length) return null;
+  return (
+    <details className="mt-6 rounded-2xl border border-default bg-surface p-4">
+      <summary className="cursor-pointer font-semibold text-primary">Últimas jugadas</summary>
+      <div className="mt-4 space-y-2">
+        {recent.map(play => {
+          const game = getGameConfig(play.gameId);
+          return (
+            <div key={play.id} className="flex items-center justify-between gap-4 rounded-xl bg-muted px-3 py-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-primary">{game.shortName} · {play.columns?.length || 0} {(play.columns?.length || 0) === 1 ? 'columna' : 'columnas'}</p>
+                <p className="mt-1 text-xs text-secondary">{shortDate.format(new Date(play.createdAt))} · {play.purchased ? 'Registrada' : 'Borrador'}</p>
+              </div>
+              {play.computedStatus === 'awaiting_check' && <span className="shrink-0 rounded-full bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-900">Comprobar</span>}
+            </div>
+          );
+        })}
+        <button type="button" onClick={onOpenPlays} className="min-h-11 w-full rounded-xl border border-default px-4 text-sm font-semibold text-primary hover:bg-muted">Abrir archivo completo</button>
+      </div>
+    </details>
+  );
+});
+
+export const HomeQuickActions = memo(function HomeQuickActions({ historyCount, dueTotal, onExplore, onOpenPlays }) {
   return (
     <section className="mt-8" aria-labelledby="next-actions-title">
       <div className="mb-4">
         <Eyebrow>Sigue con Primy</Eyebrow>
-        <h2 id="next-actions-title" className="mt-2 text-2xl font-semibold tracking-[-0.035em] text-primary">Todo lo importante, a mano.</h2>
+        <h2 id="next-actions-title" className="mt-2 text-2xl font-semibold tracking-[-0.035em] text-primary">Dos accesos, sin ruido.</h2>
       </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        <ActionCard title="Explorar sorteos" description="Consulta fechas, juegos e información útil con calma." icon={CalendarIcon} onClick={onExplore} />
+      <div className="grid gap-3 md:grid-cols-2">
         <ActionCard
           title="Mi archivo"
           description={historyCount ? `${historyCount} ${historyCount === 1 ? 'jugada guardada' : 'jugadas guardadas'} en tu archivo.` : 'Guarda, organiza y comprueba tus jugadas.'}
@@ -101,7 +148,7 @@ export const HomeQuickActions = memo(function HomeQuickActions({ historyCount, d
           badge={dueTotal}
           onClick={onOpenPlays}
         />
-        <ActionCard title="Añadir boleto" description="Registra una jugada hecha fuera para seguirla desde Primy." icon={TicketIcon} onClick={onAddExternal} />
+        <ActionCard title="Explorar sorteos" description="Consulta fechas, juegos e información útil con calma." icon={CalendarIcon} onClick={onExplore} />
       </div>
     </section>
   );

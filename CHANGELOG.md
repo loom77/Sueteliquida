@@ -1,5 +1,38 @@
 # Changelog
 
+## v15.1.0 — Resultados oficiales SELAE sin cuota comercial
+
+- Sustituida LoteriasAPI por los ficheros oficiales de SELAE para La Primitiva y EuroDreams.
+- Eliminada la necesidad de `LOTERIA_API_KEY`.
+- Añadido archivo persistente `primy_draw_results` en Supabase, accesible solo desde servidor.
+- Sincronización diaria protegida con `CRON_SECRET` y Vercel Cron.
+- Comprobación por fecha con caché, validación de fecha, seis números y extras oficiales.
+- Importador histórico reanudable `backfill:selae` con omisión de sorteos ya archivados.
+- Actualizados los mensajes de Perfil e Historial para reflejar SELAE y el archivo propio.
+
+## v15.0.1 — Eliminación segura de jugadas
+
+- Añadido acceso directo para eliminar cualquier jugada desde el archivo, también cuando está registrada como comprada.
+- Confirmación obligatoria antes de eliminar, con aviso específico de que borrar el registro no anula el boleto físico ni la apuesta realizada.
+- Acción disponible tanto en la tabla de escritorio como en las tarjetas móviles y en el detalle de la jugada.
+- La eliminación conserva la opción de deshacer mediante el aviso posterior.
+
+## v15.0.0 — Architecture, Clarity & Resilience
+
+- `App.jsx` reducido a un entry point de 43 líneas; la orquestación pasa a controladores y capas de vistas/overlays.
+- Generación en Web Worker con cancelación, timeout de 30 segundos, invalidación de respuestas tardías y recuperación limpia tras errores.
+- Error boundary por vista: un fallo en una pantalla lazy ya no bloquea toda la aplicación.
+- Acciones de jugadas y comprobación de resultados separadas en hooks dedicados.
+- Identificadores seguros con fallback para navegadores sin `crypto.randomUUID`.
+- Inicio simplificado con una CTA principal, resumen mensual, últimas jugadas y dos accesos secundarios.
+- Toasts pausables al interactuar y acciones de deshacer visibles durante más tiempo.
+- Perfil mejorado: límite mensual con detección de cambios, sincronización accesible y backup v15.
+- Laboratorio Monte Carlo traducido al castellano, cancelable y protegido con timeout, sin alterar el modelo estadístico.
+- Navegación con gestión de foco, badges accesibles y estados de sincronización anunciados.
+- Manifest, iconos, accesos directos y cachés PWA actualizados a v15.
+- 54 pruebas automatizadas superadas; 95 archivos JS/JSX validados sintácticamente y ninguna importación local ausente.
+- Sin cambios en el motor uniforme, las probabilidades ni las reglas oficiales de los juegos.
+
 ## v14.0.1 — Age Gate, History Stability & Brand Icon Fix
 
 - Aplicados los activos definitivos de Michela Brand Core a la app, PWA, favicon y Apple Touch Icon.

@@ -1,4 +1,4 @@
-import React, { memo, useMemo, useRef, useState } from 'react';
+import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import HistoryLab from './HistoryLab.jsx';
 import { PrimyMascotGraphic } from './BrandVisuals.jsx';
@@ -29,6 +29,13 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   const [limitDraft, setLimitDraft] = useState(preferences.monthlyLimit ?? '');
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
+  useEffect(() => {
+    setLimitDraft(preferences.monthlyLimit ?? '');
+  }, [preferences.monthlyLimit]);
+
+  const normalizedLimitDraft = limitDraft === '' ? null : Math.max(0, Number(limitDraft) || 0);
+  const limitChanged = normalizedLimitDraft !== (preferences.monthlyLimit ?? null);
+
   const syncLabel = useMemo(() => {
     if (syncStatus === 'synced') return `Datos sincronizados${lastSyncedAt ? ` · ${syncTime.format(lastSyncedAt)}` : ''}`;
     if (syncStatus === 'syncing' || syncStatus === 'loading') return 'Sincronizando datos…';
@@ -44,7 +51,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   };
 
   const saveLimit = () => {
-    const value = limitDraft === '' ? null : Math.max(0, Number(limitDraft) || 0);
+    const value = normalizedLimitDraft;
     updatePreferences({ monthlyLimit: value });
     onToast(value == null ? 'Límite mensual eliminado.' : `Límite mensual establecido en ${euro.format(value)}.`);
   };
@@ -58,7 +65,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   };
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ version: 13, exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ version: 15, exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -95,7 +102,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-lg font-semibold text-primary">{user?.user_metadata?.display_name || user?.email}</p>
-                <p className={`mt-2 text-sm font-bold ${syncStatus === 'synced' ? 'text-emerald-700' : syncStatus === 'error' ? 'text-rose-700' : 'text-amber-700'}`}>{syncLabel}</p>
+                <p aria-live="polite" className={`mt-2 text-sm font-bold ${syncStatus === 'synced' ? 'text-emerald-700' : syncStatus === 'error' ? 'text-rose-700' : 'text-amber-700'}`}>{syncLabel}</p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {syncStatus === 'offline' && pendingSyncCount > 0 && onRetrySync && (
@@ -132,7 +139,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
                 Límite en euros
                 <input type="number" min="0" step="1" inputMode="decimal" value={limitDraft} onChange={event => setLimitDraft(event.target.value)} placeholder="Sin límite" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/>
               </label>
-              <button type="button" onClick={saveLimit} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">Guardar límite</button>
+              <button type="button" onClick={saveLimit} disabled={!limitChanged} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800 disabled:cursor-not-allowed disabled:opacity-50">Guardar límite</button>
             </div>
             {(preferenceError || storageError) && <div role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{preferenceError || storageError}</div>}
           </ProfileSection>
@@ -198,7 +205,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
                 <button type="button" onClick={providerStatus.reload} className="min-h-11 rounded-2xl border border-default bg-surface px-4 text-sm font-bold hover:bg-muted">Volver a comprobar</button>
               </div>
               <div className={`mt-4 rounded-xl p-4 ${providerStatus.online ? 'bg-emerald-50 text-emerald-900' : providerStatus.configured === false ? 'bg-amber-50 text-amber-950' : 'bg-rose-50 text-rose-900'}`} role="status">
-                <p className="font-semibold">{providerStatus.loading ? 'Comprobando…' : providerStatus.online ? 'Fuente de datos conectada' : providerStatus.configured === false ? 'Clave API no configurada' : 'Fuente de datos no disponible'}</p>
+                <p className="font-semibold">{providerStatus.loading ? 'Comprobando…' : providerStatus.online ? 'Fuente de datos conectada' : providerStatus.configured === false ? 'Archivo persistente no configurado' : 'Fuente de datos no disponible'}</p>
                 {providerStatus.message && <p className="mt-1 text-sm leading-6">{providerStatus.message}</p>}
               </div>
             </div>

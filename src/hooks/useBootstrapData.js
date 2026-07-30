@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-const CACHE_KEY = 'primy_bootstrap_v1';
+const CACHE_KEY = 'primy_bootstrap_v2';
 const CACHE_TTL = 5 * 60 * 1000;
 
 function readCache() {
@@ -18,7 +18,7 @@ async function readJson(response) {
 }
 
 export function useBootstrapData() {
-  const [state, setState] = useState({ loading: true, games: {}, errors: {}, fetchedAt: '', error: '', online: false, configured: null, message: '' });
+  const [state, setState] = useState({ loading: true, games: {}, errors: {}, fetchedAt: '', error: '', online: false, configured: null, message: '', provider: '', repository: null });
   const controllerRef = useRef(null);
 
   const load = useCallback(async (force = false) => {
@@ -39,7 +39,8 @@ export function useBootstrapData() {
       const next = {
         loading: false,
         games: data.games || {}, errors: data.errors || {}, fetchedAt: data.fetchedAt || '', error: '',
-        online: true, configured: data.configured !== false, message: data.message || '',
+        online: true, configured: data.configured !== false, provider: data.provider || 'SELAE', repository: data.repository || null,
+        message: data.message || (data.repository?.configured === false ? 'SELAE está conectada. El archivo persistente de resultados requiere SUPABASE_SERVICE_ROLE_KEY.' : ''),
       };
       setState(next);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...next, savedAt: Date.now() })); } catch { /* caché opcional */ }
@@ -48,7 +49,7 @@ export function useBootstrapData() {
       if (cached) {
         setState({ ...cached, loading: false, online: Object.keys(cached.games || {}).length > 0, error: 'Datos sin actualizar: se muestra la última sincronización disponible.' });
       } else {
-        setState({ loading: false, games: {}, errors: {}, fetchedAt: '', error: error?.message || 'No se pueden actualizar los datos.', online: false, configured: error?.configured ?? null, message: error?.message || '' });
+        setState({ loading: false, games: {}, errors: {}, fetchedAt: '', error: error?.message || 'No se pueden actualizar los datos.', online: false, configured: error?.configured ?? null, message: error?.message || '', provider: '', repository: null });
       }
     }
   }, []);
@@ -63,6 +64,8 @@ export function useBootstrapData() {
     online: state.online,
     configured: state.configured,
     message: state.message || state.error,
+    provider: state.provider,
+    repository: state.repository,
     reload: () => load(true),
   }), [state, load]);
 

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { analyzeHistory } from '../utils/historyAnalytics.js';
 
-const KEY = 'primy_history_cache_v4';
-const LEGACY_KEYS = ['primy_history_cache_v3', 'primy_history_cache_v2'];
+const KEY = 'primy_history_cache_v5';
+const LEGACY_KEYS = ['primy_history_cache_v4', 'primy_history_cache_v3', 'primy_history_cache_v2'];
 const CACHE_TTL = 6 * 60 * 60 * 1000;
 const LIMITED_CACHE_TTL = 24 * 60 * 60 * 1000;
 const MIN_MANUAL_REFRESH_MS = 60 * 1000;
@@ -21,7 +21,7 @@ function readCache() {
 
 function cleanNotice(value, { latestOnly = false, totalDraws = 0 } = {}) {
   if (latestOnly || totalDraws <= 1) {
-    return 'El plan conectado solo permite consultar el último sorteo. Primy lo muestra como referencia; el análisis histórico completo permanece desactivado.';
+    return 'Solo hay un sorteo archivado. Primy seguirá ampliando el archivo con los resultados oficiales de SELAE.';
   }
   return typeof value === 'string' ? value : '';
 }
@@ -131,7 +131,7 @@ export function useHistoryData(gameId, { enabled = false } = {}) {
         loading: false,
         loaded: true,
         error: '',
-        warning: stored.stale ? 'No se ha podido actualizar el proveedor; se conserva la última copia disponible.' : '',
+        warning: stored.stale ? 'No se ha podido actualizar SELAE; se conserva la última copia disponible.' : '',
         notice: stored.notice,
         analysis: totalDraws ? analyzeHistory(gameId, draws) : null,
         source: stored.source,
@@ -155,7 +155,7 @@ export function useHistoryData(gameId, { enabled = false } = {}) {
           loaded: true,
           error: '',
           warning: error.code === 'RATE_LIMITED' || error.code === 'LOCAL_RATE_LIMIT'
-            ? 'El proveedor ha limitado temporalmente las actualizaciones. Se conserva la última copia local.'
+            ? 'SELAE ha limitado temporalmente las actualizaciones. Se conserva la última copia local.'
             : 'No se ha podido actualizar el historial. Se conserva la última copia local.',
           notice: cleanNotice(hit.notice, { latestOnly: Boolean(hit.latestOnly), totalDraws }),
           analysis: analyzeHistory(gameId, hit.draws),
@@ -168,13 +168,11 @@ export function useHistoryData(gameId, { enabled = false } = {}) {
           savedAt: Number(hit.savedAt || 0),
         });
       } else {
-        const guidance = error.code === 'KEY_NOT_CONFIGURED'
-          ? ' Configura LOTERIA_API_KEY en Vercel y vuelve a desplegar.'
-          : error.code === 'AUTH_INVALID'
-            ? ' Comprueba la clave en el panel de LoteriasAPI.'
-            : error.code === 'PLAN_RESTRICTED'
-              ? ' El plan conectado no incluye el historial solicitado.'
-              : '';
+        const guidance = error.code === 'CRON_SECRET_NOT_CONFIGURED'
+          ? ' Configura CRON_SECRET para activar la sincronización programada.'
+          : error.code === 'REPOSITORY_NOT_CONFIGURED'
+            ? ' Configura SUPABASE_SERVICE_ROLE_KEY para conservar el archivo entre despliegues.'
+            : '';
         setState({ ...initialState, loaded: true, retryAt, error: `${error.message}${guidance}` });
       }
     }

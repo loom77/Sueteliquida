@@ -1,73 +1,83 @@
-# Primy v12.6 — visual polish, mascota e animaciones
+# Primy v15.1
 
-Primy es una PWA en castellano para crear y gestionar jugadas de **La Primitiva** y **EuroDreams**. La versión 12.6 conserva la autenticación multiusuario y añade una identidad visual más pulida, una familia de variantes de la mascota Primy y animaciones accesibles en los flujos principales.
+Primy es una PWA en castellano para crear, guardar y comprobar jugadas de **La Primitiva** y **EuroDreams**. La aplicación no vende boletos, no predice sorteos y no garantiza premios.
 
+## Novedades de v15.1
 
-## Novedades visuales v12.6
-
-- Paleta refinada con verde, mint, ivory, cream, gold, sky y lavender.
-- Variantes de mascota: Welcome, Helper, Thinking, Celebration, Empty y Responsible.
-- Autenticación compacta con pestañas para acceso y registro.
-- Animaciones breves con soporte para `prefers-reduced-motion`.
-- Mascota contextual en dashboard, generador, onboarding, estados vacíos, guardado y juego responsable.
-
-## Funciones principales
-
-- Registro e inicio de sesión sin Google.
-- Confirmación del correo antes del primer acceso.
-- Recuperación y cambio de contraseña.
-- Historial privado por usuario, protegido con Row Level Security.
-- Sincronización de jugadas, borradores y preferencias.
-- Importación opcional de las jugadas antiguas guardadas en el navegador.
-- Funcionamiento temporal sin conexión con sincronización posterior.
-- Generación coordinada para La Primitiva y EuroDreams.
-- Consulta de resultados mediante funciones serverless de Vercel.
+- SELAE sustituye a LoteriasAPI como fuente primaria de resultados.
+- No se necesita ninguna clave ni plan de una API comercial.
+- Los resultados oficiales se validan y se archivan en Supabase.
+- La comprobación de jugadas solicita únicamente las fechas que todavía no están archivadas.
+- Sincronización diaria protegida mediante Vercel Cron.
+- Script reanudable para importar el histórico oficial directamente desde SELAE.
+- La aplicación sigue funcionando con caché temporal si el archivo server-side todavía no está configurado.
 
 ## Arquitectura
 
 ```text
 React + Vite + PWA
         │
-        ├── Vercel Functions → LoteriasAPI
+        ├── Vercel Functions → SELAE oficial
+        │                      │
+        │                      └── validación y normalización
         │
         └── Supabase
-             ├── Auth: correo + contraseña
-             ├── PostgreSQL
-             └── RLS por usuario
+             ├── Auth y datos de usuario con RLS
+             └── archivo server-side primy_draw_results
 ```
 
-## Tablas Supabase
+Los endpoints de la app nunca exponen `SUPABASE_SERVICE_ROLE_KEY`. El navegador solo utiliza la clave publicable y accede a sus tablas de usuario mediante RLS.
 
-- `primy_profiles`
-- `primy_plays`
-- `primy_user_settings`
-- `primy_data_migrations`
+## Configuración
 
-Las tablas usan el prefijo `primy_` para no interferir con otros proyectos del mismo Supabase. El rol anónimo no tiene acceso y cada usuario autenticado solo puede leer o modificar sus propias filas.
-
-## Configuración de autenticación
-
-En Supabase debe estar activada la confirmación de correo. Configura:
-
-```text
-Site URL
-https://sueteliquida.vercel.app
-
-Redirect URLs
-https://sueteliquida.vercel.app/auth/confirm
-https://sueteliquida.vercel.app/auth/recovery
-http://localhost:5173/**
-```
-
-## Variables opcionales de Vercel
+### Variables de Vercel
 
 ```text
 VITE_SUPABASE_URL
 VITE_SUPABASE_PUBLISHABLE_KEY
-LOTERIA_API_KEY
+SUPABASE_SERVICE_ROLE_KEY
+CRON_SECRET
 ```
 
-La clave publicable de Supabase puede estar en el cliente; la seguridad depende de RLS. Nunca debe exponerse una clave `service_role`.
+Opcionales:
+
+```text
+SUPABASE_URL                 # usa VITE_SUPABASE_URL o la URL integrada si se omite
+SELAE_BASE_URL               # solo para pruebas o proxy controlado
+RESULT_CACHE_TTL_MINUTES     # 30 por defecto
+```
+
+`LOTERIA_API_KEY` ya no se utiliza y puede eliminarse de Vercel.
+
+### Base de datos
+
+Ejecuta en Supabase SQL Editor, después de las migraciones anteriores:
+
+```text
+supabase/migrations/20260730_create_primy_draw_results.sql
+```
+
+La tabla de resultados no tiene políticas para `anon` ni `authenticated`: solo las funciones server-side acceden mediante `service_role`.
+
+### Sincronización automática
+
+`vercel.json` programa `/api/sync-results` cada día a las 22:15 UTC. Vercel envía `Authorization: Bearer <CRON_SECRET>` cuando la variable está configurada.
+
+### Importación histórica inicial
+
+Con las variables server-side disponibles en el terminal:
+
+```bash
+npm run backfill:selae -- --game=all --from=2016-01-01
+```
+
+También puedes importar un solo juego o un intervalo reducido:
+
+```bash
+npm run backfill:selae -- --game=primitiva --from=2024-01-01 --to=2026-07-30
+```
+
+La importación consulta solo fechas oficiales de sorteo, omite las ya archivadas, guarda por lotes y puede reanudarse.
 
 ## Desarrollo
 
@@ -78,8 +88,14 @@ npm test
 npm run build
 ```
 
-## Reglas de juego implementadas
+Requiere Node.js 20–24.
 
-- **La Primitiva:** de 1 a 8 apuestas simples por boleto; seis números por columna y un único Reintegro para todo el resguardo.
-- **EuroDreams:** de 1 a 6 apuestas simples por boleto; seis números y un número Sueño por apuesta.
-- Primy no compra boletos y no promete resultados. El usuario debe realizar la compra en un canal autorizado.
+## Reglas implementadas
+
+- **La Primitiva:** de 1 a 8 apuestas simples por boleto, seis números por columna y un único reintegro por resguardo.
+- **EuroDreams:** de 1 a 6 apuestas simples por boleto, seis números y un número Sueño por apuesta.
+- El historial y el laboratorio estadístico son informativos y no modifican la generación uniforme de la próxima jugada.
+
+## Función scanner
+
+El scanner de boletos permanece en la hoja de ruta. No se incluye una simulación basada únicamente en una fotografía: se implementará cuando exista reconocimiento real, validación de campos y uso explícito de la cámara posterior.

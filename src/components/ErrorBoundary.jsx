@@ -1,5 +1,6 @@
 import React from 'react';
 import { PrimyMascotGraphic } from './BrandVisuals.jsx';
+import { createId } from '../utils/createId.js';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -8,7 +9,7 @@ export default class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
-    return { error, errorId: crypto.randomUUID?.() || `err-${Date.now()}` };
+    return { error, errorId: createId('app-error') };
   }
 
   componentDidCatch(error, info) {

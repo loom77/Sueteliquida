@@ -1,50 +1,57 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildPayload, retrieveHistory } from '../api/history.js';
+import { clearMemoryRepositoryForTests } from '../api/_drawRepository.js';
 import { GAMES } from '../src/utils/gameConfig.js';
 
-test('resume de forma clara un plan que solo ofrece el último sorteo', () => {
+function htmlFor(date) {
+  const [year, month, day] = date.split('-');
+  return `<html><body><p>La Primitiva: resultados del ${day}/${month}/${year}</p>
+  <h2>Combinación ganadora</h2><span class="bola">1</span><span class="bola">2</span>
+  <span class="bola">3</span><span class="bola">4</span><span class="bola">5</span><span class="bola">6</span>
+  <p>Complementario: 7</p><p>Reintegro: 8</p></body></html>`;
+}
+
+test('explica que el archivo oficial se ampliará cuando solo hay un sorteo', () => {
   const payload = buildPayload({
     game: GAMES.primitiva,
     requestedYears: 10,
     actualYears: 0,
     result: {
-      draws: [{ date: '2026-07-28', winningNumbers: [1, 2, 3, 4, 5, 6] }],
-      limited: true,
-      providerBase: 'https://api.loteriasapi.com/api/v1',
+      draws: [{ date: '2026-07-27', winningNumbers: [1, 2, 3, 4, 5, 6] }],
+      source: 'SELAE oficial / archivo Primy',
+      repository: { backend: 'memory' },
     },
   });
-
   assert.equal(payload.latestOnly, true);
   assert.equal(payload.sufficientForAudit, false);
-  assert.match(payload.notice, /solo permite consultar el último sorteo/i);
-  assert.doesNotMatch(payload.notice, /intervalo de 10 años/i);
+  assert.match(payload.notice, /seguirá ampliando/i);
+  assert.equal(payload.provider, 'SELAE');
 });
 
-
-test('no repite intervalos cuando el plan bloquea el historial', async () => {
-  const previousFetch = globalThis.fetch;
-  const previousKey = process.env.LOTERIA_API_KEY;
+test('recupera fechas recientes desde SELAE y las archiva sin clave API', async () => {
+  clearMemoryRepositoryForTests();
+  const previous = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   const requests = [];
-  process.env.LOTERIA_API_KEY = 'test-key';
-  globalThis.fetch = async url => {
-    requests.push(String(url));
-    if (requests.length === 1) {
-      return new Response(JSON.stringify({ message: 'Plan restricted' }), { status: 403, headers: { 'content-type': 'application/json' } });
-    }
-    return new Response(JSON.stringify({ draw_date: '2026-07-28', numbers: [1, 2, 3, 4, 5, 6], complementary: 7, reintegro: 8 }), { status: 200, headers: { 'content-type': 'application/json' } });
+  const fetchImpl = async url => {
+    const requested = new URL(String(url));
+    requests.push(requested);
+    const compact = requested.searchParams.get('fecha_sorteo');
+    const date = compact ? `${compact.slice(0, 4)}-${compact.slice(4, 6)}-${compact.slice(6, 8)}` : '2026-07-30';
+    return new Response(htmlFor(date), { status: 200, headers: { 'content-type': 'text/html' } });
   };
 
   try {
-    const { result, actualYears } = await retrieveHistory(GAMES.primitiva, 10);
-    assert.equal(requests.length, 2);
-    assert.match(requests[0], /from=/);
-    assert.match(requests[1], /\/results\/primitiva\/latest$/);
-    assert.equal(result.draws.length, 1);
-    assert.equal(actualYears, 0);
+    const { result } = await retrieveHistory(GAMES.primitiva, 1, {
+      fetchImpl,
+      now: new Date('2026-07-30T12:00:00Z'),
+    });
+    assert.equal(result.draws.length, 12);
+    assert.ok(requests.every(request => !request.searchParams.has('api_key')));
+    assert.equal(result.source, 'SELAE oficial / archivo Primy');
   } finally {
-    globalThis.fetch = previousFetch;
-    if (previousKey == null) delete process.env.LOTERIA_API_KEY;
-    else process.env.LOTERIA_API_KEY = previousKey;
+    if (previous == null) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    else process.env.SUPABASE_SERVICE_ROLE_KEY = previous;
   }
 });

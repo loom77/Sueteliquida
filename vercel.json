@@ -92,5 +92,11 @@
       "source": "/auth/recovery",
       "destination": "/index.html"
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/sync-results",
+      "schedule": "15 22 * * *"
+    }
   ]
 }

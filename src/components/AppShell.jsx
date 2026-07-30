@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ChartIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
 import { PrimyMark, PrimyMascotAvatar, PrimyWordmark } from './BrandVisuals.jsx';
 
@@ -33,7 +33,8 @@ function NavButton({ item, active, onSelect, mobile = false, badge = 0 }) {
         <span className={mobile
           ? 'absolute right-[calc(50%-28px)] top-1 min-w-5 rounded-full bg-gold px-1 text-center text-[11px] font-bold leading-5 text-primary'
           : 'ml-auto min-w-6 rounded-full bg-gold px-1.5 text-center text-xs font-bold leading-6 text-primary'}>
-          {badge > 99 ? '99+' : badge}
+          <span aria-hidden="true">{badge > 99 ? '99+' : badge}</span>
+          <span className="sr-only">{badge} {badge === 1 ? 'jugada pendiente' : 'jugadas pendientes'}</span>
         </span>
       )}
     </button>
@@ -53,12 +54,21 @@ function SyncLabel({ status, lastSyncedAt, pendingCount = 0 }) {
 
 export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignOut, syncStatus, lastSyncedAt, pendingSyncCount = 0, children }) {
   const [online, setOnline] = useState(() => navigator.onLine !== false);
+  const mainRef = useRef(null);
+  const previousViewRef = useRef(view);
   useEffect(() => {
     const update = () => setOnline(navigator.onLine !== false);
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
     return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
   }, []);
+
+  useEffect(() => {
+    if (previousViewRef.current === view) return;
+    previousViewRef.current = view;
+    const frame = window.requestAnimationFrame(() => mainRef.current?.focus({ preventScroll: true }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [view]);
 
   const displayName = user?.user_metadata?.display_name?.trim() || user?.email?.split('@')[0] || 'Cuenta';
 
@@ -85,7 +95,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
             <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primy-200 bg-ivory"><PrimyMascotAvatar className="h-14 w-14"/></span>
             <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{displayName}</p><p className="truncate text-xs text-secondary">{user?.email}</p></div>
           </div>
-          <p className="mt-3 text-xs font-semibold"><SyncLabel status={syncStatus} lastSyncedAt={lastSyncedAt} pendingCount={pendingSyncCount}/></p>
+          <p aria-live="polite" className="mt-3 text-xs font-semibold"><SyncLabel status={syncStatus} lastSyncedAt={lastSyncedAt} pendingCount={pendingSyncCount}/></p>
           <button type="button" onClick={onSignOut} className="mt-3 min-h-10 w-full rounded-xl border border-primy-200 bg-surface px-3 text-sm font-semibold text-primary hover:bg-primy-100">Cerrar sesión</button>
         </section>
       </aside>
@@ -101,7 +111,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
       </header>
 
       {!online && <div role="status" className="border-b border-amber-300 bg-amber-100 px-4 py-2 text-center text-sm font-semibold text-amber-950 lg:ml-72">Modo sin conexión: los cambios se guardarán en este dispositivo y se sincronizarán al recuperar internet.</div>}
-      <main id="main-content" className="pb-24 lg:ml-72 lg:pb-0">{children}</main>
+      <main ref={mainRef} id="main-content" tabIndex="-1" className="pb-24 outline-none lg:ml-72 lg:pb-0">{children}</main>
       <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-primy-100 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="Navegación principal">
         {NAV.map(item => <NavButton key={item.id} item={item} active={view === item.id} onSelect={onNavigate} mobile badge={item.id === 'plays' ? dueCount : 0}/>) }
       </nav>

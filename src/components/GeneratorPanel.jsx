@@ -5,7 +5,7 @@ import { AlertIcon, SparklesIcon, WalletIcon } from './Icons.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 
-export default function GeneratorPanel({ game, activeGame, onGameChange, columnCount, setColumnCount, onGenerate, busy, progress = 0, generationError, monthlySpent = 0, monthlyLimit = null, variantLabel = '', onClearVariant, layout = 'wide' }) {
+export default function GeneratorPanel({ game, activeGame, onGameChange, columnCount, setColumnCount, onGenerate, onCancel, busy, progress = 0, generationError, monthlySpent = 0, monthlyLimit = null, variantLabel = '', onClearVariant, layout = 'wide' }) {
   const totalCost = game.price * columnCount;
   const maxColumns = game.maxSimpleBets || 1;
   const exceedsLimit = monthlyLimit != null && monthlyLimit > 0 && monthlySpent + totalCost > monthlyLimit;
@@ -20,7 +20,7 @@ export default function GeneratorPanel({ game, activeGame, onGameChange, columnC
   }, [busy, progress]);
 
   return (
-    <section className="primy-panel primy-card-enter p-5 md:p-7">
+    <section className="primy-panel primy-card-enter p-5 md:p-7" aria-busy={busy}>
       <div className="flex items-start gap-4">
         <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${isPrimitiva ? 'bg-primy-100 text-primy-800' : 'bg-lavender text-violet-800'}`}><SparklesIcon width="22" height="22"/></span>
         <div><p className={`text-sm font-semibold ${isPrimitiva ? 'text-primy-700' : 'text-violet-700'}`}>Primy Core</p><h2 className="mt-1 text-2xl font-semibold tracking-tight text-primary">Prepara tu jugada</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-secondary">Elige el juego y cuántas columnas quieres incluir en este boleto.</p></div>
@@ -41,9 +41,12 @@ export default function GeneratorPanel({ game, activeGame, onGameChange, columnC
           </div>
           <p className="mt-3 text-center text-xs leading-5 text-secondary">Mínimo 1, máximo {maxColumns} columnas en el mismo boleto.</p>
 
-          <button type="button" onClick={onGenerate} disabled={busy} className={`primy-shimmer mt-6 flex min-h-14 w-full min-w-0 items-center justify-center gap-2 rounded-2xl px-4 text-center text-base font-semibold leading-6 text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-60 ${isPrimitiva ? 'bg-primy-700 hover:bg-primy-800' : 'bg-eurodreams hover:bg-violet-800'}`}>
-            <SparklesIcon width="20" height="20"/>{busy ? `Primy Core · ${Math.round(progress * 100)}%` : `Crear ${columnCount === 1 ? 'mi jugada' : `${columnCount} columnas`} · ${euro.format(totalCost)}`}
-          </button>
+          <div className="mt-6 grid gap-2">
+            <button type="button" onClick={onGenerate} disabled={busy} className={`primy-shimmer flex min-h-14 w-full min-w-0 items-center justify-center gap-2 rounded-2xl px-4 text-center text-base font-semibold leading-6 text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-60 ${isPrimitiva ? 'bg-primy-700 hover:bg-primy-800' : 'bg-eurodreams hover:bg-violet-800'}`}>
+              <SparklesIcon width="20" height="20"/>{busy ? `Primy Core · ${Math.round(progress * 100)}%` : `Crear ${columnCount === 1 ? 'mi jugada' : `${columnCount} columnas`} · ${euro.format(totalCost)}`}
+            </button>
+            {busy && <button type="button" onClick={onCancel} className="min-h-11 rounded-xl border border-default bg-surface px-4 text-sm font-semibold text-primary hover:bg-muted">Cancelar generación</button>}
+          </div>
           <p className="mt-3 text-center text-xs leading-5 text-secondary">La generación no guarda ni compra nada.</p>
         </div>
 

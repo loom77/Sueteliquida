@@ -8,7 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: null,
-      includeAssets: ['icon-192x192-v14-1.png', 'icon-512x512-v14-1.png', 'apple-touch-icon-v14-1.png', 'favicon-v14-1.svg', 'primy-mark.svg', 'primy-logo.svg', 'offline.html', 'mascot/*.webp'],
+      includeAssets: ['icon-192x192-v15.png', 'icon-512x512-v15.png', 'apple-touch-icon-v15.png', 'favicon-v15.svg', 'primy-mark.svg', 'primy-logo.svg', 'offline.html', 'mascot/*.webp'],
       workbox: {
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
@@ -17,17 +17,17 @@ export default defineConfig({
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/bootstrap'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'primy-bootstrap-v14-1', networkTimeoutSeconds: 6, expiration: { maxEntries: 8, maxAgeSeconds: 1800 } },
+            options: { cacheName: 'primy-bootstrap-v15', networkTimeoutSeconds: 6, expiration: { maxEntries: 8, maxAgeSeconds: 1800 } },
           },
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/history'),
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'primy-history-v14-1', expiration: { maxEntries: 12, maxAgeSeconds: 86400 } },
+            options: { cacheName: 'primy-history-v15', expiration: { maxEntries: 12, maxAgeSeconds: 86400 } },
           },
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/check-results'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'primy-results-v14-1', networkTimeoutSeconds: 4, expiration: { maxEntries: 24, maxAgeSeconds: 300 } },
+            options: { cacheName: 'primy-results-v15', networkTimeoutSeconds: 4, expiration: { maxEntries: 24, maxAgeSeconds: 300 } },
           },
         ],
       },
@@ -35,6 +35,7 @@ export default defineConfig({
         name: 'Primy — Tus jugadas, a tu manera',
         short_name: 'Primy',
         description: 'Crea, guarda y comprueba tus jugadas desde una experiencia clara, privada y responsable.',
+        id: '/',
         start_url: '/',
         scope: '/',
         display: 'standalone',
@@ -43,9 +44,13 @@ export default defineConfig({
         theme_color: '#0B7A49',
         background_color: '#FBF8EF',
         categories: ['utilities', 'entertainment'],
+        shortcuts: [
+          { name: 'Crear jugada', short_name: 'Crear', url: '/crear', icons: [{ src: '/icon-192x192-v15.png', sizes: '192x192' }] },
+          { name: 'Abrir archivo', short_name: 'Archivo', url: '/archivo', icons: [{ src: '/icon-192x192-v15.png', sizes: '192x192' }] },
+        ],
         icons: [
-          { src: '/icon-192x192-v14-1.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-          { src: '/icon-512x512-v14-1.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-192x192-v15.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-512x512-v15.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
     }),
