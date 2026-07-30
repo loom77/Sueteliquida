@@ -10,6 +10,11 @@ const MONTHS = new Map([
 ]);
 
 const SOURCES = {
+  euromillones: {
+    file: 'euromillones.html',
+    codes: ['EMIL'],
+    label: 'Euromillones',
+  },
   primitiva: {
     file: 'primitiva.html',
     codes: ['LAPR'],
@@ -219,6 +224,34 @@ function extractLabelNumber(text, labels, min, max, html = '') {
   return null;
 }
 
+
+function extractLabelNumbers(text, labels, min, max, count, html = '') {
+  const source = String(text || '');
+  const raw = String(html || '');
+  for (const label of labels) {
+    const pattern = new RegExp(`${label}[^0-9]{0,80}((?:[0-9]{1,2}[^0-9]+){${Math.max(0, count - 1)}}[0-9]{1,2})`, 'i');
+    const match = source.match(pattern);
+    if (match) {
+      const values = uniqueFirst(numberList(match[1], min, max), count);
+      if (values.length === count) return values.sort((left, right) => left - right);
+    }
+
+    const jsonPattern = new RegExp(`["']?(?:${label})["']?\\s*[:=]\\s*\\[([^\\]]+)\\]`, 'i');
+    const jsonMatch = raw.match(jsonPattern);
+    if (jsonMatch) {
+      const values = uniqueFirst(numberList(jsonMatch[1], min, max), count);
+      if (values.length === count) return values.sort((left, right) => left - right);
+    }
+
+    const index = source.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').search(new RegExp(label, 'i'));
+    if (index >= 0) {
+      const values = uniqueFirst(numberList(source.slice(index, index + 240), min, max), count);
+      if (values.length === count) return values.sort((left, right) => left - right);
+    }
+  }
+  return [];
+}
+
 function parseEuropeanAmount(value) {
   const normalized = String(value || '').replace(/\s/g, '').replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.');
   const amount = Number(normalized);
@@ -273,14 +306,17 @@ export function parseSelaeHtml(html, game, { requestedDate = '', endpoint = '' }
     });
   }
 
+  const secondaryNumbers = game.secondary
+    ? extractLabelNumbers(text, ['estrellas?', 'stars?'], game.secondary.min, game.secondary.max, game.secondary.count, raw)
+    : [];
   const extra = game.id === 'eurodreams'
     ? extractLabelNumber(text, ['sue(?:ñ|n)o'], game.extra.min, game.extra.max, raw)
-    : extractLabelNumber(text, ['reintegro'], game.extra.min, game.extra.max, raw);
+    : game.extra ? extractLabelNumber(text, ['reintegro'], game.extra.min, game.extra.max, raw) : null;
   const complementary = game.hasComplementary
     ? extractLabelNumber(text, ['complementario'], 1, game.numberPoolMax, raw)
     : null;
 
-  if (extra == null || (game.hasComplementary && complementary == null)) {
+  if ((game.secondary && secondaryNumbers.length !== game.secondary.count) || (!game.secondary && extra == null) || (game.hasComplementary && complementary == null)) {
     throw new ProviderError(`El resultado oficial de ${game.name} está incompleto.`, {
       code: 'INVALID_PROVIDER_PAYLOAD', status: 502, endpoint, details: safeText(text),
     });
@@ -292,6 +328,7 @@ export function parseSelaeHtml(html, game, { requestedDate = '', endpoint = '' }
     date,
     winningNumbers,
     extra,
+    secondaryNumbers,
     complementary,
     prizes: extractPrizeRows(raw),
     jackpotNext: jackpot.jackpotNext,
@@ -352,7 +389,7 @@ async function requestHtml(endpoint, { timeoutMs = 12000, fetchImpl = globalThis
       method: 'GET',
       headers: {
         Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.5',
-        'User-Agent': 'Primy/15.1 (+https://sueteliquida.vercel.app; official-results-sync)',
+        'User-Agent': 'Primy/15.3 (+https://sueteliquida.vercel.app; official-results-sync)',
       },
       signal: controller.signal,
       redirect: 'follow',

@@ -65,6 +65,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/juegos",
+      "destination": "/index.html"
+    },
+    {
       "source": "/explorar",
       "destination": "/index.html"
     },

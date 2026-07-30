@@ -6,6 +6,7 @@ import { generateFusionPlay } from '../src/utils/fusionEngine.js';
 
 test('los validadores de la API rechazan entradas mal formadas', () => {
   assert.equal(parseGame('primitiva')?.id, 'primitiva');
+  assert.equal(parseGame('euromillones')?.id, 'euromillones');
   assert.equal(parseGame('unknown'), null);
   assert.equal(parseYears('10'), 10);
   assert.equal(parseYears('11'), null);

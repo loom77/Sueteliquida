@@ -1,3 +1,22 @@
+# 15.3.0 — Euromillones operativo
+
+- Activa Euromillones en Crear, Registrar, Archivo, Comprobar e Historial.
+- Añade cinco números del 1 al 50 y dos estrellas del 1 al 12 por columna.
+- Implementa las trece categorías de premio sin inventar importes cuando SELAE no los aporta.
+- Amplía el archivo Supabase con `secondary_numbers` y la sincronización oficial del juego `EMIL`.
+- Mantiene El Millón como referencia externa: Primy no genera códigos oficiales.
+- Incorpora identidad visual azul, validación accesible y pruebas de reglas, persistencia y parsing.
+
+# 15.2.0 — Catálogo completo de juegos
+
+- Nueva página `Juegos` en `/juegos`, con compatibilidad para la ruta anterior `/explorar`.
+- Catálogo de los diez juegos principales de SELAE, organizado en cuatro familias: números, Lotería Nacional, deportes e hípicas.
+- Buscador y filtros por familia, diseñados para mantener la navegación comprensible al crecer el catálogo.
+- Registro declarativo de capacidades por juego: crear, registrar, comprobar, archivo, análisis y datos oficiales.
+- Solo La Primitiva y EuroDreams conservan acciones operativas; el resto muestra su ficha de preparación sin simular funciones incompletas.
+- Gate de publicación reforzado: ningún juego nuevo se activa sin validación conjunta de UX, arquitectura, reglas y diseño.
+- Añadidas pruebas de integridad, agrupación, búsqueda y bloqueo de capacidades del catálogo.
+
 # 15.1.2 — Supabase archive hotfix
 
 - `/api/bootstrap`, `/api/history`, `/api/check-results` e `/api/provider-status` leggono esclusivamente l'archivio `primy_draw_results` in Supabase.

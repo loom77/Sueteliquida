@@ -29,7 +29,7 @@ function normalizePreferences(parsed = {}) {
     monthlyLimit,
     appearance: normalizeAppearance(parsed.appearance),
     notifications: Boolean(parsed.notifications),
-    defaultGame: parsed.defaultGame === 'eurodreams' ? 'eurodreams' : 'primitiva',
+    defaultGame: ['primitiva', 'euromillones', 'eurodreams'].includes(parsed.defaultGame) ? parsed.defaultGame : 'primitiva',
     onboardingSeen: Boolean(parsed.onboardingSeen),
     ageConfirmed: Boolean(parsed.ageConfirmed),
     ageConfirmedAt: parsed.ageConfirmed && typeof parsed.ageConfirmedAt === 'string' ? parsed.ageConfirmedAt : null,

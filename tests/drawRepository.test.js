@@ -48,13 +48,14 @@ test('persiste en Supabase mediante service_role sin exponer la clave al cliente
   };
   try {
     const result = await upsertDraws([{
-      gameId: 'eurodreams', date: '2026-07-30', winningNumbers: [1, 2, 3, 4, 5, 6], extra: 3,
+      gameId: 'euromillones', date: '2026-07-28', winningNumbers: [1, 2, 3, 4, 5], secondaryNumbers: [6, 7], extra: null,
     }], { fetchImpl });
     assert.equal(result.persisted, true);
     assert.equal(calls.length, 1);
     assert.match(calls[0].url, /primy_draw_results\?on_conflict=/);
     assert.equal(calls[0].options.headers.Authorization, 'Bearer server-secret');
     assert.doesNotMatch(calls[0].options.body, /server-secret/);
+    assert.deepEqual(JSON.parse(calls[0].options.body)[0].secondary_numbers, [6, 7]);
   } finally {
     if (previousKey == null) delete process.env.SUPABASE_SERVICE_ROLE_KEY;
     else process.env.SUPABASE_SERVICE_ROLE_KEY = previousKey;

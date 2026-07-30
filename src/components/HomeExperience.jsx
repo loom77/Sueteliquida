@@ -148,7 +148,7 @@ export const HomeQuickActions = memo(function HomeQuickActions({ historyCount, d
           badge={dueTotal}
           onClick={onOpenPlays}
         />
-        <ActionCard title="Explorar sorteos" description="Consulta fechas, juegos e información útil con calma." icon={CalendarIcon} onClick={onExplore} />
+        <ActionCard title="Todos los juegos" description="Consulta el catálogo completo y el estado de cada juego." icon={CalendarIcon} onClick={onExplore} />
       </div>
     </section>
   );

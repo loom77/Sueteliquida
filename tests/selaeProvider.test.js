@@ -21,6 +21,18 @@ const primitivaHtml = `
 <table><tr><td>5.ª categoría</td><td>8,00 €</td></tr></table>
 </body></html>`;
 
+
+const euromillonesHtml = `
+<html><body><h1>Resultados último sorteo</h1>
+<p>Euromillones: resultados del 28/07/2026</p>
+<section><h2>Combinación ganadora</h2>
+<span class="bola">03</span><span class="bola">11</span><span class="bola">24</span>
+<span class="bola">36</span><span class="bola">49</span></section>
+<p>Estrellas: 4 - 10</p>
+<p>Bote próximo sorteo: 89.000.000 €</p>
+<table><tr><td>1.ª categoría</td><td>17.000.000,00 €</td></tr></table>
+</body></html>`;
+
 const eurodreamsHtml = `
 <html><body><h1>Resultados último sorteo</h1>
 <p>EuroDreams: resultados del 27/07/2026</p>
@@ -50,6 +62,18 @@ test('interpreta y valida La Primitiva oficial', () => {
   assert.equal(draw.jackpotNext, 5200000);
   assert.equal(draw.source, 'SELAE oficial');
   assert.equal(draw.sourceHash.length, 64);
+});
+
+test('interpreta Euromillones con dos estrellas oficiales', () => {
+  const url = selaeResultUrl(GAMES.euromillones, '2026-07-28');
+  assert.match(url, /euromillones\.html/);
+  assert.match(url, /game_id=EMIL/);
+  const draw = parseSelaeHtml(euromillonesHtml, GAMES.euromillones, { requestedDate: '2026-07-28' });
+  assert.deepEqual(draw.winningNumbers, [3, 11, 24, 36, 49]);
+  assert.deepEqual(draw.secondaryNumbers, [4, 10]);
+  assert.equal(draw.extra, null);
+  assert.equal(draw.complementary, null);
+  assert.equal(draw.jackpotNext, 89000000);
 });
 
 test('interpreta EuroDreams y el número Sueño', () => {

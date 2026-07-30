@@ -1,11 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ChartIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
+import { GridIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
 import { PrimyMark, PrimyMascotAvatar, PrimyWordmark } from './BrandVisuals.jsx';
 
 const NAV = [
   { id: 'dashboard', label: 'Inicio', icon: HomeIcon },
   { id: 'generate', label: 'Crear', icon: PlusIcon },
-  { id: 'explore', label: 'Explorar', icon: ChartIcon },
+  { id: 'explore', label: 'Juegos', icon: GridIcon },
   { id: 'plays', label: 'Archivo', icon: ListIcon },
   { id: 'settings', label: 'Perfil', icon: SettingsIcon },
 ];

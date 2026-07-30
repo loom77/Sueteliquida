@@ -18,7 +18,7 @@ import { getDueByGame, getDueTotal, getMonthlyStats, getPurchasedTotals } from '
 const VIEW_TITLES = {
   dashboard: 'Inicio',
   generate: 'Crear jugada',
-  explore: 'Explorar',
+  explore: 'Juegos',
   plays: 'Archivo',
   settings: 'Perfil',
 };
@@ -140,6 +140,11 @@ export function useAppController(auth) {
       now,
       history,
       onCreate: openGenerate,
+      onRegister: gameId => {
+        if (!GAMES[gameId]) return;
+        selectGame(gameId);
+        setManualOpen(true);
+      },
       onOpenArchive: () => navigate('plays'),
     },
     generate: {

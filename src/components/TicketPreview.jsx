@@ -43,7 +43,9 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
   }
 
   const quality = play.metadata?.quality || {};
-  const receiptScopedExtra = game.extra.scope === 'receipt';
+  const receiptScopedExtra = game.extra?.scope === 'receipt';
+  const columnScopedExtra = game.extra?.scope === 'column';
+  const hasSecondary = Boolean(game.secondary);
   const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
   const history = play.metadata?.history;
   const shownColumns = expanded ? play.columns : play.columns.slice(0, 3);
@@ -51,7 +53,12 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
 
   const copyPlay = async () => {
     const extraLine = receiptScopedExtra ? `\nReintegro del resguardo: ${receiptExtra}` : '';
-    const columnsText = play.columns.map((column, index) => `Columna ${index + 1}: ${column.numbers.join(' ')}${receiptScopedExtra ? '' : ` · ${game.extra.label} ${column.extra}`}`).join('\n');
+    const columnsText = play.columns.map((column, index) => {
+      const supplement = hasSecondary
+        ? ` · ${game.secondary.label} ${(column.secondaryNumbers || []).join(' ')}`
+        : columnScopedExtra ? ` · ${game.extra.label} ${column.extra}` : '';
+      return `Columna ${index + 1}: ${column.numbers.join(' ')}${supplement}`;
+    }).join('\n');
     const text = `${game.name} — ${formatDrawDate(play.drawDateISO)}${extraLine}\n${columnsText}`;
     try {
       await navigator.clipboard.writeText(text);
@@ -65,7 +72,12 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
     if (!('speechSynthesis' in window)) return onToast?.('La lectura en voz alta no está disponible en este navegador.');
     window.speechSynthesis.cancel();
     const sharedExtraText = receiptScopedExtra ? `Reintegro del resguardo: ${receiptExtra}. ` : '';
-    const text = `${game.name}. ${sharedExtraText}${play.columns.map((column, index) => `Columna ${index + 1}: ${column.numbers.join(', ')}.${receiptScopedExtra ? '' : ` ${game.extra.label}: ${column.extra}.`}`).join(' ')}`;
+    const text = `${game.name}. ${sharedExtraText}${play.columns.map((column, index) => {
+      const supplement = hasSecondary
+        ? ` ${game.secondary.label}: ${(column.secondaryNumbers || []).join(', ')}.`
+        : columnScopedExtra ? ` ${game.extra.label}: ${column.extra}.` : '';
+      return `Columna ${index + 1}: ${column.numbers.join(', ')}.${supplement}`;
+    }).join(' ')}`;
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'es-ES';
     utterance.rate = 0.92;
@@ -109,11 +121,14 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
             <div key={column.id} className="primy-result-column rounded-2xl border border-primy-100 bg-surface/90 p-4">
               <div className="flex items-center justify-between gap-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Columna {index + 1}</p>
-                {!receiptScopedExtra && <span className="text-xs font-semibold text-secondary">{game.extra.label} {column.extra}</span>}
+                {hasSecondary && <span className="text-xs font-semibold text-secondary">{game.secondary.label} {(column.secondaryNumbers || []).join(' · ')}</span>}
+                {columnScopedExtra && <span className="text-xs font-semibold text-secondary">{game.extra.label} {column.extra}</span>}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {column.numbers.map(number => <NumberBall key={number}>{number}</NumberBall>)}
-                {!receiptScopedExtra && <><span aria-hidden="true" className="mx-1 h-8 w-px bg-slate-300"/><NumberBall extra>{column.extra}</NumberBall></>}
+                {(hasSecondary || columnScopedExtra) && <span aria-hidden="true" className="mx-1 h-8 w-px bg-slate-300"/>}
+                {hasSecondary && (column.secondaryNumbers || []).map(value => <NumberBall key={`secondary-${value}`} extra>{value}</NumberBall>)}
+                {columnScopedExtra && <NumberBall extra>{column.extra}</NumberBall>}
               </div>
             </div>
           ))}

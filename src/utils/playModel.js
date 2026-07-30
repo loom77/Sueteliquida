@@ -1,21 +1,41 @@
 import { GAMES, getGameConfig } from './gameConfig.js';
 import { toLocalDateKey } from './drawSchedule.js';
 
+function sanitizeSecondaryNumbers(game, column) {
+  if (!game.secondary) return null;
+  const source = column.secondaryNumbers || column.stars || column.extras;
+  if (!Array.isArray(source)) return null;
+  const values = [...new Set(source.map(Number).filter(Number.isInteger))].sort((left, right) => left - right);
+  if (values.length !== game.secondary.count) return null;
+  if (values.some(value => value < game.secondary.min || value > game.secondary.max)) return null;
+  return values;
+}
+
 export function sanitizeColumn(gameId, column, fallbackIndex = 1) {
   const game = GAMES[gameId];
   if (!game || !column || typeof column !== 'object') return null;
   const sourceNumbers = column.numbers || column.ticket;
   if (!Array.isArray(sourceNumbers)) return null;
-  const numbers = [...new Set(sourceNumbers.map(Number).filter(Number.isInteger))].sort((a, b) => a - b);
+  const numbers = [...new Set(sourceNumbers.map(Number).filter(Number.isInteger))].sort((left, right) => left - right);
   if (numbers.length !== game.numbersToPick || numbers.some(number => number < 1 || number > game.numberPoolMax)) return null;
-  const extra = Number(column.extra);
-  if (!Number.isInteger(extra) || extra < game.extra.min || extra > game.extra.max) return null;
+
+  let supplement = {};
+  if (game.secondary) {
+    const secondaryNumbers = sanitizeSecondaryNumbers(game, column);
+    if (!secondaryNumbers) return null;
+    supplement = { secondaryNumbers };
+  } else {
+    const extra = Number(column.extra);
+    if (!Number.isInteger(extra) || extra < game.extra.min || extra > game.extra.max) return null;
+    supplement = { extra };
+  }
+
   return {
     ...column,
     id: typeof column.id === 'string' ? column.id : crypto.randomUUID(),
     index: Number(column.index) || fallbackIndex,
     numbers,
-    extra,
+    ...supplement,
     status: column.status === 'checked' ? 'checked' : 'draft',
   };
 }
@@ -26,10 +46,12 @@ export function migrateLegacyTicket(ticket) {
     id: ticket.columnId || ticket.id,
     numbers: ticket.ticket,
     extra: ticket.extra,
+    secondaryNumbers: ticket.secondaryNumbers || ticket.stars || ticket.extras,
     status: ticket.status,
     result: ticket.result,
     prizeCategory: ticket.prizeCategory,
     matches: ticket.matches,
+    secondaryMatches: ticket.secondaryMatches,
     payoutType: ticket.payoutType,
     prizeDisplay: ticket.prizeDisplay,
     officialPrize: ticket.officialPrize,
@@ -37,12 +59,13 @@ export function migrateLegacyTicket(ticket) {
     complementaryMatch: ticket.complementaryMatch,
   });
   if (!column) return null;
+  const game = GAMES[ticket.gameId];
   const purchased = Boolean(ticket.purchased ?? ticket.status !== 'draft');
   return {
     id: typeof ticket.id === 'string' ? ticket.id : crypto.randomUUID(),
     gameId: ticket.gameId,
     columns: [column],
-    ...(ticket.gameId === 'primitiva' ? { receiptExtra: column.extra } : {}),
+    ...(game.extra?.scope === 'receipt' ? { receiptExtra: column.extra } : {}),
     createdAt: ticket.createdAt || new Date().toISOString(),
     purchasedAt: purchased ? (ticket.purchasedAt || ticket.createdAt || new Date().toISOString()) : undefined,
     drawDateISO: ticket.drawDateISO,
@@ -67,7 +90,7 @@ export function sanitizePlay(play) {
 
   let receiptExtra;
   let rulesMigrationWarning = false;
-  if (game.extra.scope === 'receipt') {
+  if (game.extra?.scope === 'receipt') {
     const candidate = Number(play.receiptExtra);
     const validCandidate = Number.isInteger(candidate) && candidate >= game.extra.min && candidate <= game.extra.max;
     const distinctExtras = [...new Set(columns.map(column => column.extra))];
@@ -82,7 +105,7 @@ export function sanitizePlay(play) {
     id: typeof play.id === 'string' ? play.id : crypto.randomUUID(),
     gameId: play.gameId,
     columns,
-    ...(game.extra.scope === 'receipt' ? { receiptExtra } : {}),
+    ...(game.extra?.scope === 'receipt' ? { receiptExtra } : {}),
     metadata: rulesMigrationWarning
       ? { ...(play.metadata || {}), rulesMigrationWarning: 'La versión anterior contenía varios reintegros. Se ha conservado el primero: comprueba el resguardo original.' }
       : (play.metadata || {}),

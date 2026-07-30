@@ -39,3 +39,17 @@ No se crea código de un juego nuevo hasta disponer de:
 - estados UX completos;
 - pruebas mínimas acordadas;
 - aprobación conjunta del equipo.
+
+## Decisión aprobada — v15.2
+
+El briefing ha aprobado e implementado la primera capa:
+
+- página `Juegos`;
+- agrupación en cuatro familias;
+- diez fichas de catálogo;
+- capacidades declarativas;
+- acciones bloqueadas hasta validación completa;
+- búsqueda y filtros;
+- ruta `/juegos` con compatibilidad `/explorar`.
+
+La implementación de motores individuales sigue sujeta al gate original. El catálogo no equivale a que todos los juegos estén ya operativos.

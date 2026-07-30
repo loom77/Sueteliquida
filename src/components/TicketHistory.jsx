@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { formatDrawDate } from '../utils/drawSchedule.js';
-import { getGameConfig } from '../utils/gameConfig.js';
+import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { playCost, playKnownPrize } from '../utils/playModel.js';
 import { getPlayDeleteDescription } from '../utils/playDeletion.js';
 import { NumberBall, TicketStatus } from './TicketUI.jsx';
@@ -32,7 +32,10 @@ function ResultSummary({ play }) {
 function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
-  const receiptScopedExtra = game.extra.scope === 'receipt';
+  const receiptScopedExtra = game.extra?.scope === 'receipt';
+  const columnScopedExtra = game.extra?.scope === 'column';
+  const hasSecondary = Boolean(game.secondary);
+  const winningSecondary = new Set(play.result?.secondaryNumbers || []);
   const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
 
   return (
@@ -77,17 +80,17 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
                   <p className="text-xs font-bold uppercase tracking-wide text-secondary">Columna {index + 1}</p>
                   {column.status === 'checked' && <p className={`mt-1 text-sm font-semibold ${hasPrize ? 'text-emerald-800' : 'text-secondary'}`}>{column.prizeCategory || 'Sin premio'}</p>}
                 </div>
-                {column.status === 'checked' && <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-secondary">{column.matches || 0} aciertos</span>}
+                {column.status === 'checked' && <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-secondary">{column.matches || 0} aciertos{hasSecondary ? ` + ${column.secondaryMatches || 0} estrellas` : ''}</span>}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 {column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}
-                {!receiptScopedExtra && (
-                  <>
-                    <span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/>
-                    <NumberBall compact extra>{column.extra}</NumberBall>
-                    <span className="text-sm font-bold text-secondary">{game.extra.label}</span>
-                  </>
-                )}
+                {(hasSecondary || columnScopedExtra) && <span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/>}
+                {hasSecondary && (column.secondaryNumbers || []).map(value => (
+                  <NumberBall key={`secondary-${value}`} compact extra hit={column.status === 'checked' && winningSecondary.has(value)}>{value}</NumberBall>
+                ))}
+                {hasSecondary && <span className="text-sm font-bold text-secondary">{game.secondary.label}</span>}
+                {columnScopedExtra && <NumberBall compact extra>{column.extra}</NumberBall>}
+                {columnScopedExtra && <span className="text-sm font-bold text-secondary">{game.extra.label}</span>}
               </div>
               {column.status === 'checked' && (
                 <div className="mt-4 border-t border-default pt-3 text-sm leading-6 text-primary">
@@ -219,7 +222,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
 
       <div className="primy-archive-filters grid gap-3 rounded-3xl border border-default bg-surface p-4 shadow-soft md:grid-cols-3 md:p-5">
         <label className="text-sm font-bold text-primary">Buscar<span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-default px-3"><SearchIcon width="18" height="18"/><input value={query} onChange={event => setQuery(event.target.value)} className="w-full border-0 bg-transparent p-0 text-sm font-normal outline-none" placeholder="Fecha o juego"/></span></label>
-        <label className="text-sm font-bold text-primary">Juego<select value={gameFilter} onChange={event => setGameFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option><option value="primitiva">La Primitiva</option><option value="eurodreams">EuroDreams</option></select></label>
+        <label className="text-sm font-bold text-primary">Juego<select value={gameFilter} onChange={event => setGameFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option>{Object.values(GAMES).map(game => <option key={game.id} value={game.id}>{game.name}</option>)}</select></label>
         <label className="text-sm font-bold text-primary">Orden<select value={sort} onChange={event => setSort(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="action">Acción necesaria</option><option value="newest">Más recientes</option><option value="oldest">Menos recientes</option></select></label>
       </div>
 

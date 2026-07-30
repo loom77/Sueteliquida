@@ -1,9 +1,10 @@
 -- Archivo central de resultados oficiales. Solo las funciones server-side de
--- Primy acceden con SUPABASE_SERVICE_ROLE_KEY; nunca se expone al navegador.
+-- Primy escriben con SUPABASE_SERVICE_ROLE_KEY.
 create table if not exists public.primy_draw_results (
-  game_id text not null check (game_id in ('primitiva', 'eurodreams')),
+  game_id text not null check (game_id in ('primitiva', 'eurodreams', 'euromillones')),
   draw_date date not null,
   winning_numbers smallint[] not null,
+  secondary_numbers smallint[] not null default '{}'::smallint[],
   extra smallint,
   complementary smallint,
   prizes jsonb not null default '[]'::jsonb,
@@ -17,7 +18,11 @@ create table if not exists public.primy_draw_results (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   primary key (game_id, draw_date),
-  constraint primy_draw_results_six_numbers check (cardinality(winning_numbers) = 6)
+  constraint primy_draw_results_shape_check check (
+    (game_id = 'euromillones' and cardinality(winning_numbers) = 5 and cardinality(secondary_numbers) = 2 and extra is null and complementary is null)
+    or
+    (game_id in ('primitiva', 'eurodreams') and cardinality(winning_numbers) = 6 and cardinality(secondary_numbers) = 0)
+  )
 );
 
 create index if not exists primy_draw_results_latest_idx
@@ -32,9 +37,6 @@ end;
 $$;
 
 alter table public.primy_draw_results enable row level security;
-
--- No se crean políticas para anon/authenticated. La tabla se consulta a través
--- de /api con service_role, que omite RLS en el servidor.
 revoke all on public.primy_draw_results from anon, authenticated;
 grant all on public.primy_draw_results to service_role;
 

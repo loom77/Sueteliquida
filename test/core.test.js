@@ -17,3 +17,9 @@ test('EuroDreams primo premio è differito e non entra come cash inventato',()=>
   const r={winningNumbers:[1,2,3,4,5,6],extra:2,prizes:[]};
   const p=calculatePayout(t,r); assert.equal(p.payoutType,'deferred'); assert.equal(p.officialAmount,null);
 });
+
+test('Euromillones distingue números y estrellas',()=>{
+  const t={gameId:'euromillones',ticket:[1,2,3,4,5],secondaryNumbers:[6,7]};
+  const r={winningNumbers:[1,2,3,4,5],secondaryNumbers:[6,7],prizes:[]};
+  const p=calculatePayout(t,r); assert.match(p.category,/1\.ª categoría/); assert.equal(p.secondaryMatches,2);
+});

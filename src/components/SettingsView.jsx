@@ -65,7 +65,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   };
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ version: 15, exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ version: '15.3', exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;

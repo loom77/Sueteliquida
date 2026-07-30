@@ -3,12 +3,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 const ROUTES = {
   dashboard: '/',
   generate: '/crear',
-  explore: '/explorar',
+  explore: '/juegos',
   plays: '/archivo',
   settings: '/ajustes',
 };
 const VIEWS = {
   ...Object.fromEntries(Object.entries(ROUTES).map(([view, path]) => [path, view])),
+  '/explorar': 'explore',
   '/generar': 'generate',
   '/jugadas': 'plays',
 };

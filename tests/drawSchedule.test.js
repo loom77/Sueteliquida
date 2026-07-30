@@ -34,3 +34,11 @@ test('las claves del calendario usan siempre Madrid', () => {
   assert.equal(toLocalDateKey(instant), '2026-08-01');
   assert.equal(monthKeyMadrid(instant), '2026-08');
 });
+
+test('Euromillones se programa los martes y viernes en horario de Madrid', () => {
+  const tuesday = drawInfoForDate('euromillones', '2026-07-28');
+  assert.equal(toLocalDateKey(tuesday.drawDateTimeISO), '2026-07-28');
+  assert.equal(new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', hour: '2-digit', minute: '2-digit' }).format(new Date(tuesday.drawDateTimeISO)), '21:00');
+  const next = getNextDrawInfo('euromillones', new Date('2026-07-29T10:00:00Z'));
+  assert.equal(toLocalDateKey(next.drawDateTimeISO), '2026-07-31');
+});

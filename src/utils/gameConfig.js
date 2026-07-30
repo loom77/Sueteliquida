@@ -1,4 +1,32 @@
 export const GAMES = {
+  euromillones: {
+    id: 'euromillones',
+    name: 'Euromillones',
+    shortName: 'Euromillones',
+    numberPoolMax: 50,
+    numbersToPick: 5,
+    price: 2.5,
+    maxSimpleBets: 5,
+    extra: null,
+    secondary: {
+      key: 'stars',
+      label: 'Estrellas',
+      singularLabel: 'Estrella',
+      min: 1,
+      max: 12,
+      count: 2,
+      scope: 'column',
+    },
+    hasComplementary: false,
+    drawDays: [2, 5],
+    drawTime: { hour: 21, minute: 0 },
+    salesCloseTime: { hour: 20, minute: 30 },
+    resultPublicationTime: { hour: 21, minute: 35 },
+    resultDelayMinutes: 35,
+    apiSlug: 'euromillones',
+    accent: 'blue',
+    payoff: 'Bote mínimo garantizado según las reglas vigentes de SELAE',
+  },
   eurodreams: {
     id: 'eurodreams',
     name: 'EuroDreams',
@@ -8,6 +36,7 @@ export const GAMES = {
     price: 2.5,
     maxSimpleBets: 6,
     extra: { key: 'sueno', label: 'Sueño', min: 1, max: 5, scope: 'column' },
+    secondary: null,
     hasComplementary: false,
     drawDays: [1, 4],
     drawTime: { hour: 21, minute: 0 },
@@ -27,6 +56,7 @@ export const GAMES = {
     price: 1,
     maxSimpleBets: 8,
     extra: { key: 'reintegro', label: 'Reintegro', min: 0, max: 9, scope: 'receipt' },
+    secondary: null,
     hasComplementary: true,
     drawDays: [1, 4, 6],
     drawTime: { hour: 21, minute: 40 },
@@ -43,4 +73,11 @@ export const DEFAULT_GAME = 'primitiva';
 
 export function getGameConfig(gameId) {
   return GAMES[gameId] || GAMES[DEFAULT_GAME];
+}
+
+export function gameRuleSummary(game) {
+  if (game.secondary) {
+    return `${game.numbersToPick} números del 1 al ${game.numberPoolMax} · ${game.secondary.count} ${game.secondary.label.toLocaleLowerCase('es-ES')} del ${game.secondary.min} al ${game.secondary.max}`;
+  }
+  return `${game.numbersToPick} números del 1 al ${game.numberPoolMax} · ${game.extra.label} del ${game.extra.min} al ${game.extra.max}`;
 }

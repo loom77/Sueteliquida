@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-const CACHE_KEY = 'primy_bootstrap_v2';
+const CACHE_KEY = 'primy_bootstrap_v3';
 const CACHE_TTL = 5 * 60 * 1000;
 
 function readCache() {

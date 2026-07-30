@@ -216,6 +216,7 @@ function scoreCandidate(gameId, numbers, profile, avoidColumns = []) {
 }
 
 function distributeExtras(game, count, rng) {
+  if (!game.extra) return Array(count).fill(null);
   const values = [];
   for (let extra = game.extra.min; extra <= game.extra.max; extra += 1) values.push(extra);
   const output = [];
@@ -225,6 +226,16 @@ function distributeExtras(game, count, rng) {
     output.push(cycle.shift());
   }
   return output;
+}
+
+function randomSecondaryNumbers(game, rng) {
+  if (!game.secondary) return [];
+  const pool = Array.from({ length: game.secondary.max - game.secondary.min + 1 }, (_, index) => game.secondary.min + index);
+  for (let index = 0; index < game.secondary.count; index += 1) {
+    const other = rng.int(index, pool.length - 1);
+    [pool[index], pool[other]] = [pool[other], pool[index]];
+  }
+  return pool.slice(0, game.secondary.count).sort((left, right) => left - right);
 }
 
 export function generateFusionPlay(gameId, analysis, columnCount = 1, options = {}) {
@@ -257,8 +268,8 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     throw new Error('No se pudieron generar suficientes columnas únicas.');
   }
 
-  const receiptExtra = game.extra.scope === 'receipt' ? rng.int(game.extra.min, game.extra.max) : null;
-  const extras = game.extra.scope === 'receipt'
+  const receiptExtra = game.extra?.scope === 'receipt' ? rng.int(game.extra.min, game.extra.max) : null;
+  const extras = game.extra?.scope === 'receipt'
     ? Array(selected.length).fill(receiptExtra)
     : distributeExtras(game, selected.length, rng);
   const draw = getNextDrawInfo(gameId);
@@ -268,7 +279,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     id: crypto.randomUUID(),
     index: index + 1,
     numbers: candidate.ticket,
-    extra: extras[index],
+    ...(game.secondary ? { secondaryNumbers: randomSecondaryNumbers(game, rng) } : { extra: extras[index] }),
     score: candidate.score,
     scoreParts: candidate.parts,
     status: 'draft',
@@ -278,7 +289,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     id: playId,
     gameId,
     columns,
-    ...(game.extra.scope === 'receipt' ? { receiptExtra } : {}),
+    ...(game.extra?.scope === 'receipt' ? { receiptExtra } : {}),
     createdAt: new Date().toISOString(),
     ...draw,
     method: 'primy-uniform',
@@ -286,10 +297,10 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     status: 'draft',
     metadata: {
       engine: 'Motor uniforme de Primy',
-      engineVersion: '13.0-david-uniform',
+      engineVersion: '15.3-euromillones-uniform',
       seed,
       randomDraws: attempts,
-      generationConfig: { mode: 'uniform-without-replacement', columns: count, gameId },
+      generationConfig: { mode: 'uniform-without-replacement', columns: count, gameId, secondaryMode: game.secondary ? 'uniform-without-replacement' : null },
       requestedColumns: count,
       quality: {
         ...metrics,

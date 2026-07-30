@@ -10,6 +10,7 @@ export function normalizeHistoricalDraws(gameId,draws=[]){
   date:String(d.date||d.drawDate||d.draw_date||''),
   numbers:(d.winningNumbers||d.numbers||d.combination||[]).map(Number).filter(n=>Number.isInteger(n)&&n>=1&&n<=game.numberPoolMax).sort((a,b)=>a-b),
   extra:Number(d.extra??d.reintegro??d.sueno),
+  secondaryNumbers:(d.secondaryNumbers||d.stars||[]).map(Number).filter(Number.isInteger).sort((a,b)=>a-b),
  })).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d.date)&&d.numbers.length===game.numbersToPick).sort((a,b)=>a.date.localeCompare(b.date));
 }
 

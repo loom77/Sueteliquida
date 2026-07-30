@@ -45,7 +45,7 @@ function loadLegacyPlays() {
 
 function writeUserCache(userId, plays, pending) {
   if (!userId) return;
-  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: 15, plays, pending }));
+  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '15.3', plays, pending }));
 }
 
 function mergePlays(...collections) {
@@ -410,6 +410,7 @@ export function useGameHistory(user) {
               status: 'checked',
               prizeCategory: payout.category,
               matches: payout.matches,
+              secondaryMatches: payout.secondaryMatches ?? undefined,
               payoutType: payout.payoutType,
               prizeDisplay: payout.displayText,
               officialPrize: payout.officialAmount,
