@@ -1,12 +1,22 @@
 import { GAMES } from '../src/utils/gameConfig.js';
-import { candidateDrawDates, fetchLatestOfficialDraw, fetchOfficialDraw, ProviderError } from './_selaeProvider.js';
-import { readDrawRange, readLatestDraw, repositoryStatus, upsertDraws } from './_drawRepository.js';
+import { readDrawRange, readLatestDraw, repositoryStatus } from './_drawRepository.js';
 
-const DEFAULT_FRESH_MS = 30 * 60 * 1000;
+export class ProviderError extends Error {
+  constructor(message, { code = 'PROVIDER_ERROR', status = 502, providerStatus = null, retryAfter = null } = {}) {
+    super(message);
+    this.name = 'ProviderError';
+    this.code = code;
+    this.status = status;
+    this.providerStatus = providerStatus;
+    this.retryAfter = retryAfter;
+  }
+}
+
+const DEFAULT_FRESH_MS = 18 * 60 * 60 * 1000;
 
 function freshEnough(draw, now = Date.now()) {
   const fetched = new Date(draw?.fetchedAt || 0).getTime();
-  const ttlMinutes = Number(process.env.RESULT_CACHE_TTL_MINUTES || 30);
+  const ttlMinutes = Number(process.env.RESULT_CACHE_TTL_MINUTES || 1080);
   const ttl = Number.isFinite(ttlMinutes) && ttlMinutes > 0 ? ttlMinutes * 60 * 1000 : DEFAULT_FRESH_MS;
   return Number.isFinite(fetched) && fetched > 0 && now - fetched < ttl;
 }
@@ -17,32 +27,20 @@ function dedupeDraws(draws) {
   return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export async function getLatestDraw(game, { force = false, fetchImpl = globalThis.fetch, now = new Date() } = {}) {
-  const cached = await readLatestDraw(game.id, { fetchImpl });
-  if (!force && freshEnough(cached, now.getTime())) return { draw: cached, stale: false, cacheHit: true };
-  try {
-    const official = await fetchLatestOfficialDraw({ game, fetchImpl, now });
-    const draw = { ...official, gameId: game.id, fetchedAt: new Date().toISOString() };
-    const repository = await upsertDraws([draw], { fetchImpl });
-    return { draw, stale: false, cacheHit: false, repository };
-  } catch (error) {
-    if (cached) return { draw: { ...cached, stale: true }, stale: true, cacheHit: true, warning: error?.message || '' };
-    throw error;
+export async function getLatestDraw(game, { fetchImpl = globalThis.fetch, now = new Date() } = {}) {
+  const draw = await readLatestDraw(game.id, { fetchImpl });
+  if (!draw) {
+    throw new ProviderError('El archivo oficial todavía no contiene resultados para este juego.', {
+      code: 'ARCHIVE_EMPTY', status: 503,
+    });
   }
-}
-
-async function mapWithConcurrency(items, concurrency, worker) {
-  const output = new Array(items.length);
-  let cursor = 0;
-  async function run() {
-    while (cursor < items.length) {
-      const index = cursor;
-      cursor += 1;
-      output[index] = await worker(items[index], index);
-    }
-  }
-  await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, run));
-  return output;
+  const stale = !freshEnough(draw, now.getTime());
+  return {
+    draw: stale ? { ...draw, stale: true } : draw,
+    stale,
+    cacheHit: true,
+    warning: stale ? 'La sincronización automática conservará este dato hasta recibir el siguiente resultado oficial.' : '',
+  };
 }
 
 export async function getDrawsForDates(game, dates, { fetchImpl = globalThis.fetch } = {}) {
@@ -50,67 +48,40 @@ export async function getDrawsForDates(game, dates, { fetchImpl = globalThis.fet
   if (!wanted.length) return { draws: [], unavailableDates: [], errors: [] };
   const cached = await readDrawRange(game.id, wanted[0], wanted.at(-1), { fetchImpl });
   const byDate = new Map(cached.filter(draw => wanted.includes(draw.date)).map(draw => [draw.date, draw]));
-  const missing = wanted.filter(date => !byDate.has(date));
-  const errors = [];
-
-  const fetched = await mapWithConcurrency(missing, 3, async date => {
-    try {
-      const draw = await fetchOfficialDraw({ game, date, fetchImpl });
-      return { ...draw, gameId: game.id, fetchedAt: new Date().toISOString() };
-    } catch (error) {
-      errors.push({ date, code: error?.code || 'UNKNOWN', message: error?.message || '' });
-      return null;
-    }
-  });
-
-  const valid = fetched.filter(Boolean);
-  if (valid.length) await upsertDraws(valid, { fetchImpl });
-  for (const draw of valid) byDate.set(draw.date, draw);
-
-  const draws = wanted.map(date => byDate.get(date)).filter(Boolean);
   return {
-    draws,
+    draws: wanted.map(date => byDate.get(date)).filter(Boolean),
     unavailableDates: wanted.filter(date => !byDate.has(date)),
-    errors,
+    errors: [],
     source: 'SELAE oficial / archivo Primy',
     repository: repositoryStatus(),
   };
 }
 
-export async function syncGameDraws(game, { lookbackDraws = 8, fetchImpl = globalThis.fetch, now = new Date() } = {}) {
-  const dates = candidateDrawDates(game, { now, count: lookbackDraws });
-  const result = await getDrawsForDates(game, dates, { fetchImpl });
+export async function syncGameDraws(game, { fetchImpl = globalThis.fetch } = {}) {
+  const latest = await readLatestDraw(game.id, { fetchImpl });
   return {
     gameId: game.id,
-    requested: dates.length,
-    saved: result.draws.length,
-    unavailableDates: result.unavailableDates,
-    errors: result.errors,
+    requested: 0,
+    saved: latest ? 1 : 0,
+    unavailableDates: [],
+    errors: [],
+    managedBy: 'supabase-cron',
   };
 }
 
-export async function syncRecentDraws({ lookbackDraws = 8, fetchImpl = globalThis.fetch, now = new Date() } = {}) {
+export async function syncRecentDraws({ fetchImpl = globalThis.fetch } = {}) {
   const games = {};
-  for (const game of Object.values(GAMES)) games[game.id] = await syncGameDraws(game, { lookbackDraws, fetchImpl, now });
-  return { games, repository: repositoryStatus(), syncedAt: new Date().toISOString() };
+  for (const game of Object.values(GAMES)) games[game.id] = await syncGameDraws(game, { fetchImpl });
+  return { games, repository: repositoryStatus(), managedBy: 'supabase-cron', syncedAt: new Date().toISOString() };
 }
 
-export async function getHistoryDraws(game, from, to, { fetchImpl = globalThis.fetch, refreshRecent = true, now = new Date() } = {}) {
-  let draws = await readDrawRange(game.id, from, to, { fetchImpl });
-  let warning = '';
-  if (refreshRecent) {
-    try {
-      const recent = await syncGameDraws(game, { lookbackDraws: 12, fetchImpl, now });
-      if (recent.saved) draws = await readDrawRange(game.id, from, to, { fetchImpl });
-    } catch (error) {
-      warning = error?.message || '';
-    }
-  }
+export async function getHistoryDraws(game, from, to, { fetchImpl = globalThis.fetch } = {}) {
+  const draws = await readDrawRange(game.id, from, to, { fetchImpl });
   return {
     draws: dedupeDraws(draws),
     source: 'SELAE oficial / archivo Primy',
     limited: false,
-    warning,
+    warning: '',
     repository: repositoryStatus(),
   };
 }
@@ -123,4 +94,3 @@ export function coverageYears(draws, requestedYears) {
   return Math.min(requestedYears, Math.max(0, Math.round(((last - first) / 31557600000) * 10) / 10));
 }
 
-export { ProviderError };

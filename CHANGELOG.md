@@ -1,3 +1,13 @@
+# 15.1.2 — Supabase archive hotfix
+
+- `/api/bootstrap`, `/api/history`, `/api/check-results` e `/api/provider-status` leggono esclusivamente l'archivio `primy_draw_results` in Supabase.
+- Le funzioni Vercel non contattano più SELAE direttamente.
+- Lettura Supabase disponibile anche senza `SUPABASE_SERVICE_ROLE_KEY`, tramite chiave publishable con sola policy SELECT.
+- Gli ultimi risultati verificati restano disponibili quando SELAE o il trasporto di sincronizzazione sono temporaneamente indisponibili.
+- Caché PWA versionata per evitare che bootstrap e storico conservino risposte della release precedente.
+- Corretto il riferimento all’icona delle notifiche.
+- Aggiunto il protocollo di briefing con approvazione incrociata del team per l’estensione a tutti i giochi.
+
 # Changelog
 
 ## v15.1.0 — Resultados oficiales SELAE sin cuota comercial
@@ -151,3 +161,11 @@
 
 - Validación de API, observabilidad, cortacircuitos y barrera global de errores.
 - Endpoints serverless endurecidos y pruebas automáticas ampliadas.
+
+## 15.1.1 — 2026-07-30
+
+- Sincronización de resultados trasladada íntegramente a Supabase Edge Functions y `pg_cron`.
+- Lectura oficial de SELAE mediante una caché de lectura intermedia para evitar el bloqueo 403 de los centros de datos.
+- Una única adquisición externa alimenta el archivo Supabase; las consultas de usuarios no consumen cuota externa.
+- Las API de Vercel pasan a ser de solo lectura y ya no requieren `SUPABASE_SERVICE_ROLE_KEY` ni `CRON_SECRET`.
+- Añadida doble sincronización diaria con reintento matinal.

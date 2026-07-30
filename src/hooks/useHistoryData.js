@@ -168,11 +168,9 @@ export function useHistoryData(gameId, { enabled = false } = {}) {
           savedAt: Number(hit.savedAt || 0),
         });
       } else {
-        const guidance = error.code === 'CRON_SECRET_NOT_CONFIGURED'
-          ? ' Configura CRON_SECRET para activar la sincronización programada.'
-          : error.code === 'REPOSITORY_NOT_CONFIGURED'
-            ? ' Configura SUPABASE_SERVICE_ROLE_KEY para conservar el archivo entre despliegues.'
-            : '';
+        const guidance = error.code === 'REPOSITORY_NOT_CONFIGURED'
+          ? ' El archivo oficial de Supabase no está disponible temporalmente.'
+          : '';
         setState({ ...initialState, loaded: true, retryAt, error: `${error.message}${guidance}` });
       }
     }

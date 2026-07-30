@@ -40,7 +40,7 @@ export function useBootstrapData() {
         loading: false,
         games: data.games || {}, errors: data.errors || {}, fetchedAt: data.fetchedAt || '', error: '',
         online: true, configured: data.configured !== false, provider: data.provider || 'SELAE', repository: data.repository || null,
-        message: data.message || (data.repository?.configured === false ? 'SELAE está conectada. El archivo persistente de resultados requiere SUPABASE_SERVICE_ROLE_KEY.' : ''),
+        message: data.message || (data.repository?.configured === false ? 'El archivo oficial de resultados no está disponible temporalmente.' : ''),
       };
       setState(next);
       try { localStorage.setItem(CACHE_KEY, JSON.stringify({ ...next, savedAt: Date.now() })); } catch { /* caché opcional */ }

@@ -1,15 +1,14 @@
 {
   "name": "primy",
   "private": true,
-  "version": "15.1.0",
+  "version": "15.1.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test --test-reporter=spec",
-    "check": "npm test && npm run build",
-    "backfill:selae": "node scripts/backfill-selae.mjs"
+    "check": "npm test && npm run build"
   },
   "dependencies": {
     "react": "18.3.1",

@@ -18,17 +18,20 @@ async function withoutServiceKey(callback) {
   }
 }
 
-test('usa un repositorio temporal si service_role no está configurado', async () => {
+test('usa Supabase en solo lectura y conserva memoria como fallback sin service_role', async () => {
   clearMemoryRepositoryForTests();
   await withoutServiceKey(async () => {
-    assert.equal(repositoryStatus().backend, 'memory');
-    await upsertDraws([
+    assert.equal(repositoryStatus().backend, 'supabase-readonly');
+    const saved = await upsertDraws([
       { gameId: 'primitiva', date: '2026-07-27', winningNumbers: [1, 2, 3, 4, 5, 6], extra: 7, complementary: 8 },
       { gameId: 'primitiva', date: '2026-07-30', winningNumbers: [2, 3, 4, 5, 6, 7], extra: 8, complementary: 9 },
     ]);
-    const draws = await readDrawRange('primitiva', '2026-07-01', '2026-07-31');
+    assert.equal(saved.persisted, false);
+
+    const unavailableArchive = async () => { throw new Error('offline'); };
+    const draws = await readDrawRange('primitiva', '2026-07-01', '2026-07-31', { fetchImpl: unavailableArchive });
     assert.equal(draws.length, 2);
-    assert.equal((await readLatestDraw('primitiva')).date, '2026-07-30');
+    assert.equal((await readLatestDraw('primitiva', { fetchImpl: unavailableArchive })).date, '2026-07-30');
   });
 });
 
