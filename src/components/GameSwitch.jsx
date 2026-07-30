@@ -5,7 +5,7 @@ const ACTIVE_GAME_ORDER = ['primitiva', 'euromillones', 'eurodreams'];
 
 function selectedTone(gameId) {
   if (gameId === 'primitiva') return 'bg-primy-700 text-white shadow-soft';
-  if (gameId === 'euromillones') return 'bg-sky-700 text-white shadow-soft';
+  if (gameId === 'euromillones') return 'primy-euromillones-action shadow-soft';
   return 'bg-eurodreams text-white shadow-soft';
 }
 

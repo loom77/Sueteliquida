@@ -169,6 +169,23 @@ html[data-theme='dark'] .number-ball {
 }
 
 
+
+/* Primy v15.3.1 — Euromillones CTA contrast safeguard */
+.primy-euromillones-action {
+  background-color: #0369a1;
+  color: #fff;
+}
+.primy-euromillones-action:hover {
+  background-color: #075985;
+}
+.primy-euromillones-action:focus-visible {
+  outline: 3px solid #7dd3fc;
+  outline-offset: 3px;
+}
+.primy-euromillones-action:disabled {
+  background-color: #0369a1;
+}
+
 /* Primy v12.6 motion and visual polish */
 .primy-page-enter { animation: primyPageEnter 420ms cubic-bezier(.2,.8,.2,1) both; }
 .primy-card-enter { animation: primyCardEnter 520ms cubic-bezier(.2,.8,.2,1) both; }

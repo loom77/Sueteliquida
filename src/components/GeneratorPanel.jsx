@@ -12,7 +12,7 @@ const GAME_THEMES = {
     helper: 'border-primy-200 bg-primy-50/70', progress: 'bg-primy-600',
   },
   euromillones: {
-    label: 'text-sky-700', icon: 'bg-sky-100 text-sky-800', strong: 'bg-sky-700 hover:bg-sky-800',
+    label: 'text-sky-700', icon: 'bg-sky-100 text-sky-800', strong: 'primy-euromillones-action',
     panel: 'border-sky-200 bg-gradient-to-br from-sky-50 via-ivory to-cream dark:from-sky-950 dark:to-surface',
     helper: 'border-sky-200 bg-sky-50/70', progress: 'bg-sky-600',
   },
@@ -61,7 +61,7 @@ export default function GeneratorPanel({ game, activeGame, onGameChange, columnC
           {game.secondary && <p className="mt-2 text-center text-xs leading-5 text-secondary">Cada columna incluye {game.numbersToPick} números y {game.secondary.count} {game.secondary.label.toLocaleLowerCase('es-ES')} independientes.</p>}
 
           <div className="mt-6 grid gap-2">
-            <button type="button" onClick={onGenerate} disabled={busy} className={`primy-shimmer flex min-h-14 w-full min-w-0 items-center justify-center gap-2 rounded-2xl px-4 text-center text-base font-semibold leading-6 text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-60 ${theme.strong}`}>
+            <button type="button" onClick={onGenerate} disabled={busy} aria-label={`Crear ${columnCount === 1 ? 'una jugada' : `${columnCount} columnas`} de ${game.name}`} data-game-action={activeGame} className={`primy-shimmer flex min-h-14 w-full min-w-0 items-center justify-center gap-2 rounded-2xl px-4 text-center text-base font-semibold leading-6 text-white shadow-soft disabled:cursor-not-allowed disabled:opacity-60 ${theme.strong}`}>
               <SparklesIcon width="20" height="20"/>{busy ? `Primy Core · ${Math.round(progress * 100)}%` : `Crear ${columnCount === 1 ? 'mi jugada' : `${columnCount} columnas`} · ${euro.format(totalCost)}`}
             </button>
             {busy && <button type="button" onClick={onCancel} className="min-h-11 rounded-xl border border-default bg-surface px-4 text-sm font-semibold text-primary hover:bg-muted">Cancelar generación</button>}

@@ -53,3 +53,16 @@ El briefing ha aprobado e implementado la primera capa:
 - ruta `/juegos` con compatibilidad `/explorar`.
 
 La implementación de motores individuales sigue sujeta al gate original. El catálogo no equivale a que todos los juegos estén ya operativos.
+
+
+## Gate obligatorio antes de declarar un juego operativo
+
+A partir de v15.3.1 ningún juego puede publicarse como operativo solo porque el motor matemático tenga pruebas. La aprobación conjunta exige:
+
+1. **David/Euler — reglas:** rangos, selecciones, extras, coste, calendario, apuestas simples/múltiples y categorías de premio contrastados con SELAE.
+2. **Alvaro — flujo completo:** crear, registrar, persistir, repetir, eliminar, comprobar y recuperar errores sin rutas muertas.
+3. **Yuma — UX y accesibilidad:** CTA principal visible y accionable en móvil/escritorio, estados loading/error, foco, contraste y copia inequívoca.
+4. **Nico — sistema visual:** todos los tokens existen en la compilación final; no se admiten clases de color inexistentes ni controles invisibles.
+5. **QA cruzado:** captura o revisión visual real en tema claro y oscuro, más pruebas automatizadas del contrato del juego.
+
+Una capacidad permanece bloqueada en el catálogo hasta que las cinco comprobaciones estén aprobadas.

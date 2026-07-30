@@ -1,3 +1,12 @@
+# 15.3.1 — Corrección crítica del botón Euromillones
+
+- Corrige la paleta `sky` de Tailwind: la definición anterior sobrescribía la escala completa y evitaba generar clases como `bg-sky-700`.
+- Restaura el contraste visible del selector, iconos, paneles, estrellas y botón principal de Euromillones.
+- Añade una clase CSS de seguridad para que la acción «Crear mi jugada» no pueda quedar blanca sobre fondo blanco aunque cambie la configuración de Tailwind.
+- Añade una etiqueta accesible específica y un identificador de acción por juego.
+- Incorpora pruebas de regresión sobre tokens visuales y presencia de la CTA.
+- Refuerza el gate del equipo: ningún juego se considera operativo hasta superar reglas, generación, persistencia, comprobación y validación visual real.
+
 # 15.3.0 — Euromillones operativo
 
 - Activa Euromillones en Crear, Registrar, Archivo, Comprobar e Historial.

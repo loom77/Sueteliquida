@@ -1,8 +1,10 @@
-# Primy v15.3.0
+# Primy v15.3.1
 
 Primy es una PWA en castellano para crear, guardar y comprobar jugadas. La aplicación no vende boletos, no predice sorteos y no garantiza premios.
 
-## Novedades de v15.3.0
+## Novedades de v15.3.1
+
+- Corrección crítica de contraste y visibilidad del generador de Euromillones.
 
 - Euromillones operativo: creación, registro, archivo y comprobación con cinco números y dos estrellas.
 - Archivo oficial de Supabase ampliado con `secondary_numbers`.
