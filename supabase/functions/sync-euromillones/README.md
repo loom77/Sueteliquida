@@ -1,3 +1,5 @@
 # sync-euromillones
 
-Sincronización dedicada de Euromillones. Se mantiene separada para validar de forma independiente la estructura de cinco números, dos estrellas y trece categorías de premio.
+Sincronizador de respaldo para Euromillones. Se mantiene separado porque la presentación del bloque oficial puede variar respecto a los demás juegos.
+
+La función se despliega con `verify_jwt=true` y solo es invocada por `scheduled-sync-selae` usando el JWT de servicio de Supabase.

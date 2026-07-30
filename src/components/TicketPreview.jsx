@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { formatDrawDate, formatDrawTime } from '../utils/drawSchedule.js';
-import { playCost } from '../utils/playModel.js';
+import { playBetCount, playCost } from '../utils/playModel.js';
 import { NumberBall } from './TicketUI.jsx';
 import DistributionMap from './DistributionMap.jsx';
 import { CheckIcon, ChevronDownIcon, CopyIcon, SparklesIcon, VolumeIcon } from './Icons.jsx';
@@ -22,11 +22,13 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
   const [expanded, setExpanded] = useState(false);
   const [confirmPurchase, setConfirmPurchase] = useState(false);
   const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [purchaseExtra, setPurchaseExtra] = useState('');
   const confirmationRef = useRef(null);
   useEffect(() => {
     setExpanded(false);
     setConfirmPurchase(false);
     setConfirmDiscard(false);
+    setPurchaseExtra('');
   }, [play?.id]);
   useEffect(() => {
     if (!confirmPurchase && !confirmDiscard) return;
@@ -47,12 +49,15 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
   const columnScopedExtra = game.extra?.scope === 'column';
   const hasSecondary = Boolean(game.secondary);
   const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
+  const receiptExtraPending = game.extra?.assignment === 'official-receipt' && (receiptExtra === null || receiptExtra === undefined || receiptExtra === '' || !Number.isInteger(Number(receiptExtra)));
+  const isMultiple = play.betType === 'multiple';
+  const betCount = playBetCount(play);
   const history = play.metadata?.history;
   const shownColumns = expanded ? play.columns : play.columns.slice(0, 3);
   const hiddenCount = play.columns.length - shownColumns.length;
 
   const copyPlay = async () => {
-    const extraLine = receiptScopedExtra ? `\nReintegro del resguardo: ${receiptExtra}` : '';
+    const extraLine = receiptScopedExtra ? `\nReintegro del resguardo: ${receiptExtraPending ? 'pendiente de registrar' : receiptExtra}` : '';
     const columnsText = play.columns.map((column, index) => {
       const supplement = hasSecondary
         ? ` · ${game.secondary.label} ${(column.secondaryNumbers || []).join(' ')}`
@@ -71,7 +76,7 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
   const speakPlay = () => {
     if (!('speechSynthesis' in window)) return onToast?.('La lectura en voz alta no está disponible en este navegador.');
     window.speechSynthesis.cancel();
-    const sharedExtraText = receiptScopedExtra ? `Reintegro del resguardo: ${receiptExtra}. ` : '';
+    const sharedExtraText = receiptScopedExtra ? `Reintegro del resguardo: ${receiptExtraPending ? 'pendiente de registrar' : receiptExtra}. ` : '';
     const text = `${game.name}. ${sharedExtraText}${play.columns.map((column, index) => {
       const supplement = hasSecondary
         ? ` ${game.secondary.label}: ${(column.secondaryNumbers || []).join(', ')}.`
@@ -101,7 +106,7 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
             <p className="flex items-center gap-2 text-sm font-semibold text-primy-700"><SparklesIcon width="18" height="18"/>Primy Core ha terminado</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-primary">Tu jugada está lista</h2>
             <p className="mt-2 text-base font-semibold text-primary">{game.name}</p>
-            <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {formatDrawTime(play.drawDateTimeISO || play.drawDateISO)} · {play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'}</p>
+            <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {formatDrawTime(play.drawDateTimeISO || play.drawDateISO)} · {isMultiple ? `múltiple de ${play.systemSize} números (${betCount} apuestas)` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
           </div>
           <div className="primy-result-seal" aria-label="Jugada verificada por Primy Core"><CheckIcon width="24" height="24"/><span>Lista</span></div>
         </div>
@@ -110,9 +115,9 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
           <div className="mt-6 flex items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-amber-800">Reintegro del resguardo</p>
-              <p className="mt-1 text-sm leading-6 text-amber-950">Es único y se aplica a todas las columnas de este boleto.</p>
+              <p className="mt-1 text-sm leading-6 text-amber-950">{receiptExtraPending ? 'SELAE lo asigna al comprar. Primy te lo pedirá al registrar el boleto.' : 'Es único y se aplica a todas las apuestas del boleto.'}</p>
             </div>
-            <NumberBall extra>{receiptExtra}</NumberBall>
+            {receiptExtraPending ? <span className="rounded-full border border-amber-300 bg-surface px-3 py-2 text-sm font-bold text-amber-900">Pendiente</span> : <NumberBall extra>{receiptExtra}</NumberBall>}
           </div>
         )}
 
@@ -120,7 +125,7 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
           {shownColumns.map((column, index) => (
             <div key={column.id} className="primy-result-column rounded-2xl border border-primy-100 bg-surface/90 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-wide text-secondary">Columna {index + 1}</p>
+                <p className="text-xs font-semibold uppercase tracking-wide text-secondary">{isMultiple ? `Selección múltiple · ${betCount} apuestas` : `Columna ${index + 1}`}</p>
                 {hasSecondary && <span className="text-xs font-semibold text-secondary">{game.secondary.label} {(column.secondaryNumbers || []).join(' · ')}</span>}
                 {columnScopedExtra && <span className="text-xs font-semibold text-secondary">{game.extra.label} {column.extra}</span>}
               </div>
@@ -144,10 +149,11 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
         {confirmPurchase ? (
           <div ref={confirmationRef} tabIndex="-1" className="primy-action-confirm mt-6 rounded-2xl border border-primy-200 bg-primy-50 p-5 outline-none" role="group" aria-labelledby="confirm-purchase-title">
             <h3 id="confirm-purchase-title" className="text-lg font-semibold text-primy-950">¿Has comprado este boleto?</h3>
-            <p className="mt-2 text-sm leading-6 text-primy-900">{game.name} · {play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'} · {euro.format(playCost(play))}</p>
+            <p className="mt-2 text-sm leading-6 text-primy-900">{game.name} · {isMultiple ? `${betCount} apuestas equivalentes` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`} · {euro.format(playCost(play))}</p>
+            {receiptExtraPending && <label className="mt-4 block text-sm font-semibold text-primy-950">Reintegro del resguardo (0–9)<input value={purchaseExtra} onChange={event => setPurchaseExtra(event.target.value.replace(/\D/g, '').slice(0, 1))} inputMode="numeric" pattern="[0-9]" className="mt-2 min-h-12 w-full rounded-xl border border-primy-300 bg-surface px-3 text-base font-normal text-primary" aria-describedby="bonoloto-extra-help"/><span id="bonoloto-extra-help" className="mt-1 block text-xs font-normal text-secondary">Cópialo exactamente del boleto comprado. Primy no lo genera.</span></label>}
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <button type="button" onClick={() => setConfirmPurchase(false)} className="min-h-12 rounded-xl border border-primy-300 bg-surface px-5 text-sm font-semibold text-primy-900 hover:bg-primy-100">No, volver atrás</button>
-              <button type="button" onClick={() => { setConfirmPurchase(false); onPurchase(); }} className="min-h-12 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800"><CheckIcon className="mr-2 inline" width="18" height="18"/>Sí, registrar</button>
+              <button type="button" disabled={receiptExtraPending && !/^[0-9]$/.test(purchaseExtra)} onClick={() => { setConfirmPurchase(false); onPurchase(receiptExtraPending ? { receiptExtra: Number(purchaseExtra) } : {}); }} className="min-h-12 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800 disabled:cursor-not-allowed disabled:opacity-50"><CheckIcon className="mr-2 inline" width="18" height="18"/>Sí, registrar</button>
             </div>
           </div>
         ) : (
@@ -173,7 +179,7 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
             <div className="grid gap-3 sm:grid-cols-3">
               <Metric label="Números distintos" value={`${quality.uniqueNumbers || 0} de ${game.numberPoolMax}`} detail={`${Math.round((quality.coverageRatio || 0) * 100)}% del intervalo.`}/>
               <Metric label="Repetición" value={Number(quality.averageOverlap || 0) < 1 ? 'Baja' : Number(quality.averageOverlap || 0) < 2 ? 'Moderada' : 'Alta'} detail={`Media: ${Number(quality.averageOverlap || 0).toFixed(1)}.`}/>
-              <Metric label="Columnas creadas" value={play.columns.length} detail="Sin duplicados en este boleto."/>
+              <Metric label={isMultiple ? 'Apuestas equivalentes' : 'Columnas creadas'} value={isMultiple ? betCount : play.columns.length} detail={isMultiple ? `Selección original de ${play.systemSize} números.` : 'Sin duplicados en este boleto.'}/>
             </div>
 
             <div className="rounded-2xl border border-primy-100 bg-primy-50 p-4">
@@ -182,7 +188,7 @@ export default function TicketPreview({ play, game, saveState = 'unsaved', onSav
               <p className="mt-2 text-sm font-semibold text-primary">El historial de sorteos no modifica los números generados.</p>
             </div>
 
-            {play.columns.length > 1 && <DistributionMap play={play} game={game}/>} 
+            {!isMultiple && play.columns.length > 1 && <DistributionMap play={play} game={game}/>} 
           </div>
         </details>
 

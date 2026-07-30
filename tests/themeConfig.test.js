@@ -20,3 +20,16 @@ test('el generador y el selector usan una acción Euromillones con contraste gar
   assert.match(switcher, /primy-euromillones-action/);
   assert.match(css, /\.primy-euromillones-action\s*\{[\s\S]*background-color:\s*#0369a1;[\s\S]*color:\s*#fff;/);
 });
+
+test('Bonoloto mantiene visible la CTA y transmite el reintegro al registrar', () => {
+  const generator = fs.readFileSync(new URL('../src/components/GeneratorPanel.jsx', import.meta.url), 'utf8');
+  const switcher = fs.readFileSync(new URL('../src/components/GameSwitch.jsx', import.meta.url), 'utf8');
+  const preview = fs.readFileSync(new URL('../src/components/TicketPreview.jsx', import.meta.url), 'utf8');
+  const controller = fs.readFileSync(new URL('../src/hooks/useAppController.js', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
+  assert.match(generator, /primy-bonoloto-action/);
+  assert.match(switcher, /primy-bonoloto-action/);
+  assert.match(preview, /receiptExtra:\s*Number\(purchaseExtra\)/);
+  assert.match(controller, /onPurchase:\s*purchaseData\s*=>\s*playActions\.saveLatest\(true,\s*purchaseData\)/);
+  assert.match(css, /\.primy-bonoloto-action\s*\{[\s\S]*background-color:\s*#657a16;[\s\S]*color:\s*#fff;/);
+});

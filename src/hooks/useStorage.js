@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { calculatePlayPayout } from '../utils/payout.js';
 import { GAMES } from '../utils/gameConfig.js';
 import { isCheckable, toLocalDateKey } from '../utils/drawSchedule.js';
-import { playCost, playKnownPrize, playUnknownPrizeCount, sanitizePlay, sanitizePlays } from '../utils/playModel.js';
+import { playBetCount, playCost, playKnownPrize, playUnknownPrizeCount, sanitizePlay, sanitizePlays } from '../utils/playModel.js';
 import { supabase } from '../lib/supabase.js';
 
 const STORAGE_KEY = 'primy_plays_v11';
@@ -45,7 +45,7 @@ function loadLegacyPlays() {
 
 function writeUserCache(userId, plays, pending) {
   if (!userId) return;
-  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '15.3', plays, pending }));
+  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '15.4', plays, pending }));
 }
 
 function mergePlays(...collections) {
@@ -273,11 +273,11 @@ export function useGameHistory(user) {
     return stored;
   }, [applyUpdate]);
 
-  const markPurchased = useCallback(id => {
+  const markPurchased = useCallback((id, purchaseData = {}) => {
     let updated = null;
     applyUpdate(current => current.map(play => {
       if (play.id !== id) return play;
-      updated = asStoredPlay(play, true);
+      updated = asStoredPlay({ ...play, ...purchaseData, metadata: { ...(play.metadata || {}), ...(purchaseData.receiptExtra != null ? { receiptExtraPending: false } : {}) } }, true);
       return updated;
     }), () => updated ? ({ type: 'upsert', plays: [updated] }) : null);
   }, [applyUpdate]);
@@ -439,7 +439,7 @@ export function useGameHistory(user) {
       const id = play.gameId;
       output[id] ??= { totalSpent: 0, totalWon: 0, unknownPrizes: 0, playCount: 0, columnCount: 0 };
       output[id].playCount += 1;
-      output[id].columnCount += play.columns.length;
+      output[id].columnCount += playBetCount(play);
       output[id].totalSpent += playCost(play);
       if (play.status === 'checked') {
         output[id].totalWon += playKnownPrize(play);

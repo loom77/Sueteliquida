@@ -1,4 +1,28 @@
 export const GAMES = {
+  bonoloto: {
+    id: 'bonoloto',
+    name: 'Bonoloto',
+    shortName: 'Bonoloto',
+    numberPoolMax: 49,
+    numbersToPick: 6,
+    price: 0.5,
+    minimumTicketPrice: 1,
+    minSimpleBets: 2,
+    maxSimpleBets: 8,
+    extra: { key: 'reintegro', label: 'Reintegro', min: 0, max: 9, scope: 'receipt', assignment: 'official-receipt' },
+    secondary: null,
+    hasComplementary: true,
+    drawDays: [0, 1, 2, 3, 4, 5, 6],
+    drawTime: { hour: 21, minute: 30 },
+    salesCloseTime: { hour: 21, minute: 0 },
+    resultPublicationTime: { hour: 21, minute: 50 },
+    resultDelayMinutes: 20,
+    apiSlug: 'bonoloto',
+    accent: 'olive',
+    payoff: 'Bote variable',
+    supportsMultiple: true,
+    multipleSelectionSizes: [5, 7, 8, 9, 10, 11],
+  },
   euromillones: {
     id: 'euromillones',
     name: 'Euromillones',
@@ -79,5 +103,6 @@ export function gameRuleSummary(game) {
   if (game.secondary) {
     return `${game.numbersToPick} números del 1 al ${game.numberPoolMax} · ${game.secondary.count} ${game.secondary.label.toLocaleLowerCase('es-ES')} del ${game.secondary.min} al ${game.secondary.max}`;
   }
+  if (game.extra?.assignment === 'official-receipt') return `${game.numbersToPick} números del 1 al ${game.numberPoolMax} · reintegro asignado en el resguardo oficial`;
   return `${game.numbersToPick} números del 1 al ${game.numberPoolMax} · ${game.extra.label} del ${game.extra.min} al ${game.extra.max}`;
 }

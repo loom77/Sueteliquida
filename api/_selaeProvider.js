@@ -10,6 +10,11 @@ const MONTHS = new Map([
 ]);
 
 const SOURCES = {
+  bonoloto: {
+    file: 'bonoloto.html',
+    codes: ['BONO'],
+    label: 'Bonoloto',
+  },
   euromillones: {
     file: 'euromillones.html',
     codes: ['EMIL'],
@@ -389,7 +394,7 @@ async function requestHtml(endpoint, { timeoutMs = 12000, fetchImpl = globalThis
       method: 'GET',
       headers: {
         Accept: 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.5',
-        'User-Agent': 'Primy/15.3 (+https://sueteliquida.vercel.app; official-results-sync)',
+        'User-Agent': 'Primy/15.4 (+https://sueteliquida.vercel.app; official-results-sync)',
       },
       signal: controller.signal,
       redirect: 'follow',

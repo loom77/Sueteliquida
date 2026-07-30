@@ -50,7 +50,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     setGameId(initialGame);
     setDateKey(next.drawDateKey);
     setReference('');
-    setColumns([emptyColumn()]);
+    setColumns(Array.from({ length: getGameConfig(initialGame).minSimpleBets || 1 }, () => emptyColumn()));
     setReceiptExtra('');
     setError('');
     setScanMessage('');
@@ -59,7 +59,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
   useEffect(() => {
     if (!open) return;
     setDateKey(getNextDrawInfo(gameId).drawDateKey);
-    setColumns([emptyColumn()]);
+    setColumns(Array.from({ length: getGameConfig(gameId).minSimpleBets || 1 }, () => emptyColumn()));
     setReceiptExtra('');
     setError('');
   }, [gameId, open]);
@@ -122,6 +122,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     const [year, month, day] = String(dateKey).split('-').map(Number);
     const weekday = new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay();
     if (!game.drawDays.includes(weekday)) return setError(`La fecha seleccionada no corresponde a un día de sorteo de ${game.name}.`);
+    if (columns.length < (game.minSimpleBets || 1)) return setError(`${game.name} requiere al menos ${game.minSimpleBets} apuestas simples en un boleto de un solo sorteo.`);
     if (columns.length > (game.maxSimpleBets || 1)) return setError(`${game.name} permite como máximo ${game.maxSimpleBets} apuestas simples en el mismo boleto.`);
 
     const parsedReceiptExtra = Number(receiptExtra);
@@ -160,6 +161,8 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
       createdAt: new Date().toISOString(),
       purchasedAt: new Date().toISOString(),
       ...draw,
+      betType: 'simple',
+      equivalentBets: parsed.length,
       method: 'external-manual',
       purchased: true,
       status: 'scheduled',
@@ -201,7 +204,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
         <div className="space-y-3">
           {columns.map((column, index) => (
             <div key={column.id} className="rounded-2xl bg-muted p-4">
-              <div className="flex items-center justify-between gap-3"><p className="font-semibold text-primary">Columna {index + 1}</p>{columns.length > 1 && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>}</div>
+              <div className="flex items-center justify-between gap-3"><p className="font-semibold text-primary">Columna {index + 1}</p>{columns.length > (game.minSimpleBets || 1) && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>}</div>
               <div className={`mt-3 grid gap-3 ${hasColumnSupplement ? 'sm:grid-cols-[1fr_190px]' : ''}`}>
                 <label className="text-sm font-bold text-primary">Los {game.numbersToPick} números<input value={column.numbers} onChange={event => updateColumn(column.id, { numbers: event.target.value })} placeholder={`Ej. ${Array.from({ length: game.numbersToPick }, (_, item) => item + 1).join(', ')}`} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>
                 {game.extra?.scope === 'column' && <label className="text-sm font-bold text-primary">{game.extra.label}<input value={column.extra} onChange={event => updateColumn(column.id, { extra: event.target.value })} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>}

@@ -1,3 +1,16 @@
+# 15.4.0 — Bonoloto completa
+
+- Activa Bonoloto en Crear, Registrar, Archivo, Comprobar e Historial.
+- Implementa apuestas sencillas de 2 a 8 columnas, respetando el mínimo de 1 € por boleto.
+- Implementa múltiples oficiales de 5, 7, 8, 9, 10 y 11 números con 44, 7, 28, 84, 210 y 462 apuestas equivalentes.
+- Conserva las múltiples de forma compacta y desarrolla las combinaciones solo durante la comprobación.
+- Solicita el reintegro real al registrar el boleto; Primy no inventa el valor asignado por SELAE.
+- Añade categorías 6, 5+C, 5, 4, 3 y reintegro, con agregación correcta de premios múltiples.
+- Amplía SELAE/Supabase, calendario diario, catálogo, preferencias, métricas y PWA.
+- Añade salvaguarda visual de contraste y pruebas de regresión del flujo de registro.
+- Da mayor protagonismo a Primy Core con una cabecera translúcida animada y un acceso «Descubre más».
+- Añade un diálogo accesible con copy simple, mascota de apoyo y explicación clara de lo que Primy Core hace y no hace.
+
 # 15.3.1 — Corrección crítica del botón Euromillones
 
 - Corrige la paleta `sky` de Tailwind: la definición anterior sobrescribía la escala completa y evitaba generar clases como `bg-sky-700`.

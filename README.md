@@ -1,21 +1,18 @@
-# Primy v15.3.1
+# Primy v15.4.0
 
 Primy es una PWA en castellano para crear, guardar y comprobar jugadas. La aplicación no vende boletos, no predice sorteos y no garantiza premios.
 
-## Novedades de v15.3.1
+## Novedades de v15.4.0
 
-- Corrección crítica de contraste y visibilidad del generador de Euromillones.
-
-- Euromillones operativo: creación, registro, archivo y comprobación con cinco números y dos estrellas.
-- Archivo oficial de Supabase ampliado con `secondary_numbers`.
-- Sincronización programada SELAE para Euromillones, La Primitiva y EuroDreams.
-
-- Nueva página **Juegos** en `/juegos`.
-- Catálogo de los diez juegos principales de SELAE, organizado por familias.
-- Buscador y filtros para localizar un juego sin convertir la navegación en una lista plana.
-- Arquitectura de capacidades por juego: crear, registrar, comprobar, archivo, análisis y datos oficiales.
-- Solo **La Primitiva** y **EuroDreams** aparecen como operativos mientras sus reglas completas sigan siendo las únicas validadas.
-- Los juegos restantes muestran su modelo de boleto y estado de preparación, pero no ofrecen acciones simuladas.
+- Bonoloto operativa en generación sencilla y múltiple, registro, archivo y comprobación.
+- Apuestas sencillas de 2 a 8 columnas y múltiples oficiales de 5 o 7–11 números.
+- Desarrollo exacto de 44, 7, 28, 84, 210 o 462 apuestas equivalentes sin guardar cientos de columnas duplicadas.
+- El reintegro no se inventa: se solicita al registrar el resguardo comprado.
+- Cálculo de coste por apuestas equivalentes y verificación de 6, 5+C, 5, 4, 3 y reintegro.
+- Sincronización oficial SELAE y archivo Supabase ampliados para Bonoloto.
+- CTA con contraste protegido, flujo responsive y métricas basadas en apuestas reales.
+- Euromillones, La Primitiva y EuroDreams continúan operativos.
+- Primy Core gana una presentación translúcida animada y un diálogo educativo accesible con la mascota Primy.
 
 ## Catálogo
 

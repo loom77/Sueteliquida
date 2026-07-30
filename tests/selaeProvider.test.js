@@ -64,6 +64,22 @@ test('interpreta y valida La Primitiva oficial', () => {
   assert.equal(draw.sourceHash.length, 64);
 });
 
+
+test('interpreta Bonoloto con complementario y reintegro oficiales', () => {
+  const html = `
+    <main>
+      <h1>Bonoloto</h1>
+      <p>Resultado del sorteo 30/07/2026</p>
+      <div>Combinación ganadora: 4 - 11 - 19 - 27 - 35 - 46</div>
+      <div>Complementario: 8</div>
+      <div>Reintegro: 3</div>
+    </main>`;
+  const draw = parseSelaeHtml(html, GAMES.bonoloto, { requestedDate: '2026-07-30' });
+  assert.deepEqual(draw.winningNumbers, [4, 11, 19, 27, 35, 46]);
+  assert.equal(draw.complementary, 8);
+  assert.equal(draw.extra, 3);
+});
+
 test('interpreta Euromillones con dos estrellas oficiales', () => {
   const url = selaeResultUrl(GAMES.euromillones, '2026-07-28');
   assert.match(url, /euromillones\.html/);

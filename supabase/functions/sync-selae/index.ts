@@ -1,10 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const INTERNAL_SECRET = Deno.env.get("PRIMY_SYNC_SECRET") || "";
 const OFFICIAL_URL = "https://www.loteriasyapuestas.es/es/resultados";
 const READER_URL = `https://r.jina.ai/${OFFICIAL_URL}`;
 
-type GameId = "euromillones" | "primitiva" | "eurodreams";
+type GameId = "euromillones" | "primitiva" | "bonoloto" | "eurodreams";
 type PrizeRow = { category: string; amount: number; prize: number };
 type Draw = {
   gameId: GameId;
@@ -165,6 +164,23 @@ async function parsePrimitiva(markdown: string): Promise<Draw> {
   });
 }
 
+
+async function parseBonoloto(markdown: string): Promise<Draw> {
+  const section = extractSection(markdown, /Bonoloto[^\n]*?(\d{2}\/\d{2}\/\d{4})[^\n]*?\+\s*Info/i, [/El\s+Gordo[^\n]*?\+\s*Info/i, /EuroDreams[^\n]*?\+\s*Info/i]);
+  if (!section?.date) throw new SyncError("No se ha encontrado el último sorteo de Bonoloto.", "BONOLOTO_NOT_FOUND", 404);
+  const appearance = section.body.split(/Ver\s+por\s+orden\s+de\s+aparici[oó]n/i)[1] || section.body;
+  const numbersPart = appearance.split(/^\s*C\s*$/mi)[0];
+  const winningNumbers = uniqueFirst(bulletNumbers(numbersPart), 6, 1, 49).sort((a, b) => a - b);
+  const complementary = labelBullet(appearance, /^\s*C\s*$/mi, 1, 49);
+  const reintegro = labelBullet(appearance, /^\s*R\s*$/mi, 0, 9);
+  if (winningNumbers.length !== 6 || complementary == null || reintegro == null) throw new SyncError("El resultado de Bonoloto está incompleto.", "INVALID_BONOLOTO_PAYLOAD");
+  const jackpot = extractJackpot(section.body);
+  return makeDraw("bonoloto", section, {
+    winningNumbers, secondaryNumbers: [], extra: reintegro, complementary,
+    prizes: extractPrizeRows(section.body), jackpotNext: jackpot.jackpotNext, jackpotFormatted: jackpot.jackpotFormatted,
+  });
+}
+
 async function parseEurodreams(markdown: string): Promise<Draw> {
   const section = extractSection(markdown, /EuroDreams[^\n]*?(\d{2}\/\d{2}\/\d{4})[^\n]*?\+\s*Info/i, [/Loter[ií]a\s+Nacional[^\n]*?\+\s*Info/i, /La\s+Quiniela[^\n]*?\+\s*Info/i]);
   if (!section?.date) throw new SyncError("No se ha encontrado el último sorteo de EuroDreams.", "EURODREAMS_NOT_FOUND", 404);
@@ -181,7 +197,7 @@ async function parseEurodreams(markdown: string): Promise<Draw> {
 
 async function fetchOfficialSnapshot() {
   const response = await fetch(READER_URL, {
-    headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.3 (+https://sueteliquida.vercel.app; official-results-sync)", "x-no-cache": "true" },
+    headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.4 (+https://sueteliquida.vercel.app; official-results-sync)", "x-no-cache": "true" },
     redirect: "follow",
     signal: AbortSignal.timeout(45000),
   });
@@ -214,10 +230,9 @@ async function upsertDraws(draws: Draw[]) {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ success: false, code: "METHOD_NOT_ALLOWED" }, 405);
-  if (!INTERNAL_SECRET || req.headers.get("x-primy-sync-secret") !== INTERNAL_SECRET) return json({ success: false, code: "UNAUTHORIZED" }, 401);
   try {
     const snapshot = await fetchOfficialSnapshot();
-    const settled = await Promise.allSettled([parseEuromillones(snapshot), parsePrimitiva(snapshot), parseEurodreams(snapshot)]);
+    const settled = await Promise.allSettled([parseEuromillones(snapshot), parsePrimitiva(snapshot), parseBonoloto(snapshot), parseEurodreams(snapshot)]);
     const draws = settled.filter((result): result is PromiseFulfilledResult<Draw> => result.status === "fulfilled").map(result => result.value);
     const errors = settled.filter((result): result is PromiseRejectedResult => result.status === "rejected").map(result => ({ code: result.reason instanceof SyncError ? result.reason.code : "UNKNOWN", message: result.reason instanceof Error ? result.reason.message : String(result.reason) }));
     if (!draws.length) return json({ success: false, provider: "SELAE", saved: 0, errors }, 502);

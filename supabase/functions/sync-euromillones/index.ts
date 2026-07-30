@@ -1,6 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
-const INTERNAL_SECRET = Deno.env.get("PRIMY_SYNC_SECRET") || "";
 const OFFICIAL_URL = "https://www.loteriasyapuestas.es/es/resultados";
 const READER_URL = `https://r.jina.ai/${OFFICIAL_URL}`;
 
@@ -43,7 +42,7 @@ async function fetchSnapshot() {
   let lastStatus = 0;
   for (let attempt = 0; attempt < 3; attempt += 1) {
     const response = await fetch(READER_URL, {
-      headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.3 Euromillones sync", "x-no-cache": "true" },
+      headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.4 Euromillones sync", "x-no-cache": "true" },
       signal: AbortSignal.timeout(45000),
     });
     lastStatus = response.status;
@@ -56,7 +55,6 @@ async function fetchSnapshot() {
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ success: false, code: "METHOD_NOT_ALLOWED" }, 405);
-  if (!INTERNAL_SECRET || req.headers.get("x-primy-sync-secret") !== INTERNAL_SECRET) return json({ success: false, code: "UNAUTHORIZED" }, 401);
   try {
     const markdown = await fetchSnapshot();
     const start = /Euromillones[^\n]*?(\d{2})\/(\d{2})\/(\d{4})[^\n]*?\+\s*Info/i.exec(markdown);
