@@ -1,5 +1,5 @@
 # sync-selae
 
-Sincroniza Euromillones, La Primitiva y EuroDreams desde la página oficial de resultados de SELAE hacia `public.primy_draw_results`.
+Sincroniza La Primitiva, Bonoloto, Euromillones y EuroDreams desde la página oficial SELAE mediante una caché de lectura, valida los resultados y los guarda en `primy_draw_results`.
 
-La función requiere el secreto de proyecto `PRIMY_SYNC_SECRET`. La función programada debe enviar el mismo valor mediante la cabecera `x-primy-sync-secret`. Las claves de servicio nunca deben incorporarse al cliente web.
+La función se despliega con `verify_jwt=true`. `scheduled-sync-selae` la invoca con el JWT `SUPABASE_SERVICE_ROLE_KEY` proporcionado automáticamente por Supabase.

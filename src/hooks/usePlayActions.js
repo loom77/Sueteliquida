@@ -16,11 +16,14 @@ export function usePlayActions({
   setColumnCount,
   setVariantContext,
   setManualOpen,
+  setBetType,
+  setSystemSize,
 }) {
-  const saveLatest = useCallback(purchased => {
+  const saveLatest = useCallback((purchased, purchaseData = {}) => {
     if (!generation.latest) return;
     const original = generation.latest;
-    const stored = savePlay(original, { purchased });
+    const candidate = { ...original, ...purchaseData, metadata: { ...(original.metadata || {}), ...(purchaseData.receiptExtra != null ? { receiptExtraPending: false } : {}) } };
+    const stored = savePlay(candidate, { purchased });
     if (!stored) return;
     generation.setLatest(stored);
     generation.setSaveState(purchased ? 'purchased' : 'draft');
@@ -54,8 +57,8 @@ export function usePlayActions({
     });
   }, [history, removePlay, restorePlay, showToast]);
 
-  const purchaseExisting = useCallback(id => {
-    markPurchased(id);
+  const purchaseExisting = useCallback((id, purchaseData = {}) => {
+    markPurchased(id, purchaseData);
     showToast('Jugada registrada como comprada.');
   }, [markPurchased, showToast]);
 
@@ -69,11 +72,15 @@ export function usePlayActions({
 
   const repeatExact = useCallback(play => {
     const draw = getNextDrawInfo(play.gameId);
+    const game = getGameConfig(play.gameId);
+    const officialReceiptExtra = game.extra?.assignment === 'official-receipt';
     const repeated = {
       ...play,
       id: createId('play'),
+      ...(officialReceiptExtra ? { receiptExtra: null } : {}),
       columns: play.columns.map((column, index) => ({
         ...column,
+        ...(officialReceiptExtra ? { extra: undefined } : {}),
         id: createId('column'),
         index: index + 1,
         status: 'draft',
@@ -96,20 +103,24 @@ export function usePlayActions({
       receiptPrize: undefined,
       favorite: false,
       method: 'repeat-exact',
-      metadata: { ...(play.metadata || {}), repeatedFrom: play.id },
+      metadata: { ...(play.metadata || {}), repeatedFrom: play.id, ...(officialReceiptExtra ? { receiptExtraPending: true } : {}) },
     };
     setActiveGame(play.gameId);
-    setColumnCount(play.columns.length);
+    setBetType?.(play.betType || 'simple');
+    setSystemSize?.(play.systemSize || 7);
+    setColumnCount(play.betType === 'multiple' ? 1 : play.columns.length);
     setVariantContext(null);
     generation.setLatest(repeated);
     generation.setSaveState('unsaved');
     generation.setGenerationError('');
     navigate('generate');
-  }, [generation, navigate, setActiveGame, setColumnCount, setVariantContext]);
+  }, [generation, navigate, setActiveGame, setBetType, setColumnCount, setSystemSize, setVariantContext]);
 
   const createVariant = useCallback(play => {
     setActiveGame(play.gameId);
-    setColumnCount(play.columns.length);
+    setBetType?.(play.betType || 'simple');
+    setSystemSize?.(play.systemSize || 7);
+    setColumnCount(play.betType === 'multiple' ? 1 : play.columns.length);
     generation.resetResult();
     setVariantContext({
       id: play.id,
@@ -118,7 +129,7 @@ export function usePlayActions({
       label: `${getGameConfig(play.gameId).shortName} del ${new Intl.DateTimeFormat('es-ES').format(new Date(play.createdAt))}`,
     });
     navigate('generate');
-  }, [generation, navigate, setActiveGame, setColumnCount, setVariantContext]);
+  }, [generation, navigate, setActiveGame, setBetType, setColumnCount, setSystemSize, setVariantContext]);
 
   return {
     saveLatest,

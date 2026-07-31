@@ -1,3 +1,3 @@
 # scheduled-sync-selae
 
-Endpoint interno richiamato da `pg_cron`. Richiede lo stesso secret `PRIMY_SYNC_SECRET` della funzione `sync-selae`.
+Punto de entrada del cron de Supabase. Invoca los sincronizadores protegidos usando el JWT de servicio disponible en el runtime. No contiene secretos hardcoded.

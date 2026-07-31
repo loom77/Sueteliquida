@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { formatDrawDate } from '../utils/drawSchedule.js';
 import { GAMES, getGameConfig } from '../utils/gameConfig.js';
-import { playCost, playKnownPrize } from '../utils/playModel.js';
+import { playBetCount, playCost, playKnownPrize } from '../utils/playModel.js';
 import { getPlayDeleteDescription } from '../utils/playDeletion.js';
 import { NumberBall, TicketStatus } from './TicketUI.jsx';
 import { ChevronDownIcon, CopyIcon, RepeatIcon, SearchIcon, StarIcon, TrashIcon } from './Icons.jsx';
@@ -13,14 +13,17 @@ const priority = { awaiting_check: 0, scheduled: 1, draft: 2, checked: 3 };
 
 function ResultSummary({ play }) {
   if (play.computedStatus !== 'checked') return null;
-  const awarded = play.columns.filter(column => column.prizeCategory).length;
+  const aggregateBreakdown = play.betType === 'multiple' ? play.columns?.[0]?.breakdown : null;
+  const awarded = aggregateBreakdown
+    ? Object.values(aggregateBreakdown).reduce((sum, count) => sum + Number(count || 0), 0)
+    : play.columns.filter(column => column.prizeCategory).length;
   const knownPrize = playKnownPrize(play);
   return (
     <section className={`mb-5 rounded-2xl border p-4 ${awarded > 0 ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`} aria-label="Resumen del resultado">
       <p className={`text-xs font-bold uppercase tracking-wide ${awarded > 0 ? 'text-emerald-800' : 'text-slate-600'}`}>Resultado comprobado</p>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xl font-semibold text-primary">{awarded > 0 ? `${awarded} ${awarded === 1 ? 'columna premiada' : 'columnas premiadas'}` : 'Esta jugada no tiene premio'}</p>
+          <p className="text-xl font-semibold text-primary">{awarded > 0 ? `${awarded} ${awarded === 1 ? 'apuesta premiada' : 'apuestas premiadas'}` : 'Esta jugada no tiene premio'}</p>
           <p className="mt-1 text-sm text-secondary">Los números marcados corresponden al resultado oficial guardado.</p>
         </div>
         {knownPrize > 0 && <p className="text-2xl font-bold tabular-nums text-emerald-800">{euro.format(knownPrize)}</p>}
@@ -30,6 +33,7 @@ function ResultSummary({ play }) {
 }
 
 function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
+  const [purchaseExtra, setPurchaseExtra] = useState('');
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
   const receiptScopedExtra = game.extra?.scope === 'receipt';
@@ -37,6 +41,9 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
   const hasSecondary = Boolean(game.secondary);
   const winningSecondary = new Set(play.result?.secondaryNumbers || []);
   const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
+  const receiptExtraPending = game.extra?.assignment === 'official-receipt' && (receiptExtra === null || receiptExtra === undefined || receiptExtra === '' || !Number.isInteger(Number(receiptExtra)));
+  const isMultiple = play.betType === 'multiple';
+  const betCount = playBetCount(play);
 
   return (
     <div className="p-4 md:p-6">
@@ -44,7 +51,7 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
         <div>
           <p className="text-xs font-bold uppercase tracking-wide text-secondary">Detalle de la jugada</p>
           <h3 className="mt-1 text-xl font-semibold text-primary">{game.name} · {formatDrawDate(play.drawDateISO)}</h3>
-          <p className="mt-1 text-sm text-secondary">{play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'} · Coste registrado {euro.format(playCost(play))}</p>
+          <p className="mt-1 text-sm text-secondary">{isMultiple ? `Múltiple de ${play.systemSize} números · ${betCount} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`} · Coste registrado {euro.format(playCost(play))}</p>
         </div>
         <TicketStatus status={play.computedStatus}/>
       </div>
@@ -56,9 +63,9 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-amber-800">Reintegro del resguardo</p>
-              <p className="mt-1 text-sm text-amber-950">Único para todas las columnas</p>
+              <p className="mt-1 text-sm text-amber-950">Único para todas las apuestas del resguardo</p>
             </div>
-            <NumberBall compact extra>{receiptExtra}</NumberBall>
+            {receiptExtraPending ? <span className="rounded-full border border-amber-300 bg-surface px-3 py-2 text-sm font-bold text-amber-900">Pendiente</span> : <NumberBall compact extra>{receiptExtra}</NumberBall>}
           </div>
           {play.receiptPrize && (
             <div className="mt-3 border-t border-amber-200 pt-3 text-sm text-amber-950">
@@ -77,7 +84,7 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
             <div key={column.id} className={`primy-archive-column rounded-2xl border p-4 ${hasPrize ? 'border-emerald-200 bg-emerald-50/70' : 'border-default bg-muted'}`}>
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-secondary">Columna {index + 1}</p>
+                  <p className="text-xs font-bold uppercase tracking-wide text-secondary">{isMultiple ? `Selección múltiple · ${betCount} apuestas` : `Columna ${index + 1}`}</p>
                   {column.status === 'checked' && <p className={`mt-1 text-sm font-semibold ${hasPrize ? 'text-emerald-800' : 'text-secondary'}`}>{column.prizeCategory || 'Sin premio'}</p>}
                 </div>
                 {column.status === 'checked' && <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-secondary">{column.matches || 0} aciertos{hasSecondary ? ` + ${column.secondaryMatches || 0} estrellas` : ''}</span>}
@@ -127,9 +134,12 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           {!play.purchased ? (
-            <button type="button" onClick={() => onPurchase(play.id)} className="min-h-11 rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700">
-              He jugado este boleto · {euro.format(playCost(play))}
-            </button>
+            <div className="flex-1">
+              {receiptExtraPending && <label className="mb-3 block text-sm font-semibold text-primary">Reintegro del resguardo (0–9)<input value={purchaseExtra} onChange={event => setPurchaseExtra(event.target.value.replace(/\D/g, '').slice(0, 1))} inputMode="numeric" pattern="[0-9]" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/><span className="mt-1 block text-xs font-normal text-secondary">Debe coincidir con el resguardo comprado.</span></label>}
+              <button type="button" disabled={receiptExtraPending && !/^[0-9]$/.test(purchaseExtra)} onClick={() => onPurchase(play.id, receiptExtraPending ? { receiptExtra: Number(purchaseExtra) } : {})} className="min-h-11 w-full rounded-xl bg-emerald-600 px-4 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-50">
+                He jugado este boleto · {euro.format(playCost(play))}
+              </button>
+            </div>
           ) : (
             <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">Registrada como jugada comprada</p>
           )}
@@ -251,14 +261,17 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
             {filtered.map(play => {
               const game = getGameConfig(play.gameId);
               const isExpanded = expanded === play.id;
-              const awarded = play.columns.filter(column => column.prizeCategory).length;
+              const aggregateBreakdown = play.betType === 'multiple' ? play.columns?.[0]?.breakdown : null;
+  const awarded = aggregateBreakdown
+    ? Object.values(aggregateBreakdown).reduce((sum, count) => sum + Number(count || 0), 0)
+    : play.columns.filter(column => column.prizeCategory).length;
               return (
                 <article key={play.id} className={`primy-archive-card rounded-3xl border bg-surface shadow-soft ${isExpanded ? 'is-open border-primy-200' : 'border-default'}`}>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
-                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.columns.length} {play.columns.length === 1 ? 'columna' : 'columnas'}</p>
+                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
                       </div>
                       <TicketStatus status={play.computedStatus}/>
                     </div>
@@ -280,7 +293,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
 
           <div className="hidden overflow-hidden rounded-3xl border border-default bg-surface shadow-soft lg:block">
             <table className="w-full border-collapse text-left">
-              <thead className="bg-muted text-xs uppercase tracking-wide text-secondary"><tr><th className="px-5 py-4">Sorteo</th><th className="px-5 py-4">Juego</th><th className="px-5 py-4">Columnas</th><th className="px-5 py-4">Coste</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4 text-right">Acciones</th></tr></thead>
+              <thead className="bg-muted text-xs uppercase tracking-wide text-secondary"><tr><th className="px-5 py-4">Sorteo</th><th className="px-5 py-4">Juego</th><th className="px-5 py-4">Apuestas</th><th className="px-5 py-4">Coste</th><th className="px-5 py-4">Estado</th><th className="px-5 py-4 text-right">Acciones</th></tr></thead>
               <tbody className="divide-y divide-default">
                 {filtered.map(play => {
                   const game = getGameConfig(play.gameId);
@@ -290,7 +303,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                       <tr className={isExpanded ? 'bg-primy-50/50' : 'hover:bg-muted'}>
                         <td className="px-5 py-4 font-bold capitalize text-primary">{formatDrawDate(play.drawDateISO, { short: true })}</td>
                         <td className="px-5 py-4"><div className="flex items-center gap-2 font-semibold text-primary">{game.name}{play.favorite && <StarIcon width="15" height="15" className="fill-amber-400 text-amber-500"/>}</div></td>
-                        <td className="px-5 py-4 text-secondary">{play.columns.length}</td>
+                        <td className="px-5 py-4 text-secondary">{playBetCount(play)}</td>
                         <td className="px-5 py-4 font-bold text-primary">{euro.format(playCost(play))}</td>
                         <td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios: {euro.format(playKnownPrize(play))}</p>}</td>
                         <td className="px-5 py-4 text-right">

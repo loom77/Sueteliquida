@@ -1,11 +1,13 @@
 import { generateFusionPlay } from '../utils/fusionEngine.js';
 
 self.onmessage = event => {
-  const { requestId, gameId, columnCount, avoidColumns, variantOf } = event.data || {};
+  const { requestId, gameId, columnCount, avoidColumns, variantOf, betType, systemSize } = event.data || {};
   try {
     const play = generateFusionPlay(gameId, null, columnCount, {
       avoidColumns,
       variantOf,
+      betType,
+      systemSize,
       onProgress: progress => self.postMessage({ type: 'progress', requestId, progress }),
     });
     self.postMessage({ type: 'done', requestId, play });

@@ -27,6 +27,8 @@ export function useAppController(auth) {
   const { view, navigate } = useAppRouter();
   const [activeGame, setActiveGame] = useState('primitiva');
   const [columnCount, setColumnCount] = useState(1);
+  const [betType, setBetType] = useState('simple');
+  const [systemSize, setSystemSize] = useState(7);
   const [manualOpen, setManualOpen] = useState(false);
   const [variantContext, setVariantContext] = useState(null);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
@@ -71,8 +73,11 @@ export function useAppController(auth) {
     if (!GAMES[gameId]) return;
     generation.cancel({ announce: false });
     generation.resetResult();
+    const selectedGame = getGameConfig(gameId);
     setActiveGame(gameId);
-    setColumnCount(current => Math.min(current, getGameConfig(gameId).maxSimpleBets || 1));
+    setBetType('simple');
+    setSystemSize(7);
+    setColumnCount(current => Math.max(selectedGame.minSimpleBets || 1, Math.min(current, selectedGame.maxSimpleBets || 1)));
     setVariantContext(current => current?.gameId === gameId ? current : null);
   }, [generation]);
 
@@ -82,8 +87,8 @@ export function useAppController(auth) {
   }, [navigate, selectGame]);
 
   const generate = useCallback(() => {
-    generation.generate({ activeGame, columnCount, variantContext });
-  }, [generation, activeGame, columnCount, variantContext]);
+    generation.generate({ activeGame, columnCount, variantContext, betType, systemSize });
+  }, [generation, activeGame, columnCount, variantContext, betType, systemSize]);
 
   const cancelGeneration = useCallback(() => generation.cancel({ announce: true }), [generation]);
 
@@ -100,6 +105,8 @@ export function useAppController(auth) {
     setColumnCount,
     setVariantContext,
     setManualOpen,
+    setBetType,
+    setSystemSize,
   });
 
   const dueByGame = useMemo(() => getDueByGame(history), [history]);
@@ -153,6 +160,10 @@ export function useAppController(auth) {
       onGameChange: selectGame,
       columnCount,
       setColumnCount,
+      betType,
+      setBetType,
+      systemSize,
+      setSystemSize,
       onGenerate: generate,
       onCancel: cancelGeneration,
       busy: generation.busy,
@@ -163,7 +174,7 @@ export function useAppController(auth) {
       latest: generation.latest,
       saveState: generation.saveState,
       onSaveDraft: () => playActions.saveLatest(false),
-      onPurchase: () => playActions.saveLatest(true),
+      onPurchase: purchaseData => playActions.saveLatest(true, purchaseData),
       onDiscard: playActions.discardLatest,
       onOpenPlays: () => navigate('plays'),
       onToast: showToast,

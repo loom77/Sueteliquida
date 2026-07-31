@@ -1,18 +1,18 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
-const INTERNAL_SECRET = Deno.env.get("PRIMY_SYNC_SECRET") || "";
+const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const TARGETS = [`${SUPABASE_URL}/functions/v1/sync-selae`, `${SUPABASE_URL}/functions/v1/sync-euromillones`];
 
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response(JSON.stringify({ success: false, code: "METHOD_NOT_ALLOWED" }), { status: 405, headers: { "content-type": "application/json" } });
-  if (!SUPABASE_URL || !INTERNAL_SECRET) return new Response(JSON.stringify({ success: false, code: "SYNC_NOT_CONFIGURED" }), { status: 503, headers: { "content-type": "application/json" } });
+  if (!SUPABASE_URL || !SERVICE_ROLE_KEY) return new Response(JSON.stringify({ success: false, code: "SYNC_NOT_CONFIGURED" }), { status: 503, headers: { "content-type": "application/json" } });
 
   const results = await Promise.all(TARGETS.map(async target => {
     try {
       const response = await fetch(target, {
         method: "POST",
-        headers: { "content-type": "application/json", "x-primy-sync-secret": INTERNAL_SECRET },
+        headers: { "content-type": "application/json", authorization: `Bearer ${SERVICE_ROLE_KEY}` },
         body: JSON.stringify({ mode: "latest", trigger: "supabase-cron" }),
         signal: AbortSignal.timeout(55000),
       });

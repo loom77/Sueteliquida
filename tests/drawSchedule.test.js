@@ -42,3 +42,12 @@ test('Euromillones se programa los martes y viernes en horario de Madrid', () =>
   const next = getNextDrawInfo('euromillones', new Date('2026-07-29T10:00:00Z'));
   assert.equal(toLocalDateKey(next.drawDateTimeISO), '2026-07-31');
 });
+
+
+test('El Gordo de la Primitiva se programa los domingos por la noche en horario de Madrid', () => {
+  const sunday = drawInfoForDate('gordoprimitiva', '2026-08-02');
+  assert.equal(toLocalDateKey(sunday.drawDateTimeISO), '2026-08-02');
+  assert.equal(formatDrawTime(sunday.drawDateTimeISO), '21:30');
+  const next = getNextDrawInfo('gordoprimitiva', new Date('2026-08-02T21:40:00+02:00'));
+  assert.equal(next.drawDateKey, '2026-08-09');
+});
