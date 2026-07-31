@@ -1,3 +1,11 @@
+# Primy v15.5.3 — Primy Core accesso dalla home
+
+- aggiunto il comando evidente “Cómo funciona Primy Core” nella parte alta della pagina principale
+- lo stesso popup informativo è ora condiviso fra home e generatore
+- estratto il popup in un componente unico per evitare divergenze future
+- mantenuto integralmente l’hotfix v15.5.2 della verifica dei premi EuroDreams
+- aggiornate le cache PWA alla v15.5.3
+
 # Primy v15.5.2 — Verificación de sorteos hotfix
 
 - corregida la ventana horaria de sincronización SELAE en Supabase

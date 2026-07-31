@@ -1,29 +1,39 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { formatDrawDate, formatDrawTime, formatSyncTime } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
 import { PrimyMascotGraphic, PrimyMark } from './BrandVisuals.jsx';
-import { CalendarIcon, EditIcon, ListIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
+import { CalendarIcon, EditIcon, InfoIcon, ListIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
 import { ActionCard, Eyebrow, PrimaryButton, SecondaryButton } from './DesignSystem.jsx';
+import PrimyCoreDialog from './PrimyCoreDialog.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const shortDate = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' });
 
-export const BrandSignal = memo(function BrandSignal({ label = 'Primy Core' }) {
+export const BrandSignal = memo(function BrandSignal({ label = 'Cómo funciona Primy Core', onClick }) {
   return (
-    <span className="primy-brand-signal" aria-label={label}>
+    <button
+      type="button"
+      className="primy-brand-signal primy-home-core-trigger"
+      onClick={onClick}
+      aria-haspopup="dialog"
+      aria-controls="primy-core-info-dialog"
+    >
       <span className="primy-brand-signal__dot" aria-hidden="true" />
+      <InfoIcon width="16" height="16" aria-hidden="true" />
       <span>{label}</span>
-    </span>
+    </button>
   );
 });
 
 export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, onGenerate, onAddExternal }) {
+  const [coreInfoOpen, setCoreInfoOpen] = useState(false);
+
   return (
     <section className="primy-home-hero primy-page-enter" aria-labelledby="home-hero-title">
       <div className="primy-home-hero__copy">
         <div className="flex flex-wrap items-center gap-3">
           <Eyebrow>Tu espacio Primy</Eyebrow>
-          <BrandSignal />
+          <BrandSignal onClick={() => setCoreInfoOpen(true)} />
         </div>
 
         <h1 id="home-hero-title" className="primy-home-hero__title">
@@ -68,6 +78,8 @@ export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, onGenerate
           showCaption
         />
       </div>
+
+      <PrimyCoreDialog open={coreInfoOpen} onClose={() => setCoreInfoOpen(false)} />
     </section>
   );
 });
