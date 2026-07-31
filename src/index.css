@@ -1083,3 +1083,230 @@ html[data-theme='dark'] .primy-core-step__icon {
   .primy-home-core-trigger { transition: none; }
   .primy-home-core-trigger:hover { transform: none; }
 }
+
+/* Primy v15.6 — Lotería Nacional + Brand Evolution */
+.primy-national-action {
+  background: linear-gradient(135deg, #123f70, #0a2f57);
+  color: #fff;
+  box-shadow: 0 12px 28px rgb(10 47 87 / .18);
+}
+.primy-national-action:hover { background: linear-gradient(135deg, #0f355f, #082746); transform: translateY(-1px); }
+.primy-national-action:focus-visible { outline: 3px solid #93c5fd; outline-offset: 3px; }
+.primy-national-action:disabled { background: #94a3b8; box-shadow: none; }
+
+.national-core-banner {
+  position: relative;
+  display: flex;
+  gap: 1rem;
+  overflow: hidden;
+  border: 1px solid rgb(30 64 175 / .18);
+  border-radius: 1.6rem;
+  background:
+    radial-gradient(circle at 92% 0, rgb(244 200 74 / .22), transparent 12rem),
+    linear-gradient(135deg, rgb(239 246 255 / .96), rgb(255 253 248 / .9));
+  padding: 1.15rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .9), 0 18px 45px rgb(30 64 175 / .08);
+}
+.national-core-banner::after {
+  content: '';
+  position: absolute;
+  right: -3rem;
+  bottom: -5rem;
+  width: 13rem;
+  height: 13rem;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgb(59 130 246 / .16), transparent 68%);
+}
+.national-core-banner__icon {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, #1d4f82, #0a2f57);
+  color: white;
+  box-shadow: 0 10px 24px rgb(10 47 87 / .2);
+}
+
+.national-draw-card {
+  min-height: 7.6rem;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 1.2rem;
+  background: rgb(var(--c-surface));
+  padding: 1rem;
+  text-align: left;
+  color: rgb(var(--c-text-secondary));
+}
+.national-draw-card:hover { border-color: rgb(59 130 246 / .42); background: rgb(239 246 255 / .72); }
+.national-draw-card.is-selected {
+  border-color: #1d4f82;
+  background: linear-gradient(145deg, #eff6ff, #fffdf8);
+  color: #1e3a5f;
+  box-shadow: 0 0 0 3px rgb(59 130 246 / .1), 0 12px 28px rgb(30 64 175 / .08);
+}
+
+.national-number-editor {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .6rem;
+  max-width: 32rem;
+}
+.national-digit-input {
+  min-width: 0;
+  min-height: 4.4rem;
+  border: 1px solid rgb(147 197 253 / .85);
+  border-radius: 1.05rem;
+  background: linear-gradient(180deg, #fff, #eff6ff);
+  color: #0f2f50;
+  font-family: Sora, Inter, sans-serif;
+  font-size: clamp(1.65rem, 4vw, 2.4rem);
+  font-weight: 700;
+  text-align: center;
+  box-shadow: inset 0 -5px 10px rgb(30 64 175 / .05), 0 8px 18px rgb(30 64 175 / .06);
+}
+.national-digit-input::placeholder { color: #7aa3c9; opacity: .8; }
+.national-favorite {
+  min-height: 2.5rem;
+  border: 1px solid rgb(147 197 253 / .75);
+  border-radius: 999px;
+  background: #eff6ff;
+  padding: .45rem .8rem;
+  color: #123f70;
+  font-family: Sora, sans-serif;
+  font-size: .82rem;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.national-summary-card {
+  align-self: start;
+  border: 1px solid rgb(30 64 175 / .18);
+  border-radius: 1.75rem;
+  background:
+    linear-gradient(90deg, transparent 49%, rgb(30 64 175 / .05) 50%, transparent 51%) 0 0 / 2.6rem 100%,
+    radial-gradient(circle at 100% 0, rgb(244 200 74 / .22), transparent 10rem),
+    linear-gradient(160deg, #f8fbff, #fffdf8);
+  padding: 1.4rem;
+  box-shadow: 0 22px 52px rgb(15 47 80 / .1);
+}
+.national-summary-card__seal {
+  display: flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  float: right;
+  border-radius: 999px;
+  background: #f4c84a;
+  color: #132238;
+  box-shadow: 0 7px 18px rgb(125 82 0 / .16);
+}
+.national-stepper {
+  display: flex;
+  width: 3rem;
+  height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #bfdbfe;
+  border-radius: 999px;
+  background: #fff;
+  color: #123f70;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.national-ticket-preview {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgb(30 64 175 / .24);
+  border-radius: 2rem;
+  background: rgb(var(--c-surface));
+  box-shadow: 0 26px 65px rgb(15 47 80 / .13);
+}
+.national-ticket-preview::before,
+.national-ticket-preview::after {
+  content: '';
+  position: absolute;
+  top: 5.35rem;
+  width: 1.8rem;
+  height: 1.8rem;
+  border: 1px solid rgb(30 64 175 / .18);
+  border-radius: 999px;
+  background: rgb(var(--c-app));
+  z-index: 2;
+}
+.national-ticket-preview::before { left: -.95rem; }
+.national-ticket-preview::after { right: -.95rem; }
+.national-ticket-preview__topline {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: linear-gradient(135deg, #123f70, #0a2f57);
+  padding: .8rem 1.5rem;
+  color: #fff;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.national-ticket-preview__topline span:first-child { display: inline-flex; align-items: center; gap: .5rem; }
+.national-ticket-preview__body { padding: 1.6rem; }
+.national-ticket-number {
+  margin-top: .65rem;
+  font-family: Sora, sans-serif;
+  font-size: clamp(2.7rem, 8vw, 4.7rem);
+  font-weight: 750;
+  letter-spacing: .18em;
+  line-height: 1;
+  color: #0f2f50;
+  text-shadow: 0 3px 0 rgb(147 197 253 / .25);
+}
+.national-ticket-data {
+  border: 1px solid rgb(191 219 254 / .8);
+  border-radius: 1rem;
+  background: rgb(239 246 255 / .72);
+  padding: .85rem 1rem;
+}
+.national-ticket-data span { display: block; color: #64748b; font-size: .68rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+.national-ticket-data strong { display: block; margin-top: .3rem; color: rgb(var(--c-text-primary)); font-size: .95rem; }
+.national-ticket-data small { display: block; margin-top: .3rem; color: rgb(var(--c-text-secondary)); line-height: 1.45; }
+.national-ticket-saved {
+  display: grid;
+  min-height: 22rem;
+  place-items: center;
+  gap: 1rem;
+  border: 1px solid rgb(30 64 175 / .2);
+  border-radius: 2rem;
+  background: linear-gradient(145deg, #eff6ff, #fffdf8);
+  padding: 2rem;
+  text-align: center;
+}
+.national-ticket-saved__icon { display: flex; width: 4rem; height: 4rem; align-items: center; justify-content: center; border-radius: 1.25rem; background: #123f70; color: #fff; }
+.national-archive-ticket { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; border: 1px solid #bfdbfe; border-radius: 1.5rem; background: linear-gradient(145deg, #eff6ff, #fffdf8); padding: 1.25rem; }
+
+html[data-theme='dark'] .national-core-banner,
+html[data-theme='dark'] .national-summary-card,
+html[data-theme='dark'] .national-ticket-preview,
+html[data-theme='dark'] .national-ticket-saved,
+html[data-theme='dark'] .national-archive-ticket {
+  background: linear-gradient(145deg, rgb(15 47 80 / .82), rgb(15 36 26 / .92));
+}
+html[data-theme='dark'] .national-digit-input,
+html[data-theme='dark'] .national-draw-card,
+html[data-theme='dark'] .national-ticket-data { background: rgb(15 47 80 / .56); color: #e0f2fe; }
+html[data-theme='dark'] .national-ticket-number { color: #e0f2fe; }
+
+@media (max-width: 520px) {
+  .national-number-editor { gap: .35rem; }
+  .national-digit-input { min-height: 3.8rem; border-radius: .8rem; }
+  .national-ticket-preview__body { padding: 1.15rem; }
+  .national-ticket-number { letter-spacing: .1em; }
+  .national-core-banner { padding: .95rem; }
+  .national-core-banner__icon { width: 2.8rem; height: 2.8rem; }
+}

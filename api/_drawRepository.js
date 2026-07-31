@@ -65,6 +65,7 @@ function normalizeDraw(draw) {
     updatedAt: draw.updatedAt || null,
     fetchedAt: draw.fetchedAt || new Date().toISOString(),
     drawId: draw.drawId || `${draw.gameId}:${draw.date}`,
+    metadata: draw.metadata && typeof draw.metadata === 'object' ? draw.metadata : {},
   };
 }
 
@@ -85,6 +86,7 @@ function rowToDraw(row) {
     updatedAt: row.official_updated_at,
     fetchedAt: row.fetched_at,
     drawId: `${row.game_id}:${row.draw_date}`,
+    metadata: row.metadata || {},
   });
 }
 
@@ -105,6 +107,7 @@ function drawToRow(draw) {
     source_hash: value.sourceHash || null,
     official_updated_at: value.updatedAt,
     fetched_at: value.fetchedAt,
+    metadata: value.metadata || {},
   };
 }
 

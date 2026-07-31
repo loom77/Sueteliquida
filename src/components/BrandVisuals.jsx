@@ -1,18 +1,28 @@
-import React from 'react';
+import React, { useId } from 'react';
 
 export function PrimyMark({ className = '', title = 'Primy' }) {
+  const gradientId = `primyMarkGradient-${useId().replace(/:/g, '')}`;
   return (
     <svg className={className} viewBox="0 0 64 64" role="img" aria-label={title}>
       <defs>
-        <linearGradient id="primyMarkGradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#12A05C"/>
-          <stop offset="1" stopColor="#0B7A49"/>
+        <linearGradient id={gradientId} x1="7" y1="5" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#18A566"/>
+          <stop offset=".56" stopColor="#0B7A49"/>
+          <stop offset="1" stopColor="#075438"/>
         </linearGradient>
       </defs>
-      <rect x="3" y="3" width="58" height="58" rx="20" fill="url(#primyMarkGradient)"/>
-      <circle cx="31" cy="28" r="15" fill="#fff" fillOpacity=".98"/>
-      <path d="M23 47V20h10.5c8.5 0 13.5 4.2 13.5 11 0 7-5.2 11.5-13.7 11.5H31V47h-8Zm8-12h2.1c3.7 0 5.8-1.4 5.8-4.2 0-2.6-1.9-4-5.5-4H31V35Z" fill="#0B7A49"/>
-      <circle cx="49" cy="13" r="5" fill="#F4C84A"/>
+      <rect x="3" y="3" width="58" height="58" rx="18" fill={`url(#${gradientId})`}/>
+      <path d="M14.5 25.5c0-7.8 6.2-13.8 14-13.8 1.3 0 2.6.2 3.8.5 1.3-.4 2.6-.5 4-.5 7.8 0 13.8 6 13.8 13.8 0 5.7-3.2 10.7-8.1 13.2l-9.8 11.1-9.7-11.1c-4.9-2.5-8-7.5-8-13.2Z" fill="#FFFDF7"/>
+      <circle cx="26" cy="25.5" r="7.2" fill="#DDF7E8"/>
+      <circle cx="38.5" cy="25.5" r="7.2" fill="#DDF7E8"/>
+      <circle cx="27" cy="26" r="3.25" fill="#075438"/>
+      <circle cx="37.5" cy="26" r="3.25" fill="#075438"/>
+      <circle cx="28.1" cy="24.8" r="1.05" fill="#fff"/>
+      <circle cx="38.6" cy="24.8" r="1.05" fill="#fff"/>
+      <path d="m32.25 29.2 4.1 4.1-4.1 3.1-4.1-3.1 4.1-4.1Z" fill="#F4C84A"/>
+      <path d="M21.5 39.1h12.8c5.1 0 8.2 2.4 8.2 6.2 0 4-3.2 6.5-8.4 6.5h-4.6V56h-8V39.1Zm8 6v2.2h4.1c1.1 0 1.8-.4 1.8-1.1 0-.7-.7-1.1-1.9-1.1h-4Z" fill="#075438"/>
+      <circle cx="50.5" cy="13.5" r="4.5" fill="#F4C84A"/>
+      <path d="M49.1 13.5h2.8M50.5 12.1v2.8" stroke="#6B4A00" strokeWidth="1.2" strokeLinecap="round"/>
     </svg>
   );
 }
@@ -23,7 +33,7 @@ export function PrimyWordmark({ compact = false, className = '' }) {
       <PrimyMark className={compact ? 'h-10 w-10' : 'h-12 w-12'}/>
       <div className="leading-none">
         <p className={`${compact ? 'text-lg' : 'text-xl'} font-display font-bold tracking-[-0.03em] text-primary`}>Primy</p>
-        {!compact && <p className="mt-1 text-xs font-medium text-secondary">Tus jugadas, a tu manera</p>}
+        {!compact && <p className="mt-1 text-xs font-medium text-secondary">Tu guía inteligente de juego</p>}
       </div>
     </div>
   );

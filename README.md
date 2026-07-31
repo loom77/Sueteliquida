@@ -1,56 +1,73 @@
-# Primy v15.4.0
+# Primy v15.6.0
 
-Primy es una PWA en castellano para crear, guardar y comprobar jugadas. La aplicación no vende boletos, no predice sorteos y no garantiza premios.
+Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La aplicación no vende boletos, no reserva números, no predice sorteos y no garantiza premios.
 
-## Novedades de v15.4.0
+## Novedades de v15.6.0
 
-- Bonoloto operativa en generación sencilla y múltiple, registro, archivo y comprobación.
-- Apuestas sencillas de 2 a 8 columnas y múltiples oficiales de 5 o 7–11 números.
-- Desarrollo exacto de 44, 7, 28, 84, 210 o 462 apuestas equivalentes sin guardar cientos de columnas duplicadas.
-- El reintegro no se inventa: se solicita al registrar el resguardo comprado.
-- Cálculo de coste por apuestas equivalentes y verificación de 6, 5+C, 5, 4, 3 y reintegro.
-- Sincronización oficial SELAE y archivo Supabase ampliados para Bonoloto.
-- CTA con contraste protegido, flujo responsive y métricas basadas en apuestas reales.
-- Euromillones, La Primitiva y EuroDreams continúan operativos.
-- Primy Core gana una presentación translúcida animada y un diálogo educativo accesible con la mascota Primy.
+- Lotería Nacional operativa con una experiencia propia, separada del modelo de columnas numéricas.
+- Preparación de números de cinco cifras, preservando ceros iniciales como `00742`.
+- Elección de sorteo, generación uniforme, bloqueo parcial de cifras y números favoritos.
+- Registro de 1 a 10 décimos con coste dinámico, serie y fracción opcionales.
+- Comprobación por número, aproximaciones, centenas, terminaciones, reintegros y Premio Especial.
+- Lectura del listado oficial completo de premios cuando SELAE lo publica; si falta, Primy mantiene la jugada pendiente y no inventa un resultado.
+- Archivo Supabase y sincronización oficial ampliados para Lotería Nacional.
+- Evolución de marca: símbolo Primy simplificado, wordmark revisado, iconos PWA renovados y una interfaz más diferenciada por juego.
 
-## Catálogo
+## Juegos operativos
 
-```text
-Juegos
-├── Loterías de números
-│   ├── Euromillones
-│   ├── La Primitiva
-│   ├── Bonoloto
-│   ├── El Gordo de la Primitiva
-│   └── EuroDreams
-├── Lotería Nacional
-├── Apuestas deportivas
-│   ├── La Quiniela
-│   └── El Quinigol
-└── Apuestas hípicas
-    ├── Lototurf
-    └── Quíntuple Plus
+- **La Primitiva**
+- **Bonoloto**
+- **Euromillones**
+- **EuroDreams**
+- **El Gordo de la Primitiva**
+- **Lotería Nacional**
+
+Los juegos deportivos e hípicos permanecen en fase de arquitectura y no exponen funciones incompletas.
+
+## Modelo específico de Lotería Nacional
+
+Lotería Nacional no reutiliza el modelo de combinaciones de bolas. Cada registro conserva:
+
+```js
+{
+  gameId: 'loteria-nacional',
+  drawDateKey: '2026-08-01',
+  drawType: 'special',
+  drawName: 'Extra de Agosto',
+  nationalNumber: '07360',
+  ticketQuantity: 1,
+  pricePerDecimo: 15,
+  totalCost: 15,
+  series: null,
+  fraction: null,
+  purchased: true
+}
 ```
 
-Cada juego pasa por un gate conjunto de producto/UX, arquitectura, reglas y diseño antes de activar sus funciones.
+Preparar un número no lo compra ni confirma su disponibilidad. La disponibilidad solo puede verificarse en los canales oficiales o puntos de venta autorizados.
 
 ## Resultados oficiales
 
 SELAE es la fuente oficial. Supabase sincroniza y conserva los resultados verificados en `primy_draw_results`; las sesiones de usuario leen ese archivo y no multiplican las consultas externas.
 
 ```text
-Página oficial SELAE
-        │
-        ▼
+SELAE resultados + listado oficial de premios
+                    │
+                    ▼
 Supabase Cron → Edge Functions → validación estricta
-                                  │
-                                  ▼
-                         primy_draw_results
-                                  │
-                                  ▼
-                         API de lectura Primy
+                                      │
+                                      ▼
+                             primy_draw_results
+                                      │
+                                      ▼
+                             API de lectura Primy
 ```
+
+Para Lotería Nacional el resumen del sorteo no siempre basta. Primy intenta incorporar el listado oficial completo y conserva un indicador de integridad. Si el listado no está disponible, la comprobación queda pendiente.
+
+## Primy Core
+
+Primy Core usa un motor inteligente de análisis avanzado para aplicar reglas, organizar estadísticas descriptivas y automatizar comprobaciones. Las estadísticas no alteran la probabilidad del próximo sorteo y Primy no asegura ninguna ganancia.
 
 ## Configuración de Vercel
 
@@ -69,7 +86,7 @@ SUPABASE_PUBLISHABLE_KEY
 RESULT_CACHE_TTL_MINUTES
 ```
 
-No se necesitan `LOTERIA_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY` ni `CRON_SECRET` en Vercel.
+No se necesitan claves comerciales de lotería en Vercel.
 
 ## Desarrollo
 
@@ -82,13 +99,6 @@ npm run build
 
 Requiere Node.js 20–24.
 
-## Juegos operativos actualmente
+## Scanner
 
-- **La Primitiva:** de 1 a 8 apuestas simples por boleto, seis números por columna y un único reintegro por resguardo.
-- **EuroDreams:** de 1 a 6 apuestas simples por boleto, seis números y un número Sueño por apuesta.
-
-El historial y el laboratorio estadístico son informativos y no modifican la generación uniforme de la próxima jugada.
-
-## Función scanner
-
-El scanner de boletos permanece en la hoja de ruta. Se implementará cuando exista reconocimiento real, validación de campos y uso explícito de la cámara posterior.
+El scanner de boletos permanece en beta limitada: captura referencias compatibles con el navegador, pero los números, la serie y la fracción deben confirmarse manualmente hasta disponer de reconocimiento oficial fiable.

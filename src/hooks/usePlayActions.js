@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { getNextDrawInfo } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
 import { createId } from '../utils/createId.js';
+import { getUpcomingNationalDraws } from '../utils/nationalLottery.js';
 
 export function usePlayActions({
   history,
@@ -71,6 +72,32 @@ export function usePlayActions({
   }, [navigate, savePlay, setManualOpen, showToast]);
 
   const repeatExact = useCallback(play => {
+    if (play.gameId === 'loteria-nacional') {
+      const draw = getUpcomingNationalDraws(new Date(), 1)[0];
+      const repeated = {
+        ...play,
+        id: createId('play'),
+        columns: [{ ...(play.columns?.[0] || {}), id: createId('column'), status: 'draft', prizeCategory: undefined, prizeDisplay: undefined, officialPrize: undefined }],
+        ...(draw || {}),
+        pricePerDecimo: draw?.pricePerDecimo ?? play.pricePerDecimo,
+        createdAt: new Date().toISOString(),
+        purchased: false,
+        purchasedAt: undefined,
+        status: 'draft',
+        checkedAt: undefined,
+        result: undefined,
+        favorite: false,
+        method: 'repeat-national-number',
+        metadata: { ...(play.metadata || {}), repeatedFrom: play.id },
+      };
+      setActiveGame('loteria-nacional');
+      setVariantContext(null);
+      generation.setLatest(repeated);
+      generation.setSaveState('unsaved');
+      generation.setGenerationError('');
+      navigate('generate');
+      return;
+    }
     const draw = getNextDrawInfo(play.gameId);
     const game = getGameConfig(play.gameId);
     const officialReceiptExtra = game.extra?.assignment === 'official-receipt';
@@ -117,6 +144,13 @@ export function usePlayActions({
   }, [generation, navigate, setActiveGame, setBetType, setColumnCount, setSystemSize, setVariantContext]);
 
   const createVariant = useCallback(play => {
+    if (play.gameId === 'loteria-nacional') {
+      setActiveGame('loteria-nacional');
+      generation.resetResult();
+      setVariantContext(null);
+      navigate('generate');
+      return;
+    }
     setActiveGame(play.gameId);
     setBetType?.(play.betType || 'simple');
     setSystemSize?.(play.systemSize || 7);

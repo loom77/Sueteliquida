@@ -32,8 +32,63 @@ function ResultSummary({ play }) {
   );
 }
 
+
+function NationalPlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat }) {
+  const [series, setSeries] = useState('');
+  const [fraction, setFraction] = useState('');
+  const number = play.nationalNumber || play.columns?.[0]?.number || '00000';
+  const column = play.columns?.[0] || {};
+  const needsPurchaseData = !play.purchased;
+  return (
+    <div className="p-4 md:p-6">
+      <div className="national-archive-ticket">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[.15em] text-blue-800">Lotería Nacional</p>
+          <h3 className="mt-2 font-display text-4xl font-semibold tracking-[.16em] text-primary">{number}</h3>
+          <p className="mt-3 text-sm font-semibold text-primary">{play.drawName || 'Sorteo de Lotería Nacional'}</p>
+          <p className="mt-1 text-sm text-secondary">{formatDrawDate(play.drawDateISO)} · {play.ticketQuantity || 1} décimo(s) · {euro.format(playCost(play))}</p>
+        </div>
+        <TicketStatus status={play.computedStatus}/>
+      </div>
+
+      <ResultSummary play={play}/>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+        <div className="national-ticket-data"><span>Serie</span><strong>{play.series ?? 'No indicada'}</strong></div>
+        <div className="national-ticket-data"><span>Fracción</span><strong>{play.fraction ?? 'No indicada'}</strong></div>
+        <div className="national-ticket-data"><span>Precio por décimo</span><strong>{euro.format(play.pricePerDecimo || 0)}</strong></div>
+      </div>
+
+      {column.status === 'checked' && (
+        <div className={`mt-5 rounded-2xl border p-4 ${column.prizeCategory ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}>
+          <p className="font-semibold text-primary">{column.prizeCategory || 'Sin premio confirmado'}</p>
+          <p className="mt-1 text-sm text-secondary">{column.prizeDisplay}</p>
+          {column.officialPrize != null && <p className="mt-2 text-xl font-bold text-emerald-800">{euro.format(column.officialPrize)}</p>}
+          {column.prizeCategory && column.officialPrize == null && <label className="mt-3 block text-sm font-bold text-primary">Premio oficial (€)<input type="number" min="0" step="0.01" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal" onBlur={event => event.target.value && onSetPrize(play.id, column.id, event.target.value)}/></label>}
+          {column.specialVerificationPending && <p className="mt-3 text-sm font-semibold text-amber-900">No se puede confirmar el Premio Especial sin serie y fracción.</p>}
+        </div>
+      )}
+
+      {needsPurchaseData && (
+        <div className="mt-5 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+          <p className="font-semibold text-primary">Registrar como comprado</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2"><label className="text-sm font-semibold text-primary">Serie opcional<input value={series} onChange={event => setSeries(event.target.value.replace(/\D/g, '').slice(0,4))} className="mt-2 min-h-11 w-full rounded-xl border border-blue-200 bg-surface px-3 font-normal"/></label><label className="text-sm font-semibold text-primary">Fracción opcional<input value={fraction} onChange={event => setFraction(event.target.value.replace(/\D/g, '').slice(0,3))} className="mt-2 min-h-11 w-full rounded-xl border border-blue-200 bg-surface px-3 font-normal"/></label></div>
+          <button type="button" onClick={() => onPurchase(play.id, { series: series ? Number(series) : null, fraction: fraction ? Number(fraction) : null })} className="primy-national-action mt-4 min-h-11 w-full rounded-xl px-4 text-sm font-semibold text-white">Registrar décimo comprado</button>
+        </div>
+      )}
+
+      <div className="mt-6 grid gap-2 sm:grid-cols-3">
+        <button type="button" onClick={() => onFavorite(play.id)} className="primy-button primy-button-secondary"><StarIcon width="17" height="17"/>{play.favorite ? 'Quitar favorito' : 'Favorito'}</button>
+        <button type="button" onClick={() => onRepeat(play)} className="primy-button primy-button-secondary"><CopyIcon width="17" height="17"/>Repetir número</button>
+        <button type="button" onClick={() => onRequestRemove(play)} className="min-h-11 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17" className="mr-2 inline"/>Eliminar</button>
+      </div>
+    </div>
+  );
+}
+
 function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const [purchaseExtra, setPurchaseExtra] = useState('');
+  if (play.gameId === 'loteria-nacional') return <NationalPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat}/>;
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
   const receiptScopedExtra = game.extra?.scope === 'receipt';
@@ -184,7 +239,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
     return plays
       .filter(play => gameFilter === 'all' || play.gameId === gameFilter)
       .filter(play => statusFilter === 'all' || play.computedStatus === statusFilter)
-      .filter(play => !normalizedQuery || `${getGameConfig(play.gameId).name} ${play.drawDateKey || ''}`.toLowerCase().includes(normalizedQuery))
+      .filter(play => !normalizedQuery || `${getGameConfig(play.gameId).name} ${play.drawDateKey || ''} ${play.nationalNumber || ''}`.toLowerCase().includes(normalizedQuery))
       .sort((a, b) => {
         if (sort === 'action') {
           const statusDiff = (priority[a.computedStatus] ?? 9) - (priority[b.computedStatus] ?? 9);
@@ -271,7 +326,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
-                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
+                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.gameId === 'loteria-nacional' ? `${play.nationalNumber} · ${play.ticketQuantity || 1} décimo(s)` : play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
                       </div>
                       <TicketStatus status={play.computedStatus}/>
                     </div>

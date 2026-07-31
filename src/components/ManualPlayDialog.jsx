@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { getGameConfig } from '../utils/gameConfig.js';
 import { drawInfoForDate, getNextDrawInfo } from '../utils/drawSchedule.js';
+import { getNationalDrawInfo, normalizeNationalNumber } from '../utils/nationalLottery.js';
 import GameSwitch from './GameSwitch.jsx';
 import AccessibleDialog from './AccessibleDialog.jsx';
 import { CameraIcon, PlusIcon, TrashIcon, XIcon } from './Icons.jsx';
@@ -22,6 +23,12 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
   const [error, setError] = useState('');
   const [scanning, setScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState('');
+  const [nationalNumber, setNationalNumber] = useState('');
+  const [nationalQuantity, setNationalQuantity] = useState(1);
+  const [nationalPrice, setNationalPrice] = useState(3);
+  const [nationalSeries, setNationalSeries] = useState('');
+  const [nationalFraction, setNationalFraction] = useState('');
+  const [nationalDrawName, setNationalDrawName] = useState('Sorteo de Lotería Nacional');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const frameRef = useRef(null);
@@ -54,6 +61,10 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     setReceiptExtra('');
     setError('');
     setScanMessage('');
+    setNationalNumber('');
+    setNationalQuantity(1);
+    setNationalSeries('');
+    setNationalFraction('');
   }, [open, initialGame]);
 
   useEffect(() => {
@@ -62,6 +73,11 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     setColumns(Array.from({ length: getGameConfig(gameId).minSimpleBets || 1 }, () => emptyColumn()));
     setReceiptExtra('');
     setError('');
+    if (gameId === 'loteria-nacional') {
+      const draw = getNationalDrawInfo(getNextDrawInfo(gameId).drawDateKey);
+      setNationalPrice(draw.pricePerDecimo);
+      setNationalDrawName(draw.drawName);
+    }
   }, [gameId, open]);
 
   useEffect(() => () => stopScanner(), []);
@@ -119,6 +135,34 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     event.preventDefault();
     setError('');
     if (!dateKey) return setError('Selecciona la fecha del sorteo.');
+    if (gameId === 'loteria-nacional') {
+      const number = normalizeNationalNumber(nationalNumber);
+      if (!number) return setError('Introduce un número completo de cinco cifras.');
+      const quantity = Math.max(1, Math.min(10, Number(nationalQuantity) || 1));
+      const price = Math.max(0, Number(nationalPrice) || 0);
+      const draw = getNationalDrawInfo(dateKey, { drawName: nationalDrawName || 'Sorteo de Lotería Nacional', pricePerDecimo: price });
+      onSave({
+        id: crypto.randomUUID(),
+        gameId: 'loteria-nacional',
+        betType: 'national-decimo',
+        nationalNumber: number,
+        ticketQuantity: quantity,
+        pricePerDecimo: price,
+        equivalentBets: quantity,
+        series: nationalSeries ? Number(nationalSeries) : null,
+        fraction: nationalFraction ? Number(nationalFraction) : null,
+        columns: [{ id: crypto.randomUUID(), index: 1, number, quantity, series: nationalSeries ? Number(nationalSeries) : null, fraction: nationalFraction ? Number(nationalFraction) : null, status: 'scheduled' }],
+        createdAt: new Date().toISOString(),
+        purchasedAt: new Date().toISOString(),
+        ...draw,
+        purchased: true,
+        status: 'scheduled',
+        method: 'external-manual-national',
+        metadata: { external: true, externalReference: reference.trim().slice(0, 160) },
+      });
+      stopScanner();
+      return;
+    }
     const [year, month, day] = String(dateKey).split('-').map(Number);
     const weekday = new Date(Date.UTC(year, month - 1, day, 12)).getUTCDay();
     if (!game.drawDays.includes(weekday)) return setError(`La fecha seleccionada no corresponde a un día de sorteo de ${game.name}.`);
@@ -172,6 +216,37 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
   };
 
   const hasColumnSupplement = Boolean(game.secondary || game.extra?.scope === 'column');
+
+  if (gameId === 'loteria-nacional') {
+    return (
+      <AccessibleDialog open={open} onClose={close} labelledBy="manual-play-title" className="sm:max-w-2xl">
+        <div className="flex items-start justify-between gap-4">
+          <div><p className="text-sm font-bold text-blue-800">Décimo externo</p><h2 id="manual-play-title" className="mt-1 text-2xl font-semibold text-primary">Registrar Lotería Nacional</h2><p className="mt-2 text-sm leading-6 text-secondary">Copia los datos del décimo comprado. Primy lo guardará y lo comprobará cuando exista un resultado oficial archivado.</p></div>
+          <button type="button" onClick={close} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted" aria-label="Cerrar"><XIcon/></button>
+        </div>
+        <form onSubmit={submit} className="mt-6 space-y-5">
+          <GameSwitch active={gameId} onChange={setGameId} label="Juego"/>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-bold text-primary">Fecha del sorteo<input type="date" value={dateKey} onChange={event => { const value = event.target.value; setDateKey(value); const draw = getNationalDrawInfo(value); setNationalPrice(draw.pricePerDecimo); setNationalDrawName(draw.drawName); }} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
+            <label className="text-sm font-bold text-primary">Nombre del sorteo<input value={nationalDrawName} onChange={event => setNationalDrawName(event.target.value)} maxLength={80} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
+          </div>
+          <label className="block text-sm font-bold text-primary">Número de cinco cifras<input value={nationalNumber} onChange={event => setNationalNumber(event.target.value.replace(/\D/g, '').slice(0, 5))} inputMode="numeric" placeholder="Ej. 00742" className="mt-2 min-h-14 w-full rounded-2xl border border-blue-200 bg-blue-50 px-4 font-display text-2xl font-semibold tracking-[.2em] text-primary"/><span className="mt-1 block text-xs font-normal text-secondary">Los ceros iniciales se conservan.</span></label>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-bold text-primary">Décimos (1–10)<input type="number" min="1" max="10" value={nationalQuantity} onChange={event => setNationalQuantity(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
+            <label className="text-sm font-bold text-primary">Precio por décimo<input type="number" min="0" step="0.01" value={nationalPrice} onChange={event => setNationalPrice(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="text-sm font-bold text-primary">Serie opcional<input value={nationalSeries} onChange={event => setNationalSeries(event.target.value.replace(/\D/g, '').slice(0, 4))} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
+            <label className="text-sm font-bold text-primary">Fracción opcional<input value={nationalFraction} onChange={event => setNationalFraction(event.target.value.replace(/\D/g, '').slice(0, 3))} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
+          </div>
+          <label className="text-sm font-bold text-primary">Referencia opcional<input value={reference} onChange={event => setReference(event.target.value)} maxLength={160} placeholder="Código o nota personal" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
+          <p className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">Serie y fracción pueden ser necesarias para confirmar un Premio Especial. Sin esos datos Primy comprobará únicamente las categorías asociadas al número.</p>
+          {error && <div role="alert" className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div>}
+          <div className="flex flex-col-reverse gap-3 border-t border-default pt-5 sm:flex-row sm:justify-end"><button type="button" onClick={close} className="min-h-12 rounded-xl border border-default px-5 text-sm font-bold text-primary hover:bg-muted">Cancelar</button><button type="submit" className="primy-national-action min-h-12 rounded-xl px-5 text-sm font-semibold text-white">Guardar décimo</button></div>
+        </form>
+      </AccessibleDialog>
+    );
+  }
 
   return (
     <AccessibleDialog open={open} onClose={close} labelledBy="manual-play-title" className="sm:max-w-2xl">

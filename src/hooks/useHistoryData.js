@@ -56,6 +56,10 @@ export function useHistoryData(gameId, { enabled = false } = {}) {
   const retryAtRef = useRef(0);
 
   const load = useCallback(async (force = false) => {
+    if (gameId === 'loteria-nacional') {
+      setState({ ...initialState, loaded: true, notice: 'En Lotería Nacional, Primy muestra estadísticas descriptivas de terminaciones cuando existe un archivo completo. Estas estadísticas no modifican la probabilidad futura del número.', source: 'SELAE oficial / archivo Primy' });
+      return;
+    }
     const cache = readCache();
     const hit = cache[gameId];
     const ttl = hit?.latestOnly || hit?.limited ? LIMITED_CACHE_TTL : CACHE_TTL;

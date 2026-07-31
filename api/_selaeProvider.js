@@ -26,9 +26,14 @@ const SOURCES = {
     label: 'La Primitiva',
   },
   gordoprimitiva: {
-    file: 'gordoprimitiva.html',
+    file: 'gordo.html',
     codes: ['ELGR'],
     label: 'El Gordo de la Primitiva',
+  },
+  'loteria-nacional': {
+    file: 'lnac.html',
+    codes: ['LNAC'],
+    label: 'Lotería Nacional',
   },
   eurodreams: {
     file: 'eurodreams.html',
@@ -291,7 +296,235 @@ function extractPrizeRows(html) {
   return rows.slice(0, 20);
 }
 
+
+function fiveDigitAfterLabel(text, labels) {
+  const source = String(text || '');
+  for (const label of labels) {
+    const match = source.match(new RegExp(`${label}[^0-9]{0,120}(\\d{5})`, 'i'));
+    if (match) return match[1];
+  }
+  return '';
+}
+
+function prizeAmountByCategory(rows, labels) {
+  for (const row of rows) {
+    const category = safeText(row.category, 120).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    if (labels.some(label => category.includes(label))) return Number(row.amount);
+  }
+  return null;
+}
+
+function nationalRefundDigits(text) {
+  const source = String(text || '');
+  const index = source.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').indexOf('reintegros');
+  if (index < 0) return [];
+  const tail = source.slice(index, index + 300);
+  const explicit = [...tail.matchAll(/(?:^|\s)R\s*([0-9])\b/gim)].map(match => match[1]);
+  if (explicit.length) return [...new Set(explicit)].slice(0, 3);
+  return [...new Set((tail.match(/\b[0-9]\b/g) || []))].slice(0, 3);
+}
+
+
+function normalizeNationalListText(value) {
+  return decodeEntities(String(value || ''))
+    .replace(/\r/g, '')
+    .replace(/[\t ]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n');
+}
+
+function absoluteSelaeUrl(value) {
+  const source = decodeEntities(String(value || '')).trim();
+  if (!source) return '';
+  try { return new URL(source, DEFAULT_BASE).toString(); } catch { return ''; }
+}
+
+export function extractNationalOfficialListUrl(htmlOrMarkdown) {
+  const source = String(htmlOrMarkdown || '');
+  const htmlMatch = source.match(/href=["']([^"']*(?:SM_LISTAOFICIAL|lista[^"']*premios)[^"']*\.pdf(?:\?[^"']*)?)["']/i);
+  if (htmlMatch) return absoluteSelaeUrl(htmlMatch[1]);
+  const markdownMatch = source.match(/\[[^\]]*Listado\s+de\s+premios[^\]]*\]\((https?:\/\/[^)]+\.pdf(?:\?[^)]*)?)\)/i);
+  return markdownMatch ? absoluteSelaeUrl(markdownMatch[1]) : '';
+}
+
+function perDecimoAmount(value) {
+  const amount = parseEuropeanAmount(value);
+  return amount == null ? null : amount / 10;
+}
+
+function numberTokens(value, minDigits, maxDigits = minDigits) {
+  return (String(value || '').match(/\b\d{1,5}\b/g) || [])
+    .filter(token => token.length >= minDigits && token.length <= maxDigits);
+}
+
+function fullListExtractionRules(text) {
+  const source = normalizeNationalListText(text);
+  const rules = [];
+  const blockPattern = /(\d[\d.]*)\s+Premios?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]*?terminados\s+en\s*:\s*([\s\S]{0,500}?)(?=\n\s*\d[\d.]*\s+Premios?|\n\s*Esta\s+lista|\n\s*\d+\s+Premio\s+de|$)/gi;
+  let match;
+  while ((match = blockPattern.exec(source))) {
+    const amount = perDecimoAmount(match[2]);
+    const tokens = numberTokens(match[3], 2, 4);
+    for (const value of tokens) {
+      rules.push({ type: 'ending', category: `Terminación de ${value.length} cifras (${value})`, value, digits: value.length, amount });
+    }
+  }
+
+  const firstEndingPattern = /(\d[\d.]*)\s+Premios?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]*?terminados\s+como\s+el\s+primer\s+premio\s+en[^0-9]{0,160}(\d{1,4})/gi;
+  while ((match = firstEndingPattern.exec(source))) {
+    const value = match[3];
+    rules.push({ type: 'ending', category: `Terminación del 1er premio (${value})`, value, digits: value.length, amount: perDecimoAmount(match[2]) });
+  }
+
+  const refundPattern = /Reintegros?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]{0,220}?(?:sea|en)[^0-9]{0,80}(\d)\b/gi;
+  while ((match = refundPattern.exec(source))) {
+    rules.push({ type: 'refund', category: `Reintegro ${match[2]}`, value: match[2], amount: perDecimoAmount(match[1]) });
+  }
+  return rules;
+}
+
+function fullListApproximationRules(text, firstPrize, secondPrize, thirdPrize) {
+  const source = normalizeNationalListText(text);
+  const amounts = [...source.matchAll(/Aproximaciones?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros/gi)].map(match => perDecimoAmount(match[1]));
+  const targets = [firstPrize, secondPrize, thirdPrize].filter(Boolean);
+  return amounts.slice(0, targets.length).map((amount, index) => ({
+    type: 'approximation',
+    category: `Aproximación al ${index === 0 ? '1er' : index === 1 ? '2º' : '3er'} Premio`,
+    number: targets[index],
+    amount,
+  }));
+}
+
+function fullListHundredRules(text) {
+  const source = normalizeNationalListText(text);
+  const rules = [];
+  const pattern = /Centenas?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]{0,220}?n[uú]meros?\s+(\d{3})00\s+al\s+\2(?:99|99,)/gi;
+  let match;
+  while ((match = pattern.exec(source))) {
+    rules.push({ type: 'hundred', category: `Centena ${match[2]}`, value: match[2], amount: perDecimoAmount(match[1]) });
+  }
+  return rules;
+}
+
+function principalAmountsFromList(text) {
+  const source = normalizeNationalListText(text);
+  return [...source.matchAll(/1\s+Premio\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros\s+para\s+el\s+billete\s+n[uú]mero/gi)]
+    .map(match => perDecimoAmount(match[1]));
+}
+
+export function parseNationalOfficialListText(text, {
+  firstPrize = '', secondPrize = '', thirdPrize = '', summaryPrizes = [], officialListUrl = '',
+} = {}) {
+  const source = normalizeNationalListText(text);
+  if (!/LISTA\s+OFICIAL|INSTRUCCIONES\s+PARA\s+LA\s+CONSULTA|Euros\/Billete/i.test(source)) {
+    throw new ProviderError('El listado oficial de Lotería Nacional no tiene el formato esperado.', {
+      code: 'INVALID_NATIONAL_LIST', status: 502, endpoint: officialListUrl, details: safeText(source),
+    });
+  }
+
+  const principalNumbers = [firstPrize, secondPrize, thirdPrize].filter(Boolean);
+  const principalAmounts = principalAmountsFromList(source);
+  const principalLabels = ['1er Premio', '2º Premio', '3er Premio'];
+  const summaryPrincipal = (summaryPrizes || []).filter(entry => ['exact', 'special'].includes(String(entry.type || '').toLowerCase()));
+  const exactRules = principalNumbers.map((number, index) => {
+    const existing = summaryPrincipal.find(entry => String(entry.type).toLowerCase() === 'exact' && String(entry.number) === String(number));
+    return {
+      type: 'exact',
+      category: existing?.category || principalLabels[index] || `Premio exacto ${index + 1}`,
+      number,
+      amount: existing?.amount ?? principalAmounts[index] ?? null,
+    };
+  });
+  const specialRules = summaryPrincipal.filter(entry => String(entry.type).toLowerCase() === 'special');
+  const prizes = [
+    ...exactRules,
+    ...specialRules,
+    ...fullListApproximationRules(source, firstPrize, secondPrize, thirdPrize),
+    ...fullListHundredRules(source),
+    ...fullListExtractionRules(source),
+  ];
+
+  if (!prizes.length) {
+    throw new ProviderError('El listado oficial no contiene reglas de premio interpretables.', {
+      code: 'INVALID_NATIONAL_LIST', status: 502, endpoint: officialListUrl, details: safeText(source),
+    });
+  }
+  return {
+    prizes,
+    metadata: {
+      nationalCompleteness: 'full-list',
+      officialListUrl: officialListUrl || null,
+      officialListRuleCount: prizes.length,
+    },
+  };
+}
+
+export function parseNationalLotteryHtml(html, { requestedDate = '', endpoint = '' } = {}) {
+  const raw = String(html || '');
+  const text = htmlToText(raw);
+  const date = extractOfficialDate(text, requestedDate);
+  const first = fiveDigitAfterLabel(text, ['primer\\s+premio', '1(?:er|º)\\s+premio']);
+  const second = fiveDigitAfterLabel(text, ['segundo\\s+premio', '2(?:º|o)\\s+premio']);
+  const third = fiveDigitAfterLabel(text, ['tercer\\s+premio', '3(?:er|º)\\s+premio']);
+  if (!date || (!first && !second && !third)) {
+    throw new ProviderError('No se ha podido interpretar el resultado oficial de Lotería Nacional.', {
+      code: 'INVALID_PROVIDER_PAYLOAD', status: 502, endpoint, details: safeText(text),
+    });
+  }
+  if (requestedDate && date !== requestedDate) {
+    throw new ProviderError('SELAE ha devuelto un sorteo distinto al solicitado.', {
+      code: 'DRAW_DATE_MISMATCH', status: 502, endpoint, details: `Solicitado ${requestedDate}; recibido ${date}`,
+    });
+  }
+
+  const rows = extractPrizeRows(raw);
+  const fraction = extractLabelNumber(text, ['fracci(?:o|ó)n'], 1, 999, raw);
+  const series = extractLabelNumber(text, ['serie'], 1, 9999, raw);
+  const refunds = nationalRefundDigits(text);
+  const prizes = [];
+  if (first) prizes.push({ type: 'exact', category: '1er Premio', number: first, amount: prizeAmountByCategory(rows, ['1er premio', '1o premio', '1 premio']) });
+  if (second) prizes.push({ type: 'exact', category: '2º Premio', number: second, amount: prizeAmountByCategory(rows, ['2o premio', '2 premio']) });
+  if (third) prizes.push({ type: 'exact', category: '3er Premio', number: third, amount: prizeAmountByCategory(rows, ['3er premio', '3o premio', '3 premio']) });
+  const refundAmount = prizeAmountByCategory(rows, ['reintegro']);
+  refunds.forEach(value => prizes.push({ type: 'refund', category: `Reintegro ${value}`, value, amount: refundAmount }));
+  const specialAmount = prizeAmountByCategory(rows, ['premio especial']);
+  if (first && series != null && fraction != null && specialAmount != null) {
+    prizes.push({ type: 'special', category: 'Premio Especial', number: first, series, fraction, amount: specialAmount });
+  }
+
+  const sourceHash = createHash('sha256').update(raw).digest('hex');
+  const fetchedAt = new Date().toISOString();
+  const officialListUrl = extractNationalOfficialListUrl(raw);
+  return {
+    gameId: 'loteria-nacional',
+    date,
+    winningNumbers: [],
+    extra: null,
+    secondaryNumbers: [],
+    complementary: null,
+    prizes,
+    jackpotNext: null,
+    jackpotFormatted: '',
+    source: 'SELAE oficial',
+    sourceUrl: endpoint,
+    sourceHash,
+    updatedAt: fetchedAt,
+    fetchedAt,
+    drawId: `loteria-nacional:${date}`,
+    metadata: {
+      nationalCompleteness: 'summary',
+      officialListUrl: officialListUrl || null,
+      firstPrize: first || null,
+      secondPrize: second || null,
+      thirdPrize: third || null,
+      refunds,
+      specialPrize: first && series != null && fraction != null ? { number: first, series, fraction } : null,
+      warning: 'El resumen oficial permite comprobar premios mayores y reintegros. Las demás categorías requieren el listado oficial completo.',
+    },
+  };
+}
+
 export function parseSelaeHtml(html, game, { requestedDate = '', endpoint = '' } = {}) {
+  if (game?.id === 'loteria-nacional') return parseNationalLotteryHtml(html, { requestedDate, endpoint });
   const raw = String(html || '');
   const text = htmlToText(raw);
   if (!text || text.length < 20) {
@@ -428,6 +661,43 @@ async function requestHtml(endpoint, { timeoutMs = 12000, fetchImpl = globalThis
   }
 }
 
+
+async function enrichNationalDrawFromOfficialList(draw, { timeoutMs = 15000, fetchImpl = globalThis.fetch } = {}) {
+  const officialListUrl = draw?.metadata?.officialListUrl;
+  if (!officialListUrl || typeof fetchImpl !== 'function') return draw;
+  const endpoint = `https://r.jina.ai/${officialListUrl}`;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetchImpl(endpoint, {
+      headers: { Accept: 'text/plain,text/markdown,*/*', 'User-Agent': 'Primy/15.6 (+https://sueteliquida.vercel.app; official-list-sync)', 'x-no-cache': 'true' },
+      signal: controller.signal,
+      redirect: 'follow',
+    });
+    if (!response.ok) return draw;
+    const listText = await response.text();
+    const parsed = parseNationalOfficialListText(listText, {
+      firstPrize: draw.metadata?.firstPrize || '',
+      secondPrize: draw.metadata?.secondPrize || '',
+      thirdPrize: draw.metadata?.thirdPrize || '',
+      summaryPrizes: draw.prizes || [],
+      officialListUrl,
+    });
+    return {
+      ...draw,
+      prizes: parsed.prizes,
+      metadata: { ...(draw.metadata || {}), ...parsed.metadata },
+      sourceHash: createHash('sha256').update(`${draw.sourceHash || ''}:${listText}`).digest('hex'),
+      fetchedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  } catch {
+    return draw;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function fetchOfficialDraw({
   game,
   date = '',
@@ -441,7 +711,10 @@ export async function fetchOfficialDraw({
     const endpoint = selaeResultUrl(game, date, code);
     try {
       const html = await requestHtml(endpoint, { timeoutMs, fetchImpl });
-      return parseSelaeHtml(html, game, { requestedDate: date, endpoint });
+      const draw = parseSelaeHtml(html, game, { requestedDate: date, endpoint });
+      return game.id === 'loteria-nacional'
+        ? enrichNationalDrawFromOfficialList(draw, { timeoutMs: Math.max(timeoutMs, 15000), fetchImpl })
+        : draw;
     } catch (error) {
       lastError = error;
       if (!['DRAW_NOT_AVAILABLE', 'INVALID_PROVIDER_PAYLOAD', 'DRAW_DATE_MISMATCH'].includes(error?.code)) throw error;

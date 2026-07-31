@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import GeneratorPanel from './GeneratorPanel.jsx';
 import TicketPreview from './TicketPreview.jsx';
+import NationalLotteryPanel from './NationalLotteryPanel.jsx';
+import NationalTicketPreview from './NationalTicketPreview.jsx';
 import { CheckIcon, SparklesIcon, TicketIcon } from './Icons.jsx';
 
 const STEPS = [
@@ -32,8 +34,9 @@ export default function CreateJourney(props) {
   const journeyCopy = useMemo(() => {
     if (props.latest) return { icon: TicketIcon, eyebrow: 'Tu jugada', title: 'Lista para guardarla', description: 'Revisa el boleto y decide cómo quieres conservarlo.' };
     if (props.busy) return { icon: SparklesIcon, eyebrow: 'Primy Core', title: 'Estamos creando tu jugada', description: 'Solo tardará un momento. No necesitas hacer nada más.' };
+    if (props.activeGame === 'loteria-nacional') return { icon: TicketIcon, eyebrow: 'Lotería Nacional', title: 'Prepara tu número de cinco cifras', description: 'Selecciona el sorteo, elige las cifras y guarda el décimo cuando lo hayas comprado.' };
     return { icon: SparklesIcon, eyebrow: 'Crear', title: 'Tu próxima jugada empieza aquí', description: 'Elige el juego, ajusta las columnas y crea tu boleto en pocos segundos.' };
-  }, [props.latest, props.busy]);
+  }, [props.latest, props.busy, props.activeGame]);
 
   useEffect(() => {
     if (!props.latest?.id || !resultRef.current || !window.matchMedia('(max-width: 1279px)').matches) return;
@@ -61,10 +64,18 @@ export default function CreateJourney(props) {
       </header>
 
       <div className={props.latest ? 'grid min-w-0 items-start gap-6 2xl:grid-cols-[minmax(440px,.82fr)_minmax(620px,1.18fr)]' : 'mx-auto max-w-4xl'}>
-        <div className="min-w-0"><GeneratorPanel {...props} layout={props.latest ? 'compact' : 'wide'}/></div>
+        <div className="min-w-0">
+          {props.activeGame === 'loteria-nacional'
+            ? <NationalLotteryPanel {...props} onPrepareNational={props.onPrepareNational} layout={props.latest ? 'compact' : 'wide'}/>
+            : <GeneratorPanel {...props} layout={props.latest ? 'compact' : 'wide'}/>
+          }
+        </div>
         {props.latest && (
           <div ref={resultRef} id="generated-ticket" className="min-w-0 scroll-mt-24">
-            <TicketPreview play={props.latest} game={props.game} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={props.onGenerate} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>
+            {props.activeGame === 'loteria-nacional'
+              ? <NationalTicketPreview play={props.latest} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={() => props.onPrepareNational?.({})} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>
+              : <TicketPreview play={props.latest} game={props.game} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={props.onGenerate} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>
+            }
           </div>
         )}
       </div>

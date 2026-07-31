@@ -45,7 +45,7 @@ function loadLegacyPlays() {
 
 function writeUserCache(userId, plays, pending) {
   if (!userId) return;
-  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '15.5.3', plays, pending }));
+  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '15.6.0', plays, pending }));
 }
 
 function mergePlays(...collections) {
@@ -396,18 +396,19 @@ export function useGameHistory(user) {
           changed.push(awaiting);
           return awaiting;
         }
-        checked += 1;
         const settlement = calculatePlayPayout(play, draw);
+        const pendingOfficialList = settlement.columns.some(column => column?.payoutType === 'pending-official-list');
+        if (!pendingOfficialList) checked += 1;
         const updated = {
           ...play,
-          status: 'checked',
-          checkedAt: new Date().toISOString(),
+          status: pendingOfficialList ? 'awaiting_check' : 'checked',
+          checkedAt: pendingOfficialList ? undefined : new Date().toISOString(),
           result: draw,
           columns: play.columns.map((column, index) => {
             const payout = settlement.columns[index];
             return {
               ...column,
-              status: 'checked',
+              status: pendingOfficialList ? 'awaiting_check' : 'checked',
               prizeCategory: payout.category,
               matches: payout.matches,
               secondaryMatches: payout.secondaryMatches ?? undefined,
@@ -416,6 +417,8 @@ export function useGameHistory(user) {
               officialPrize: payout.officialAmount,
               extraMatch: payout.extraMatch || false,
               complementaryMatch: payout.complementaryMatch || false,
+              nationalMatches: payout.nationalMatches || undefined,
+              specialVerificationPending: payout.specialVerificationPending || false,
             };
           }),
           receiptPrize: settlement.receiptPrize || undefined,

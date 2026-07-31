@@ -14,6 +14,7 @@ import { usePlayActions } from './usePlayActions.js';
 import { useResultChecking } from './useResultChecking.js';
 import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { getDueByGame, getDueTotal, getMonthlyStats, getPurchasedTotals } from '../utils/appMetrics.js';
+import { createNationalPlay } from '../utils/nationalLottery.js';
 
 const VIEW_TITLES = {
   dashboard: 'Inicio',
@@ -92,6 +93,17 @@ export function useAppController(auth) {
 
   const cancelGeneration = useCallback(() => generation.cancel({ announce: true }), [generation]);
 
+  const prepareNational = useCallback(config => {
+    try {
+      const play = createNationalPlay(config || {});
+      generation.setLatest(play);
+      generation.setSaveState('unsaved');
+      generation.setGenerationError('');
+    } catch (error) {
+      generation.setGenerationError(error?.message || 'No se ha podido preparar el número.');
+    }
+  }, [generation]);
+
   const playActions = usePlayActions({
     history,
     savePlay: historyStore.savePlay,
@@ -165,6 +177,7 @@ export function useAppController(auth) {
       systemSize,
       setSystemSize,
       onGenerate: generate,
+      onPrepareNational: prepareNational,
       onCancel: cancelGeneration,
       busy: generation.busy,
       progress: generation.progress,

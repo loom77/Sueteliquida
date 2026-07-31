@@ -51,3 +51,11 @@ test('El Gordo de la Primitiva se programa los domingos por la noche en horario 
   const next = getNextDrawInfo('gordoprimitiva', new Date('2026-08-02T21:40:00+02:00'));
   assert.equal(next.drawDateKey, '2026-08-09');
 });
+
+
+test('Lotería Nacional distingue el horario del jueves y del sábado', () => {
+  const thursday = drawInfoForDate('loteria-nacional', '2026-07-30');
+  const saturday = drawInfoForDate('loteria-nacional', '2026-08-01');
+  assert.equal(formatDrawTime(thursday.drawDateTimeISO), '21:00');
+  assert.equal(formatDrawTime(saturday.drawDateTimeISO), '13:00');
+});

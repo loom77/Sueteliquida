@@ -3,8 +3,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const OFFICIAL_URL = "https://www.loteriasyapuestas.es/es/resultados";
 const READER_URL = `https://r.jina.ai/${OFFICIAL_URL}`;
 
-type GameId = "euromillones" | "primitiva" | "bonoloto" | "eurodreams";
-type PrizeRow = { category: string; amount: number; prize: number };
+type GameId = "euromillones" | "primitiva" | "bonoloto" | "gordoprimitiva" | "eurodreams" | "loteria-nacional";
+type PrizeRow = { category: string; amount: number | null; prize?: number | null; type?: string; number?: string; value?: string; digits?: number; series?: number; fraction?: number };
 type Draw = {
   gameId: GameId;
   date: string;
@@ -20,6 +20,7 @@ type Draw = {
   sourceHash: string;
   updatedAt: string;
   fetchedAt: string;
+  metadata?: Record<string, unknown>;
 };
 
 class SyncError extends Error {
@@ -181,6 +182,22 @@ async function parseBonoloto(markdown: string): Promise<Draw> {
   });
 }
 
+
+async function parseGordo(markdown: string): Promise<Draw> {
+  const section = extractSection(markdown, /El\s+Gordo[^\n]*?(\d{2}\/\d{2}\/\d{4})[^\n]*?\+\s*Info/i, [/EuroDreams[^\n]*?\+\s*Info/i, /Loter[ií]a\s+Nacional[^\n]*?\+\s*Info/i]);
+  if (!section?.date) throw new SyncError("No se ha encontrado el último sorteo de El Gordo.", "GORDO_NOT_FOUND", 404);
+  const appearance = section.body.split(/Ver\s+por\s+orden\s+de\s+aparici[oó]n/i)[1] || section.body;
+  const numbersPart = appearance.split(/^\s*N[º°o.]?\s*clave\s*$/mi)[0];
+  const winningNumbers = uniqueFirst(bulletNumbers(numbersPart), 5, 1, 54).sort((a, b) => a - b);
+  const key = labelBullet(appearance, /^\s*N[º°o.]?\s*clave\s*$/mi, 0, 9);
+  if (winningNumbers.length !== 5 || key == null) throw new SyncError("El resultado de El Gordo está incompleto.", "INVALID_GORDO_PAYLOAD");
+  const jackpot = extractJackpot(section.body);
+  return makeDraw("gordoprimitiva", section, {
+    winningNumbers, secondaryNumbers: [], extra: key, complementary: null,
+    prizes: extractPrizeRows(section.body), jackpotNext: jackpot.jackpotNext, jackpotFormatted: jackpot.jackpotFormatted,
+  });
+}
+
 async function parseEurodreams(markdown: string): Promise<Draw> {
   const section = extractSection(markdown, /EuroDreams[^\n]*?(\d{2}\/\d{2}\/\d{4})[^\n]*?\+\s*Info/i, [/Loter[ií]a\s+Nacional[^\n]*?\+\s*Info/i, /La\s+Quiniela[^\n]*?\+\s*Info/i]);
   if (!section?.date) throw new SyncError("No se ha encontrado el último sorteo de EuroDreams.", "EURODREAMS_NOT_FOUND", 404);
@@ -195,9 +212,129 @@ async function parseEurodreams(markdown: string): Promise<Draw> {
   });
 }
 
+
+function fiveDigitsAfterLabel(section: string, labels: RegExp[]) {
+  for (const label of labels) {
+    const match = label.exec(section);
+    if (!match || match.index == null) continue;
+    const nearby = section.slice(match.index + match[0].length, match.index + match[0].length + 180);
+    const number = nearby.match(/\b(\d{5})\b/)?.[1];
+    if (number) return number;
+  }
+  return "";
+}
+
+function amountFor(rows: PrizeRow[], labels: string[]) {
+  for (const row of rows) {
+    const category = String(row.category || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    if (labels.some(label => category.includes(label))) return Number(row.amount);
+  }
+  return null;
+}
+
+
+function nationalListUrl(markdown: string) {
+  const match = String(markdown || "").match(/\[[^\]]*Listado\s+de\s+premios[^\]]*\]\((https?:\/\/[^)]+\.pdf(?:\?[^)]*)?)\)/i);
+  return match?.[1] || "";
+}
+
+function perDecimo(value: string) {
+  const parsed = parseEuropeanAmount(value);
+  return parsed == null ? null : parsed / 10;
+}
+
+function listTokens(value: string, min: number, max = min) {
+  return (String(value || "").match(/\b\d{1,5}\b/g) || []).filter(token => token.length >= min && token.length <= max);
+}
+
+function officialListRules(text: string, first: string, second: string, third: string, summary: PrizeRow[]) {
+  const source = normalizeText(text);
+  if (!/LISTA\s+OFICIAL|INSTRUCCIONES\s+PARA\s+LA\s+CONSULTA|Euros\/Billete/i.test(source)) throw new SyncError("El listado oficial de Lotería Nacional no tiene el formato esperado.", "INVALID_LNAC_LIST");
+  const prizes: PrizeRow[] = [];
+  const principal = [first, second, third].filter(Boolean);
+  const principalAmounts = [...source.matchAll(/1\s+Premio\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros\s+para\s+el\s+billete\s+n[uú]mero/gi)].map(match => perDecimo(match[1]));
+  principal.forEach((number, index) => {
+    const existing = summary.find(item => item.type === "exact" && item.number === number);
+    prizes.push({ type: "exact", category: existing?.category || (index === 0 ? "1er Premio" : index === 1 ? "2º Premio" : "3er Premio"), number, amount: existing?.amount ?? principalAmounts[index] ?? null });
+  });
+  prizes.push(...summary.filter(item => item.type === "special"));
+
+  const approximationAmounts = [...source.matchAll(/Aproximaciones?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros/gi)].map(match => perDecimo(match[1]));
+  approximationAmounts.slice(0, principal.length).forEach((amount, index) => prizes.push({ type: "approximation", category: `Aproximación al ${index === 0 ? "1er" : index === 1 ? "2º" : "3er"} Premio`, number: principal[index], amount }));
+
+  const hundredPattern = /Centenas?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]{0,220}?n[uú]meros?\s+(\d{3})00\s+al\s+\2(?:99|99,)/gi;
+  let match: RegExpExecArray | null;
+  while ((match = hundredPattern.exec(source))) prizes.push({ type: "hundred", category: `Centena ${match[2]}`, value: match[2], amount: perDecimo(match[1]) });
+
+  const blockPattern = /(\d[\d.]*)\s+Premios?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]*?terminados\s+en\s*:\s*([\s\S]{0,500}?)(?=\n\s*\d[\d.]*\s+Premios?|\n\s*Esta\s+lista|\n\s*\d+\s+Premio\s+de|$)/gi;
+  while ((match = blockPattern.exec(source))) {
+    for (const value of listTokens(match[3], 2, 4)) prizes.push({ type: "ending", category: `Terminación de ${value.length} cifras (${value})`, value, digits: value.length, amount: perDecimo(match[2]) });
+  }
+  const firstEndingPattern = /(\d[\d.]*)\s+Premios?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]*?terminados\s+como\s+el\s+primer\s+premio\s+en[^0-9]{0,160}(\d{1,4})/gi;
+  while ((match = firstEndingPattern.exec(source))) prizes.push({ type: "ending", category: `Terminación del 1er premio (${match[3]})`, value: match[3], digits: match[3].length, amount: perDecimo(match[2]) });
+
+  const refundPattern = /Reintegros?\s+de\s+([\d.]+(?:,\d{1,2})?)\s+euros[^\n]{0,220}?(?:sea|en)[^0-9]{0,80}(\d)\b/gi;
+  while ((match = refundPattern.exec(source))) prizes.push({ type: "refund", category: `Reintegro ${match[2]}`, value: match[2], amount: perDecimo(match[1]) });
+  if (!prizes.length) throw new SyncError("El listado oficial no contiene reglas interpretables.", "INVALID_LNAC_LIST");
+  return prizes;
+}
+
+async function fetchOfficialList(url: string) {
+  const response = await fetch(`https://r.jina.ai/${url}`, {
+    headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.6 (+https://sueteliquida.vercel.app; official-list-sync)", "x-no-cache": "true" },
+    redirect: "follow",
+    signal: AbortSignal.timeout(45000),
+  });
+  if (!response.ok) throw new SyncError(`El listado oficial ha respondido con HTTP ${response.status}.`, "LNAC_LIST_REJECTED", response.status === 429 ? 429 : 502);
+  const text = normalizeText(await response.text());
+  if (text.length < 500) throw new SyncError("El listado oficial está incompleto.", "INVALID_LNAC_LIST");
+  return text;
+}
+
+async function parseNationalLottery(markdown: string): Promise<Draw> {
+  const section = extractSection(markdown, /Loter[ií]a\s+Nacional[^\n]*?(\d{2}\/\d{2}\/\d{4})[^\n]*?\+\s*Info/i, [/La\s+Quiniela[^\n]*?\+\s*Info/i, /Quinigol[^\n]*?\+\s*Info/i]);
+  if (!section?.date) throw new SyncError("No se ha encontrado el último sorteo de Lotería Nacional.", "LNAC_NOT_FOUND", 404);
+  const first = fiveDigitsAfterLabel(section.body, [/1(?:er|º)\s+Premio/i, /Primer\s+Premio/i]);
+  const second = fiveDigitsAfterLabel(section.body, [/2(?:º|o)\s+Premio/i, /Segundo\s+Premio/i]);
+  const third = fiveDigitsAfterLabel(section.body, [/3(?:er|º)\s+Premio/i, /Tercer\s+Premio/i]);
+  if (!first && !second && !third) throw new SyncError("El resultado de Lotería Nacional está incompleto.", "INVALID_LNAC_PAYLOAD");
+  const rows = extractPrizeRows(section.body);
+  const fraction = labelBullet(section.body, /^\s*FRACCI[ÓO]N\s*$/mi, 1, 999);
+  const series = labelBullet(section.body, /^\s*SERIE\s*$/mi, 1, 9999);
+  const refundBlock = section.body.split(/Reintegros?/i)[1] || "";
+  const refunds = [...new Set([...refundBlock.matchAll(/^\s*[*+-]\s*R?\s*(\d)\s*$/gmi)].map(match => match[1]))].slice(0, 3);
+  const prizes: PrizeRow[] = [];
+  if (first) prizes.push({ type: "exact", category: "1er Premio", number: first, amount: amountFor(rows, ["1er premio", "1 premio"]) });
+  if (second) prizes.push({ type: "exact", category: "2º Premio", number: second, amount: amountFor(rows, ["2o premio", "2 premio"]) });
+  if (third) prizes.push({ type: "exact", category: "3er Premio", number: third, amount: amountFor(rows, ["3er premio", "3o premio", "3 premio"]) });
+  const refundAmount = amountFor(rows, ["reintegro"]);
+  refunds.forEach(value => prizes.push({ type: "refund", category: `Reintegro ${value}`, value, amount: refundAmount }));
+  const specialAmount = amountFor(rows, ["premio especial"]);
+  if (first && series != null && fraction != null && specialAmount != null) prizes.push({ type: "special", category: "Premio Especial", number: first, series, fraction, amount: specialAmount });
+  const draw = await makeDraw("loteria-nacional", section, {
+    winningNumbers: [], secondaryNumbers: [], extra: null, complementary: null,
+    prizes, jackpotNext: null, jackpotFormatted: "",
+  });
+  const listUrl = nationalListUrl(section.body);
+  const baseMetadata = { nationalCompleteness: "summary", officialListUrl: listUrl || null, firstPrize: first || null, secondPrize: second || null, thirdPrize: third || null, refunds, specialPrize: first && series != null && fraction != null ? { number: first, series, fraction } : null };
+  if (!listUrl) return { ...draw, metadata: baseMetadata };
+  try {
+    const listText = await fetchOfficialList(listUrl);
+    const fullPrizes = officialListRules(listText, first, second, third, prizes);
+    return {
+      ...draw,
+      prizes: fullPrizes,
+      sourceHash: await sha256(`${draw.sourceHash}:${listText}`),
+      metadata: { ...baseMetadata, nationalCompleteness: "full-list", officialListRuleCount: fullPrizes.length },
+    };
+  } catch (error) {
+    return { ...draw, metadata: { ...baseMetadata, officialListError: error instanceof Error ? error.message : String(error) } };
+  }
+}
+
 async function fetchOfficialSnapshot() {
   const response = await fetch(READER_URL, {
-    headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.4 (+https://sueteliquida.vercel.app; official-results-sync)", "x-no-cache": "true" },
+    headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.6 (+https://sueteliquida.vercel.app; official-results-sync)", "x-no-cache": "true" },
     redirect: "follow",
     signal: AbortSignal.timeout(45000),
   });
@@ -217,7 +354,7 @@ async function upsertDraws(draws: Draw[]) {
     secondary_numbers: draw.secondaryNumbers, extra: draw.extra, complementary: draw.complementary,
     prizes: draw.prizes, jackpot_next: draw.jackpotNext, jackpot_formatted: draw.jackpotFormatted || null,
     source: draw.source, source_url: draw.sourceUrl, source_hash: draw.sourceHash,
-    official_updated_at: draw.updatedAt, fetched_at: draw.fetchedAt,
+    official_updated_at: draw.updatedAt, fetched_at: draw.fetchedAt, metadata: draw.metadata || {},
   }));
   const response = await fetch(`${supabaseUrl}/rest/v1/primy_draw_results?on_conflict=game_id,draw_date`, {
     method: "POST",
@@ -232,7 +369,7 @@ Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return json({ success: false, code: "METHOD_NOT_ALLOWED" }, 405);
   try {
     const snapshot = await fetchOfficialSnapshot();
-    const settled = await Promise.allSettled([parseEuromillones(snapshot), parsePrimitiva(snapshot), parseBonoloto(snapshot), parseEurodreams(snapshot)]);
+    const settled = await Promise.allSettled([parseEuromillones(snapshot), parsePrimitiva(snapshot), parseBonoloto(snapshot), parseGordo(snapshot), parseEurodreams(snapshot), parseNationalLottery(snapshot)]);
     const draws = settled.filter((result): result is PromiseFulfilledResult<Draw> => result.status === "fulfilled").map(result => result.value);
     const errors = settled.filter((result): result is PromiseRejectedResult => result.status === "rejected").map(result => ({ code: result.reason instanceof SyncError ? result.reason.code : "UNKNOWN", message: result.reason instanceof Error ? result.reason.message : String(result.reason) }));
     if (!draws.length) return json({ success: false, provider: "SELAE", saved: 0, errors }, 502);

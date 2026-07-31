@@ -2,6 +2,7 @@ import { GAMES, getGameConfig } from './gameConfig.js';
 import { toLocalDateKey } from './drawSchedule.js';
 import { bonolotoEquivalentBets, isBonolotoSystemSize } from './bonoloto.js';
 import { gordoEquivalentBets, isGordoSystemSize } from './gordoPrimitiva.js';
+import { sanitizeNationalPlay } from './nationalLottery.js';
 
 function sanitizeSecondaryNumbers(game, column) {
   if (!game.secondary) return null;
@@ -140,6 +141,7 @@ export function migrateLegacyTicket(ticket) {
 
 export function sanitizePlay(play) {
   if (!play || typeof play !== 'object' || !GAMES[play.gameId]) return null;
+  if (play.gameId === 'loteria-nacional') return sanitizeNationalPlay(play);
   if (!Array.isArray(play.columns)) return migrateLegacyTicket(play);
   const game = GAMES[play.gameId];
   const purchased = Boolean(play.purchased ?? play.status !== 'draft');
@@ -234,12 +236,14 @@ export function sanitizePlays(raw) {
 }
 
 export function playBetCount(play) {
+  if (play?.gameId === 'loteria-nacional') return Math.max(1, Number(play.ticketQuantity) || 1);
   return play?.betType === 'multiple'
     ? Number(play.equivalentBets || (play.gameId === 'gordoprimitiva' ? gordoEquivalentBets(play.systemSize) : bonolotoEquivalentBets(play.systemSize))) || 0
     : (play?.columns?.length || 0);
 }
 
 export function playCost(play) {
+  if (play?.gameId === 'loteria-nacional') return Math.max(0, Number(play.pricePerDecimo) || 0) * playBetCount(play);
   return getGameConfig(play.gameId).price * playBetCount(play) * Math.max(1, Number(play.drawCount) || 1);
 }
 

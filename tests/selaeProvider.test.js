@@ -4,6 +4,8 @@ import {
   candidateDrawDates,
   fetchOfficialDraw,
   parseSelaeHtml,
+  parseNationalOfficialListText,
+  extractNationalOfficialListUrl,
   selaeBase,
   selaeResultUrl,
 } from '../api/_selaeProvider.js';
@@ -92,6 +94,22 @@ test('interpreta Euromillones con dos estrellas oficiales', () => {
   assert.equal(draw.jackpotNext, 89000000);
 });
 
+
+
+test('interpreta El Gordo con cinco números y número clave', () => {
+  const html = `
+    <html><body><h1>El Gordo</h1><p>Resultado del sorteo 26/07/2026</p>
+    <div>Combinación ganadora: 8 - 22 - 38 - 39 - 46</div>
+    <p>Nº clave: 0</p><table><tr><td>8.ª categoría</td><td>3,00 €</td></tr></table>
+    </body></html>`;
+  const url = selaeResultUrl(GAMES.gordoprimitiva, '2026-07-26');
+  assert.match(url, /gordo\.html/);
+  assert.match(url, /game_id=ELGR/);
+  const draw = parseSelaeHtml(html, GAMES.gordoprimitiva, { requestedDate: '2026-07-26' });
+  assert.deepEqual(draw.winningNumbers, [8, 22, 38, 39, 46]);
+  assert.equal(draw.extra, 0);
+});
+
 test('interpreta EuroDreams y el número Sueño', () => {
   const draw = parseSelaeHtml(eurodreamsHtml, GAMES.eurodreams, { requestedDate: '2026-07-27' });
   assert.deepEqual(draw.winningNumbers, [2, 7, 16, 22, 31, 40]);
@@ -133,4 +151,77 @@ test('admite un resultado oficial embebido como datos estructurados', () => {
   assert.deepEqual(draw.winningNumbers, [3, 9, 14, 22, 35, 49]);
   assert.equal(draw.complementary, 6);
   assert.equal(draw.extra, 4);
+});
+
+test('interpreta el resumen oficial de Lotería Nacional sin perder números de cinco cifras', () => {
+  const html = `
+    <html><body>
+      <p>Lotería Nacional: resultados del 04/07/2026</p>
+      <h2>1er Premio</h2><strong>70334</strong>
+      <h2>2º Premio</h2><strong>61957</strong>
+      <h2>3er Premio</h2><strong>45794</strong>
+      <p>FRACCIÓN</p><span>1</span><p>SERIE</p><span>6</span>
+      <p>Reintegros</p><ul><li>R 0</li><li>R 4</li><li>R 8</li></ul>
+      <table>
+        <tr><td>Premio Especial</td><td>20.000.000 €</td></tr>
+        <tr><td>1er Premio</td><td>200.000 €</td></tr>
+        <tr><td>2º Premio</td><td>60.000 €</td></tr>
+        <tr><td>3er Premio</td><td>20.020 €</td></tr>
+        <tr><td>Reintegro</td><td>20 €</td></tr>
+      </table>
+    </body></html>`;
+  const url = selaeResultUrl(GAMES['loteria-nacional'], '2026-07-04');
+  assert.match(url, /lnac\.html/);
+  assert.match(url, /game_id=LNAC/);
+  const result = parseSelaeHtml(html, GAMES['loteria-nacional'], { requestedDate: '2026-07-04' });
+  assert.equal(result.metadata.firstPrize, '70334');
+  assert.equal(result.metadata.secondPrize, '61957');
+  assert.equal(result.metadata.specialPrize.series, 6);
+  assert.deepEqual(result.metadata.refunds, ['0', '4', '8']);
+  assert.ok(result.prizes.some(prize => prize.type === 'special' && prize.amount === 20000000));
+});
+
+
+test('interpreta el listado oficial completo de Lotería Nacional como importes por décimo', () => {
+  const listText = `
+    LISTA OFICIAL de las extracciones realizadas
+    1 Premio de 300.000 euros para el billete número 77014
+    1 Premio de 60.000 euros para el billete número 78788
+    Aproximaciones de 12.000 euros cada una, para los billetes números 77013 y 77015
+    Aproximaciones de 7.470 euros cada una, para los billetes números 78787 y 78789
+    Centenas de 300 euros cada una, para los billetes números 77000 al 77099
+    Centenas de 150 euros cada una, para los billetes números 78700 al 78799
+    40 Premios de 750 euros cada uno, para todos los billetes terminados en:
+    0558 3520 3664 7477
+    700 Premios de 150 euros cada uno, para todos los billetes terminados en:
+    124 141 343 453 620 897 997
+    9.000 Premios de 60 euros cada uno, para todos los billetes terminados en:
+    21 23 36 44 60 83 83 91 99
+    9 Premios de 750 euros cada uno, para los billetes terminados como el primer premio en 7014
+    99 Premios de 150 euros cada uno, para los billetes terminados como el primer premio en 014
+    999 Premios de 60 euros cada uno, para los billetes terminados como el primer premio en 14
+    10.000 Reintegros de 30 euros cada uno, para los billetes cuya última cifra obtenida en la primera extracción especial sea 3
+    9.999 Reintegros de 30 euros cada uno, para los billetes terminados como el primer premio en 4
+    INSTRUCCIONES PARA LA CONSULTA DE ESTA LISTA
+  `;
+  const parsed = parseNationalOfficialListText(listText, {
+    firstPrize: '77014', secondPrize: '78788',
+    summaryPrizes: [
+      { type: 'exact', category: '1er Premio', number: '77014', amount: 30000 },
+      { type: 'exact', category: '2º Premio', number: '78788', amount: 6000 },
+    ],
+    officialListUrl: 'https://example.test/lista.pdf',
+  });
+  assert.equal(parsed.metadata.nationalCompleteness, 'full-list');
+  assert.ok(parsed.prizes.some(prize => prize.type === 'approximation' && prize.number === '77014' && prize.amount === 1200));
+  assert.ok(parsed.prizes.some(prize => prize.type === 'hundred' && prize.value === '770' && prize.amount === 30));
+  assert.ok(parsed.prizes.some(prize => prize.type === 'ending' && prize.value === '0558' && prize.amount === 75));
+  assert.equal(parsed.prizes.filter(prize => prize.type === 'ending' && prize.value === '83').length, 2);
+  assert.ok(parsed.prizes.some(prize => prize.type === 'refund' && prize.value === '3' && prize.amount === 3));
+});
+
+test('extrae el enlace PDF del listado oficial desde HTML o Markdown', () => {
+  const href = '/f/loterias/documentos/Lotería%20Nacional/listas/SM_LISTAOFICIAL.A2026.S061.pdf';
+  assert.match(extractNationalOfficialListUrl(`<a href="${href}">Listado de premios</a>`), /SM_LISTAOFICIAL/);
+  assert.equal(extractNationalOfficialListUrl('[Listado de premios](https://example.test/lista.pdf)'), 'https://example.test/lista.pdf');
 });

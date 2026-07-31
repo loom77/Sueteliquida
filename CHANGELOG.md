@@ -1,3 +1,16 @@
+# Primy v15.6.0 — Lotería Nacional + evolución de marca
+
+- Lotería Nacional activa con flujo dedicado para preparar números y registrar décimos comprados.
+- números de cinco cifras conservados como texto para respetar ceros iniciales.
+- selección dinámica de sorteo, 1–10 décimos, precio unitario, serie y fracción.
+- generador uniforme completo o parcial y favoritos locales.
+- comprobación de exactos, Premio Especial, aproximaciones, centenas, terminaciones y reintegros.
+- parser del listado oficial completo de premios con importes normalizados por décimo.
+- estados pendientes cuando SELAE todavía no publica información suficiente; Primy no asigna falsos ceros.
+- archivo Supabase y funciones de sincronización ampliados para Lotería Nacional.
+- revisión del símbolo Primy, wordmark, favicon, iconos PWA y lenguaje visual de la aplicación.
+- cache PWA actualizada a v15.6.0.
+
 # Primy v15.5.3 — Primy Core accesso dalla home
 
 - aggiunto il comando evidente “Cómo funciona Primy Core” nella parte alta della pagina principale

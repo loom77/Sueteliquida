@@ -1,4 +1,25 @@
 export const GAMES = {
+  'loteria-nacional': {
+    id: 'loteria-nacional',
+    name: 'Lotería Nacional',
+    shortName: 'Lotería Nacional',
+    numberPoolMax: 99999,
+    numbersToPick: 1,
+    price: 3,
+    maxSimpleBets: 10,
+    extra: null,
+    secondary: null,
+    hasComplementary: false,
+    drawDays: [4, 6],
+    drawTime: { hour: 21, minute: 0 },
+    salesCloseTime: { hour: 20, minute: 30 },
+    resultPublicationTime: { hour: 21, minute: 45 },
+    resultDelayMinutes: 45,
+    apiSlug: 'loteria-nacional',
+    accent: 'national-blue',
+    payoff: 'Plan de premios específico de cada sorteo',
+    model: 'national-decimo',
+  },
   bonoloto: {
     id: 'bonoloto',
     name: 'Bonoloto',
@@ -122,6 +143,7 @@ export function getGameConfig(gameId) {
 }
 
 export function gameRuleSummary(game) {
+  if (game.model === 'national-decimo') return 'Número de cinco cifras · de 1 a 10 décimos · precio según sorteo';
   if (game.secondary) {
     return `${game.numbersToPick} números del 1 al ${game.numberPoolMax} · ${game.secondary.count} ${game.secondary.label.toLocaleLowerCase('es-ES')} del ${game.secondary.min} al ${game.secondary.max}`;
   }

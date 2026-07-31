@@ -1,4 +1,5 @@
 import { getGameConfig } from './gameConfig.js';
+import { calculateNationalLotteryPayout } from './nationalLottery.js';
 import { expandBonolotoSystem } from './bonoloto.js';
 
 function countMatches(left, right) {
@@ -191,6 +192,7 @@ export function calculatePayout(ticket, results) {
 }
 
 export function calculatePlayPayout(play, results) {
+  if (play.gameId === 'loteria-nacional') return calculateNationalLotteryPayout(play, results);
   const game = getGameConfig(play.gameId);
   if (play.gameId === 'bonoloto' && play.betType === 'multiple') return bonolotoMultiple(play, results);
   if (!['primitiva', 'bonoloto'].includes(play.gameId)) {
