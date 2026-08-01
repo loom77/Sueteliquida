@@ -1,6 +1,6 @@
 import { GAMES } from './gameConfig.js';
 import { monthKeyMadrid } from './drawSchedule.js';
-import { playBetCount, playCost, playKnownPrize } from './playModel.js';
+import { playCost, playKnownPrize } from './playModel.js';
 
 export function getDueByGame(history = []) {
   return Object.keys(GAMES).reduce((output, gameId) => {
@@ -29,7 +29,7 @@ export function getPurchasedTotals(history = []) {
   return history.reduce((output, play) => {
     if (!play.purchased) return output;
     output.plays += 1;
-    output.columns += playBetCount(play);
+    output.columns += Array.isArray(play.columns) ? play.columns.length : 0;
     return output;
   }, { plays: 0, columns: 0 });
 }

@@ -72,14 +72,9 @@ export function drawInfoForDate(gameId, dateKey) {
   const [year, month, day] = String(dateKey).split('-').map(Number);
   if (![year, month, day].every(Number.isInteger)) return null;
   const calendarDate = { year, month, day };
-  const weekday = weekdayForCalendarDate(calendarDate);
-  const national = gameId === 'loteria-nacional';
-  const drawTime = national && weekday === 6 ? { hour: 13, minute: 0 } : game.drawTime;
-  const salesTime = national && weekday === 6 ? { hour: 12, minute: 30 } : (game.salesCloseTime || drawTime);
-  const publicationTime = national && weekday === 6 ? { hour: 13, minute: 45 } : (game.resultPublicationTime || drawTime);
-  const draw = instantForDateAndTime(calendarDate, drawTime);
-  const salesClose = instantForDateAndTime(calendarDate, salesTime);
-  const publication = instantForDateAndTime(calendarDate, publicationTime);
+  const draw = instantForDateAndTime(calendarDate, game.drawTime);
+  const salesClose = instantForDateAndTime(calendarDate, game.salesCloseTime || game.drawTime);
+  const publication = instantForDateAndTime(calendarDate, game.resultPublicationTime || game.drawTime);
   const checkable = publication > draw ? publication : new Date(draw.getTime() + (game.resultDelayMinutes || 20) * 60_000);
   return {
     drawDateISO: draw.toISOString(),
