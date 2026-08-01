@@ -1,6 +1,8 @@
 import { getGameConfig } from './gameConfig.js';
 import { getNextDrawInfo } from './drawSchedule.js';
 import { coverageMetrics } from './portfolioOptimizer.js';
+import { bonolotoEquivalentBets, isBonolotoSystemSize } from './bonoloto.js';
+import { gordoEquivalentBets, isGordoSystemSize } from './gordoPrimitiva.js';
 
 const clamp = (value, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 const mean = values => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
@@ -62,6 +64,15 @@ function randomCombination(game, rng) {
   }
 
   return pool.slice(0, game.numbersToPick).sort((left, right) => left - right);
+}
+
+function randomSelection(game, count, rng) {
+  const pool = Array.from({ length: game.numberPoolMax }, (_, index) => index + 1);
+  for (let index = 0; index < count; index += 1) {
+    const other = rng.int(index, pool.length - 1);
+    [pool[index], pool[other]] = [pool[other], pool[index]];
+  }
+  return pool.slice(0, count).sort((left, right) => left - right);
 }
 
 function longestRun(numbers) {
@@ -216,6 +227,7 @@ function scoreCandidate(gameId, numbers, profile, avoidColumns = []) {
 }
 
 function distributeExtras(game, count, rng) {
+  if (!game.extra) return Array(count).fill(null);
   const values = [];
   for (let extra = game.extra.min; extra <= game.extra.max; extra += 1) values.push(extra);
   const output = [];
@@ -227,12 +239,60 @@ function distributeExtras(game, count, rng) {
   return output;
 }
 
+function randomSecondaryNumbers(game, rng) {
+  if (!game.secondary) return [];
+  const pool = Array.from({ length: game.secondary.max - game.secondary.min + 1 }, (_, index) => game.secondary.min + index);
+  for (let index = 0; index < game.secondary.count; index += 1) {
+    const other = rng.int(index, pool.length - 1);
+    [pool[index], pool[other]] = [pool[other], pool[index]];
+  }
+  return pool.slice(0, game.secondary.count).sort((left, right) => left - right);
+}
+
 export function generateFusionPlay(gameId, analysis, columnCount = 1, options = {}) {
   const game = getGameConfig(gameId);
   const seed = String(options.seed || createGenerationSeed());
   const rng = createSeededRandom(seed);
-  const count = Math.max(1, Math.min(Number(columnCount) || 1, game.maxSimpleBets || 1));
+  const minimumSimpleBets = game.minSimpleBets || 1;
+  const count = Math.max(minimumSimpleBets, Math.min(Number(columnCount) || minimumSimpleBets, game.maxSimpleBets || 1));
   const profile = resolveFusionProfile(gameId, analysis, options.evidenceOptions || options.auditOptions || {});
+  if (options.betType === 'multiple' && ['bonoloto', 'gordoprimitiva'].includes(gameId)) {
+    const systemSize = Number(options.systemSize);
+    const isBonoloto = gameId === 'bonoloto';
+    const valid = isBonoloto ? isBonolotoSystemSize(systemSize) : isGordoSystemSize(systemSize);
+    if (!valid) throw new Error(`Selecciona una múltiple válida de ${game.name}.`);
+    const numbers = randomSelection(game, systemSize, rng);
+    const draw = getNextDrawInfo(gameId);
+    const equivalentBets = isBonoloto ? bonolotoEquivalentBets(systemSize) : gordoEquivalentBets(systemSize);
+    const extra = isBonoloto ? null : rng.int(game.extra.min, game.extra.max);
+    return {
+      id: crypto.randomUUID(),
+      gameId,
+      betType: 'multiple',
+      systemSelection: numbers,
+      systemSize,
+      equivalentBets,
+      columns: [{ id: crypto.randomUUID(), index: 1, numbers, ...(extra == null ? {} : { extra }), isSystem: true, status: 'draft' }],
+      ...(isBonoloto ? { receiptExtra: null } : {}),
+      createdAt: new Date().toISOString(),
+      ...draw,
+      method: 'primy-uniform-system',
+      purchased: false,
+      status: 'draft',
+      metadata: {
+        engine: 'Motor uniforme de Primy',
+        engineVersion: '15.5-gordo-uniform',
+        seed,
+        requestedColumns: 1,
+        ...(isBonoloto ? { receiptExtraPending: true } : {}),
+        generationConfig: { mode: 'uniform-system-selection', gameId, systemSize, equivalentBets },
+        quality: { uniqueNumbers: numbers.length, coverageRatio: numbers.length / game.numberPoolMax, averageOverlap: 0 },
+        history: { available: Boolean(analysis?.totalDraws), used: false, weight: 0, draws: analysis?.totalDraws || 0, through: analysis?.to || null },
+        weights: { predictive: 0, historical: 0, portfolioCoverage: 0, structural: 0, antiShare: 0 },
+        variantOf: options.variantOf || null,
+      },
+    };
+  }
   const selected = [];
   const seen = new Set();
   const blockedExact = new Set((options.avoidColumns || []).map(column =>
@@ -257,8 +317,10 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     throw new Error('No se pudieron generar suficientes columnas únicas.');
   }
 
-  const receiptExtra = game.extra.scope === 'receipt' ? rng.int(game.extra.min, game.extra.max) : null;
-  const extras = game.extra.scope === 'receipt'
+  const receiptExtra = game.extra?.scope === 'receipt'
+    ? (game.extra.assignment === 'official-receipt' ? null : rng.int(game.extra.min, game.extra.max))
+    : null;
+  const extras = game.extra?.scope === 'receipt'
     ? Array(selected.length).fill(receiptExtra)
     : distributeExtras(game, selected.length, rng);
   const draw = getNextDrawInfo(gameId);
@@ -268,7 +330,11 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     id: crypto.randomUUID(),
     index: index + 1,
     numbers: candidate.ticket,
-    extra: extras[index],
+    ...(game.secondary
+      ? { secondaryNumbers: randomSecondaryNumbers(game, rng) }
+      : game.extra?.scope === 'receipt' && receiptExtra == null
+        ? {}
+        : { extra: extras[index] }),
     score: candidate.score,
     scoreParts: candidate.parts,
     status: 'draft',
@@ -278,7 +344,9 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     id: playId,
     gameId,
     columns,
-    ...(game.extra.scope === 'receipt' ? { receiptExtra } : {}),
+    ...(game.extra?.scope === 'receipt' ? { receiptExtra } : {}),
+    betType: 'simple',
+    equivalentBets: columns.length,
     createdAt: new Date().toISOString(),
     ...draw,
     method: 'primy-uniform',
@@ -286,11 +354,12 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     status: 'draft',
     metadata: {
       engine: 'Motor uniforme de Primy',
-      engineVersion: '13.0-david-uniform',
+      engineVersion: '15.5-gordo-uniform',
       seed,
       randomDraws: attempts,
-      generationConfig: { mode: 'uniform-without-replacement', columns: count, gameId },
+      generationConfig: { mode: 'uniform-without-replacement', columns: count, gameId, secondaryMode: game.secondary ? 'uniform-without-replacement' : null },
       requestedColumns: count,
+      ...(game.extra?.assignment === 'official-receipt' ? { receiptExtraPending: true } : {}),
       quality: {
         ...metrics,
       },
