@@ -4,7 +4,7 @@ import fs from 'node:fs';
 
 const read = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('v16.2 usa iconos gráficos propios para los ocho juegos', () => {
+test('v16.3 conserva iconos gráficos propios para los ocho juegos', () => {
   const theme = read('../src/utils/gameVisualTheme.js');
   for (const game of ['primitiva','bonoloto','euromillones','gordoprimitiva','eurodreams','loteria-nacional','quiniela','quinigol']) {
     assert.match(theme, new RegExp(`/game-icons/${game}\\.png`));
@@ -46,9 +46,9 @@ test('la sección legal no promete premios y describe honestamente el almacenami
   assert.match(privacy, /no sería correcto afirmar que nunca se guarda ningún dato de jugada/);
 });
 
-test('todas las pantallas principales muestran la release 16.2.0', () => {
-  assert.match(read('../src/utils/release.js'), /16\.2\.0/);
+test('todas las pantallas principales muestran la release 16.3.0', () => {
+  assert.match(read('../src/utils/release.js'), /16\.3\.0/);
   assert.match(read('../src/components/AppShell.jsx'), /ReleaseStamp/);
   assert.match(read('../src/components/AuthScreen.jsx'), /ReleaseStamp/);
-  assert.equal(JSON.parse(read('../package.json')).version, '16.2.0');
+  assert.equal(JSON.parse(read('../package.json')).version, '16.3.0');
 });

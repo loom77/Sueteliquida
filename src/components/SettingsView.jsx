@@ -11,9 +11,9 @@ const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR'
 const syncTime = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
 const verificationDate = new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium' });
 
-const ProfileSection = memo(function ProfileSection({ title, description, icon: Icon, children, tone = 'neutral', className = '' }) {
+const ProfileSection = memo(function ProfileSection({ id, title, description, icon: Icon, children, tone = 'neutral', className = '' }) {
   return (
-    <section className={`primy-profile-block ${className}`} data-tone={tone}>
+    <section id={id} className={`primy-profile-block ${className}`} data-tone={tone}>
       <header>
         {Icon && <span aria-hidden="true"><Icon width="20" height="20"/></span>}
         <div><h2>{title}</h2>{description && <p>{description}</p>}</div>
@@ -153,9 +153,16 @@ export default function SettingsView({
         <div className="primy-profile-hero__mascot"><PrimyMascot role="companion" size="dashboard" compact showCaption={false}/></div>
       </section>
 
+      <nav className="primy-profile-mobile-nav" aria-label="Secciones del perfil">
+        <a href="#profile-name">Nombre</a>
+        <a href="#profile-experience">Experiencia</a>
+        <a href="#profile-limits">Límites</a>
+        <a href="#profile-security">Seguridad</a>
+      </nav>
+
       <div className="primy-profile-layout">
         <div className="primy-profile-layout__main">
-          <ProfileSection title="Cómo quieres que te llame" description="Este nombre se guarda en tu cuenta y se usa únicamente para personalizar los saludos." icon={InfoIcon} tone="lavender">
+          <ProfileSection id="profile-name" title="Cómo quieres que te llame" description="Este nombre se guarda en tu cuenta y se usa únicamente para personalizar los saludos." icon={InfoIcon} tone="lavender">
             <div className="primy-profile-name-editor">
               <label htmlFor="profile-display-name">Nombre
                 <input id="profile-display-name" type="text" value={nameDraft} onChange={event => setNameDraft(event.target.value)} maxLength="60" placeholder="Añade tu nombre" autoComplete="name" disabled={profileLoading || nameBusy}/>
@@ -166,7 +173,7 @@ export default function SettingsView({
             <p className="primy-profile-account-email"><span>Correo de acceso</span><strong>{user?.email}</strong></p>
           </ProfileSection>
 
-          <ProfileSection title="Mi experiencia Primy" description="Ajusta el aspecto y cómo quieres recibir avisos." icon={DeviceIcon} tone="mint">
+          <ProfileSection id="profile-experience" title="Mi experiencia Primy" description="Ajusta el aspecto y cómo quieres recibir avisos." icon={DeviceIcon} tone="mint">
             <div className="primy-profile-themes">
               {[{ id:'system', label:'Sistema', icon:DeviceIcon },{ id:'light', label:'Claro', icon:SunIcon },{ id:'dark', label:'Oscuro', icon:MoonIcon }].map(item => {
                 const Icon = item.icon;
@@ -184,7 +191,7 @@ export default function SettingsView({
             </div>
           </ProfileSection>
 
-          <ProfileSection title="Mi juego responsable" description="Una vista clara de lo que habías decidido gastar." icon={ShieldIcon} tone="responsible">
+          <ProfileSection id="profile-limits" title="Mi juego responsable" description="Una vista clara de lo que habías decidido gastar." icon={ShieldIcon} tone="responsible">
             <div className="primy-profile-budget">
               <div><span>Gastado este mes</span><strong>{euro.format(monthlyStats.spent)}</strong></div>
               <div><span>{limit ? 'Disponible' : 'Límite personal'}</span><strong>{limit ? euro.format(remaining) : 'Sin límite'}</strong></div>
@@ -203,7 +210,7 @@ export default function SettingsView({
         </div>
 
         <aside className="primy-profile-layout__side">
-          <ProfileSection title="Privacidad y seguridad" description="Controla el acceso y las copias de tus datos." icon={ShieldIcon} tone="blue">
+          <ProfileSection id="profile-security" title="Privacidad y seguridad" description="Controla el acceso y las copias de tus datos." icon={ShieldIcon} tone="blue">
             <div className="primy-profile-security-item"><strong>Edad confirmada</strong><span>{preferences.ageConfirmedAt ? `Verificada el ${verificationDate.format(new Date(preferences.ageConfirmedAt))}` : 'Verificación completada'}. La fecha de nacimiento no se almacena.</span></div>
             <div className="primy-profile-backup">
               <button type="button" onClick={exportData} disabled={!history.length}><DownloadIcon width="18" height="18"/>Exportar</button>

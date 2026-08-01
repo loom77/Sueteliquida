@@ -7,6 +7,7 @@ export const CalendarIcon = props => <svg {...base} {...props}><path d="M7 2v3M1
 export const TicketIcon = props => <svg {...base} {...props}><path d="M3 7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a3 3 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a3 3 0 0 0 0-6V7Z"/><path d="M13 5v2M13 11v2M13 17v2"/></svg>;
 export const ChartIcon = props => <svg {...base} {...props}><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>;
 export const WalletIcon = props => <svg {...base} {...props}><path d="M3 6.5A2.5 2.5 0 0 1 5.5 4H18a2 2 0 0 1 2 2v2H5.5A2.5 2.5 0 0 0 3 10.5v0A2.5 2.5 0 0 0 5.5 13H21v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6.5Z"/><path d="M16 13h5v-5h-5a2.5 2.5 0 0 0 0 5Z"/></svg>;
+export const BudgetControlIcon = props => <svg {...base} {...props} viewBox="0 0 24 24"><path d="M5 6.5h11.5A2.5 2.5 0 0 1 19 9v8.5H7A3 3 0 0 1 4 14.5v-5a3 3 0 0 1 1-2.24V6.5Z"/><path d="M7 6.5V5a1.5 1.5 0 0 1 1.5-1.5H18"/><path d="M14.5 10.5H21v4h-6.5a2 2 0 1 1 0-4Z"/><circle cx="15.5" cy="12.5" r=".55" fill="currentColor" stroke="none"/><path d="M8 11.2h3.2M8 14h2"/></svg>;
 export const RefreshIcon = props => <svg {...base} {...props}><path d="M20 6v5h-5"/><path d="M4 18v-5h5"/><path d="M18.5 9A7 7 0 0 0 6.2 5.8L4 8M5.5 15A7 7 0 0 0 17.8 18.2L20 16"/></svg>;
 export const ShieldIcon = props => <svg {...base} {...props}><path d="M12 22s8-3 8-10V5l-8-3-8 3v7c0 7 8 10 8 10Z"/><path d="m9 12 2 2 4-4"/></svg>;
 export const CheckIcon = props => <svg {...base} {...props}><path d="m5 12 4 4L19 6"/></svg>;

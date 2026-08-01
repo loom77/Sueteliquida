@@ -45,7 +45,7 @@ function loadLegacyPlays() {
 
 function writeUserCache(userId, plays, pending) {
   if (!userId) return;
-  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '16.2.0', plays, pending }));
+  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '16.3.0', plays, pending }));
 }
 
 function mergePlays(...collections) {

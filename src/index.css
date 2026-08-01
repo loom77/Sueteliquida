@@ -2135,3 +2135,419 @@ html[data-theme='dark'] .primy-generator__error { border-color: #7f3531; backgro
   .primy-profile-name-editor button,
   .primy-profile-legal-links a { transition: none !important; }
 }
+
+/* ================================================================
+   Primy v16.3 — Mobile & iPad UX Redesign
+   Touch-first navigation, compact creation flow and progressive UI.
+   ================================================================ */
+
+/* The budget icon now communicates controlled spend and ticket setup. */
+.primy-generator__budget-icon {
+  position: relative;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 25%, rgb(255 255 255 / .45), transparent 30%),
+    linear-gradient(145deg, color-mix(in srgb, var(--game-primary) 86%, white), var(--game-deep));
+  box-shadow: 0 9px 20px color-mix(in srgb, var(--game-primary) 23%, transparent), inset 0 0 0 1px rgb(255 255 255 / .24);
+}
+.primy-generator__budget-icon svg { filter: drop-shadow(0 1px 0 rgb(0 0 0 / .08)); }
+
+/* Progressive archive controls: desktop stays open, mobile stays compact. */
+.primy-archive-mobile-filters { display: none; }
+.primy-archive-filters--desktop { display: grid; }
+
+/* Profile section navigation is reserved for smaller touch layouts. */
+.primy-profile-mobile-nav { display: none; }
+.primy-profile-block[id] { scroll-margin-top: 5.5rem; }
+
+/* A little more perceived continuity between states and content groups. */
+.primy-route-scene > * { animation: primySceneChild 420ms var(--ds-ease-emphasized) both; }
+.primy-route-scene > *:nth-child(2) { animation-delay: 45ms; }
+.primy-route-scene > *:nth-child(3) { animation-delay: 90ms; }
+.primy-route-scene > *:nth-child(4) { animation-delay: 135ms; }
+.primy-generator__budget,
+.primy-profile-block,
+.primy-archive-card,
+.primy-game-card { will-change: transform, opacity; }
+@keyframes primySceneChild {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 699px) {
+  :root {
+    --primy-mobile-nav-height: 5.35rem;
+    --primy-mobile-gutter: clamp(.8rem, 4vw, 1rem);
+  }
+
+  body { overscroll-behavior-y: contain; }
+  .primy-main-content { padding-bottom: calc(var(--primy-mobile-nav-height) + 1.25rem + env(safe-area-inset-bottom)); }
+
+  /* Mobile chrome: compact glass header + floating thumb navigation. */
+  .primy-mobile-header {
+    min-height: 3.7rem;
+    border-bottom: 0;
+    background: rgb(var(--c-surface) / .86);
+    padding: .55rem var(--primy-mobile-gutter);
+    box-shadow: 0 1px 0 rgb(var(--c-border)), 0 10px 28px rgb(19 34 56 / .045);
+  }
+  .primy-mobile-header .primy-game-identity__mark,
+  .primy-mobile-header svg[aria-label='Primy'] { width: 2.2rem; height: 2.2rem; }
+  .primy-mobile-header .ds-button { min-height: 2.5rem; padding-inline: .65rem; }
+
+  .primy-mobile-nav {
+    inset: auto .55rem .45rem;
+    overflow: visible;
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 1.45rem;
+    background: rgb(var(--c-surface) / .93);
+    padding: .25rem .25rem calc(.25rem + env(safe-area-inset-bottom));
+    box-shadow: 0 18px 48px rgb(19 34 56 / .16), inset 0 1px 0 rgb(255 255 255 / .7);
+  }
+  .primy-mobile-nav__item {
+    min-width: 0;
+    min-height: 3.9rem;
+    border-radius: 1rem;
+    font-size: .59rem;
+    transition: color 180ms ease, transform 200ms var(--ds-ease-emphasized), background 180ms ease;
+  }
+  .primy-mobile-nav__icon {
+    width: 2.35rem;
+    height: 1.8rem;
+    transition: transform 220ms var(--ds-ease-emphasized), background 180ms ease, color 180ms ease;
+  }
+  .primy-mobile-nav__item[data-active='true'] { background: var(--ds-brand-50); }
+  .primy-mobile-nav__item[data-active='true'] .primy-mobile-nav__icon { transform: translateY(-1px) scale(1.05); }
+  .primy-mobile-nav__item:nth-child(2) { transform: translateY(-.48rem); }
+  .primy-mobile-nav__item:nth-child(2) .primy-mobile-nav__icon {
+    width: 3.05rem;
+    height: 3.05rem;
+    border-radius: 50%;
+    background: var(--ds-brand-700);
+    color: white;
+    box-shadow: 0 10px 24px rgb(11 122 73 / .27), inset 0 0 0 1px rgb(255 255 255 / .18);
+  }
+  .primy-mobile-nav__item:nth-child(2)[data-active='true'] { background: transparent; color: var(--ds-brand-800); }
+  .primy-mobile-nav__item:nth-child(2)[data-active='true'] .primy-mobile-nav__icon { background: var(--ds-brand-800); transform: scale(1.08); }
+  .primy-mobile-nav__badge { top: .05rem; }
+
+  /* Home: one decision, less decoration. */
+  .primy-home-v16__hero-copy { padding: 1.15rem; }
+  .primy-home-v16__title { max-width: 19rem; font-size: clamp(1.85rem, 10vw, 2.35rem); }
+  .primy-home-v16__lead { margin-top: .65rem; font-size: .86rem; line-height: 1.5; }
+  .primy-home-v16__next { display: flex; width: 100%; margin-top: 1rem; }
+  .primy-home-v16__actions { margin-top: 1rem; }
+  .primy-home-v16__note { font-size: .68rem; }
+  .primy-home-v16__mascot { display: none !important; }
+
+  /* Creation is a mobile journey, not a shrunken desktop panel. */
+  .primy-create-journey { padding: .8rem var(--primy-mobile-gutter) 1.3rem; }
+  .primy-journey-header {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    border: 0;
+    background: transparent;
+    padding: .2rem .1rem;
+    box-shadow: none;
+  }
+  .primy-journey-header .primy-eyebrow { font-size: .6rem; }
+  .primy-journey-header .mt-4 { margin-top: .35rem; }
+  .primy-journey-header-icon { width: 2.25rem; height: 2.25rem; border-radius: .7rem; }
+  .primy-journey-header h1 { font-size: 1.4rem; line-height: 1.08; }
+  .primy-journey-header h1 + p { display: none; }
+  .primy-journey-rail { flex: 0 0 auto; gap: .18rem; margin-left: auto; }
+  .primy-journey-step { gap: 0; }
+  .primy-journey-step > span:last-child { display: none; }
+  .primy-journey-dot { width: 1.65rem; height: 1.65rem; font-size: .62rem; }
+
+  .primy-generator {
+    border-radius: 1.35rem;
+    padding: .8rem;
+    box-shadow: 0 12px 34px rgb(19 34 56 / .055);
+  }
+  .primy-core-spotlight--compact {
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0,1fr) auto;
+    align-items: center;
+    gap: .55rem;
+    border-radius: 1rem;
+    padding: .65rem;
+  }
+  .primy-core-spotlight--compact .primy-core-spotlight__icon { width: 2.2rem; height: 2.2rem; }
+  .primy-core-spotlight__title { font-size: .74rem; line-height: 1.25; }
+  .primy-core-spotlight__copy { display: none; }
+  .primy-core-learn--compact {
+    width: 2.45rem;
+    min-height: 2.45rem;
+    justify-content: center;
+    border-radius: .75rem;
+    padding: 0;
+  }
+  .primy-core-learn--compact span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  .primy-generator__picker { margin-top: 1rem; }
+  .primy-game-picker__legend { margin-bottom: .55rem; font-size: .82rem; }
+  .primy-game-picker__track {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: .55rem;
+    overflow: visible;
+    padding: 0;
+  }
+  .primy-game-picker__option {
+    width: auto;
+    min-width: 0;
+    min-height: 7.3rem;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: .35rem;
+    border-radius: 1rem;
+    padding: .65rem .45rem .6rem;
+    text-align: center;
+  }
+  .primy-game-picker__name {
+    min-height: 2.05rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .72rem;
+    line-height: 1.18;
+  }
+  .primy-game-picker__check { top: .35rem; right: .35rem; }
+  .primy-game-identity--sm .primy-game-identity__mark { width: 3.65rem; height: 3.65rem; }
+
+  .primy-generator__selected-game {
+    grid-template-columns: auto minmax(0,1fr);
+    gap: .65rem;
+    margin-top: .75rem;
+    border-radius: 1rem;
+    padding: .65rem;
+  }
+  .primy-generator__selected-game .primy-game-identity__label { font-size: .9rem; }
+  .primy-generator__selected-rule { font-size: .7rem; line-height: 1.35; }
+
+  .primy-generator__bet-type { margin-top: .8rem; padding: .75rem; }
+  .primy-generator__bet-type > p { display: none; }
+
+  .primy-generator__budget {
+    margin-top: .8rem;
+    border-radius: 1.15rem;
+    padding: .85rem;
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--game-primary) 7%, transparent);
+  }
+  .primy-generator__budget-heading {
+    grid-template-columns: 2.8rem minmax(0,1fr) auto;
+    gap: .65rem;
+  }
+  .primy-generator__budget-icon { width: 2.8rem; height: 2.8rem; }
+  .primy-generator__budget-heading p { font-size: .8rem; }
+  .primy-generator__budget-heading span { font-size: .64rem; }
+  .primy-generator__budget-heading > strong {
+    grid-column: auto;
+    margin-top: 0;
+    font-size: 1.65rem;
+  }
+  .primy-generator__stepper {
+    grid-template-columns: 2.75rem minmax(0,1fr) 2.75rem;
+    gap: .55rem;
+    margin-top: .8rem;
+    border-radius: .9rem;
+    padding: .5rem;
+  }
+  .primy-generator__stepper button { width: 2.75rem; height: 2.75rem; border-radius: .75rem; }
+  .primy-generator__stepper output { font-size: 1.65rem; }
+  .primy-generator__stepper span { font-size: .67rem; }
+  .primy-generator__range,
+  .primy-generator__rule-note { font-size: .64rem; line-height: 1.45; }
+  .primy-generator__limit { padding: .7rem; }
+
+  .primy-generator__action-bar {
+    position: sticky;
+    bottom: calc(var(--primy-mobile-nav-height) + .55rem + env(safe-area-inset-bottom));
+    z-index: 24;
+    flex-direction: column;
+    gap: .4rem;
+    margin: .8rem -.2rem -.2rem;
+    border-radius: 1rem;
+    padding: .5rem;
+    box-shadow: 0 -12px 32px rgb(19 34 56 / .12), 0 10px 30px rgb(19 34 56 / .08);
+  }
+  .primy-generator__action-copy { display: none; }
+  .primy-generator__primary-action { min-width: 0; width: 100%; min-height: 3.25rem; font-size: .8rem; }
+
+  /* Games: short cards and clear touch actions. */
+  .primy-games-grid { grid-template-columns: 1fr; gap: .8rem; }
+  .primy-game-card { border-radius: 1.25rem; }
+  .primy-game-card__body { padding: 1rem; }
+  .primy-game-card__copy { font-size: .72rem; line-height: 1.45; }
+  .primy-game-card__actions { grid-template-columns: 1fr 1fr; }
+
+  /* Archive: compact summary, progressive filters and timeline cards. */
+  .primy-archive-page-header {
+    align-items: flex-start;
+    border-radius: 1.2rem;
+    padding: .85rem;
+  }
+  .primy-archive-page-header__icon { width: 2.5rem; height: 2.5rem; }
+  .primy-archive-page-header h1 { font-size: 1.45rem; }
+  .primy-archive-page-header span { font-size: .68rem; }
+  .primy-archive-page-header > .ds-button { width: 100%; }
+  .primy-archive-summary {
+    margin-inline: calc(var(--primy-mobile-gutter) * -1);
+    border-inline: 0;
+    border-radius: 0;
+    padding-inline: var(--primy-mobile-gutter);
+    scrollbar-width: none;
+  }
+  .primy-archive-summary::-webkit-scrollbar,
+  .primy-archive-status-nav::-webkit-scrollbar { display: none; }
+  .primy-archive-status-nav { margin-inline: calc(var(--primy-mobile-gutter) * -1); padding-inline: var(--primy-mobile-gutter); }
+  .primy-archive-mobile-filters {
+    display: block;
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 1rem;
+    background: rgb(var(--c-surface));
+    box-shadow: 0 8px 24px rgb(19 34 56 / .035);
+  }
+  .primy-archive-mobile-filters summary {
+    display: flex;
+    min-height: 3.1rem;
+    cursor: pointer;
+    align-items: center;
+    justify-content: space-between;
+    gap: .7rem;
+    list-style: none;
+    padding: .7rem .85rem;
+    color: rgb(var(--c-text-primary));
+    font-size: .76rem;
+    font-weight: 780;
+  }
+  .primy-archive-mobile-filters summary::-webkit-details-marker { display: none; }
+  .primy-archive-mobile-filters summary strong { color: var(--ds-brand-700); font-size: .62rem; }
+  .primy-archive-mobile-filters[open] summary { border-bottom: 1px solid rgb(var(--c-border)); }
+  .primy-archive-filters--mobile { border: 0; border-radius: 0; box-shadow: none; }
+  .primy-archive-filters--desktop { display: none; }
+  .primy-archive-card {
+    border-radius: 1.05rem;
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--game-primary) 7%, transparent);
+    animation: primyMobileCardIn 360ms var(--ds-ease-emphasized) both;
+  }
+  .primy-archive-card::before { width: .34rem; }
+  .primy-archive-card .p-4 { padding: .85rem; }
+
+  /* Profile: personal first, technical details later. */
+  .primy-profile-hero {
+    grid-template-columns: minmax(0,1fr) 5.8rem;
+    min-height: auto;
+    border-radius: 1.25rem;
+  }
+  .primy-profile-hero__copy { padding: 1rem .3rem 1rem 1rem; }
+  .primy-profile-hero h1 { margin-top: .35rem; font-size: 1.85rem; }
+  .primy-profile-hero__copy > p { display: none; }
+  .primy-profile-hero__identity { margin-top: .7rem; }
+  .primy-profile-hero__mascot { display: flex; padding: .45rem .55rem .45rem 0; }
+  .primy-profile-hero__mascot .primy-mascot-role { width: 5.4rem; }
+  .primy-profile-mobile-nav {
+    position: sticky;
+    top: 3.8rem;
+    z-index: 16;
+    display: flex;
+    gap: .4rem;
+    margin: .75rem calc(var(--primy-mobile-gutter) * -1) 0;
+    overflow-x: auto;
+    background: linear-gradient(rgb(var(--c-app)) 78%, transparent);
+    padding: .35rem var(--primy-mobile-gutter) .75rem;
+    scrollbar-width: none;
+  }
+  .primy-profile-mobile-nav::-webkit-scrollbar { display: none; }
+  .primy-profile-mobile-nav a {
+    min-width: max-content;
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 999px;
+    background: rgb(var(--c-surface) / .92);
+    padding: .48rem .7rem;
+    color: rgb(var(--c-text-secondary));
+    font-size: .66rem;
+    font-weight: 760;
+  }
+  .primy-profile-layout { gap: .75rem; margin-top: .25rem; }
+  .primy-profile-layout__main,
+  .primy-profile-layout__side { gap: .75rem; }
+  .primy-profile-block { border-radius: 1.1rem; padding: .85rem; }
+  .primy-profile-block > header > span { width: 2.15rem; height: 2.15rem; }
+  .primy-profile-block h2 { font-size: .9rem; }
+  .primy-profile-block header p { font-size: .66rem; }
+  .primy-profile-inline-action { align-items: flex-start; }
+  .primy-profile-inline-action button { min-height: 2.65rem; }
+  .primy-profile-advanced { border-radius: 1.05rem; }
+}
+
+/* Dedicated tablet/iPad range: neither desktop sidebar nor phone compression. */
+@media (min-width: 700px) and (max-width: 1199px) {
+  .primy-sidebar { display: none; }
+  .primy-mobile-header { display: flex; }
+  .primy-mobile-nav {
+    display: flex;
+    inset: auto 1.25rem .8rem;
+    max-width: 42rem;
+    margin-inline: auto;
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 1.35rem;
+    box-shadow: 0 16px 42px rgb(19 34 56 / .14);
+  }
+  .primy-main-content { margin-left: 0; padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); }
+  .primy-connectivity-notice { margin-left: 0; }
+
+  .primy-create-journey { max-width: 68rem; padding-inline: 1.5rem; }
+  .primy-game-picker__track { grid-template-columns: repeat(4, minmax(0,1fr)); gap: .7rem; }
+  .primy-game-picker__option {
+    min-height: 8rem;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+  .primy-game-picker__name { min-height: 2.2rem; display: flex; align-items: center; font-size: .76rem; }
+  .primy-generator__budget { padding: 1.15rem; }
+  .primy-generator__action-bar { bottom: calc(5rem + env(safe-area-inset-bottom)); }
+
+  .primy-home-v16__hero { grid-template-columns: minmax(0,1.3fr) minmax(13rem,.7fr); }
+  .primy-home-v16__mascot { display: flex; }
+  .primy-games-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+
+  .primy-profile-hero { grid-template-columns: minmax(0,1.45fr) minmax(12rem,.55fr); }
+  .primy-profile-hero__mascot { display: flex; }
+  .primy-profile-layout { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .primy-profile-mobile-nav {
+    display: flex;
+    gap: .45rem;
+    margin-top: .85rem;
+  }
+  .primy-profile-mobile-nav a {
+    border: 1px solid rgb(var(--c-border));
+    border-radius: 999px;
+    background: rgb(var(--c-surface));
+    padding: .5rem .75rem;
+    color: var(--ds-brand-800);
+    font-size: .7rem;
+    font-weight: 760;
+  }
+  .primy-archive-mobile-filters { display: none; }
+  .primy-archive-filters--desktop { display: grid; }
+}
+
+@media (min-width: 1200px) {
+  .primy-profile-mobile-nav { display: none; }
+}
+
+@keyframes primyMobileCardIn {
+  from { opacity: 0; transform: translateY(10px) scale(.99); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primy-route-scene > *,
+  .primy-archive-card { animation: none !important; }
+  .primy-mobile-nav__item,
+  .primy-mobile-nav__icon { transition: none !important; }
+}

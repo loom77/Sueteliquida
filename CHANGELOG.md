@@ -1,3 +1,13 @@
+# Primy v16.3.0 — Mobile & iPad UX Redesign
+
+- rifatta l’icona Presupuesto con un simbolo specifico per controllo e configurazione del budget;
+- navigazione mobile resa più tattile, compatta e dinamica, con Preparar come azione centrale;
+- schermata di preparazione riprogettata mobile-first con selettore giochi leggibile, budget compatto e CTA persistente;
+- profilo mobile semplificato con navigazione rapida fra nome, esperienza, limiti e sicurezza;
+- archivio mobile trasformato in flusso progressivo con filtri richiudibili e card-timeline;
+- breakpoint iPad dedicato per griglie, profilo, catalogo e generatori;
+- motion system ampliato per cambi di schermata, selezione gioco, card e contenuti, rispettando prefers-reduced-motion.
+
 # Primy v16.2.0 — Iconos, movimiento, nombre personal y centro legal
 
 - ocho iconos gráficos originales para las familias de juego;

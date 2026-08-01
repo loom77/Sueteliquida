@@ -1,4 +1,4 @@
-# Primy v16.2.0
+# Primy v16.3.0
 
 Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La aplicación no vende boletos, no reserva apuestas, no predice resultados como certezas y no garantiza premios.
 

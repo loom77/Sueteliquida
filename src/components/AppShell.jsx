@@ -125,7 +125,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, display
         </div>
       )}
 
-      <main ref={mainRef} id="main-content" tabIndex="-1" className="primy-main-content">{children}<footer className="primy-global-footer"><ReleaseStamp/></footer></main>
+      <main ref={mainRef} id="main-content" tabIndex="-1" className="primy-main-content" data-view={view}>{children}<footer className="primy-global-footer"><ReleaseStamp/></footer></main>
 
       <nav className="primy-mobile-nav" aria-label="Navegación principal">
         {NAV.map(item => (

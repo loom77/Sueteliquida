@@ -51,7 +51,7 @@ export default function CreateJourney(props) {
   const HeaderIcon = journeyCopy.icon;
 
   return (
-    <div className="primy-page-enter mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+    <div className="primy-create-journey primy-page-enter mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
       <header className="primy-journey-header">
         <div className="min-w-0">
           <p className="primy-eyebrow">{journeyCopy.eyebrow}</p>
