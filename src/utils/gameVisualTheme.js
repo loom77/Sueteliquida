@@ -1,0 +1,107 @@
+export const GAME_VISUAL_THEMES = Object.freeze({
+  primitiva: {
+    id: 'primitiva',
+    symbol: '6',
+    label: 'La Primitiva',
+    primary: '#0B7A49',
+    deep: '#075438',
+    soft: '#E4F7EC',
+    tint: '#F3FCF7',
+    highlight: '#8FD5AD',
+    legacyActionClass: 'bg-primy-700',
+  },
+  bonoloto: {
+    id: 'bonoloto',
+    symbol: 'B',
+    label: 'Bonoloto',
+    primary: '#0B8793',
+    deep: '#075A63',
+    soft: '#DDF6F4',
+    tint: '#F1FBFA',
+    highlight: '#78D2C7',
+    legacyActionClass: 'primy-bonoloto-action',
+  },
+  gordoprimitiva: {
+    id: 'gordoprimitiva',
+    symbol: 'G',
+    label: 'El Gordo',
+    primary: '#A63D4D',
+    deep: '#762637',
+    soft: '#FBE7EA',
+    tint: '#FFF6F7',
+    highlight: '#F08A78',
+    legacyActionClass: 'primy-gordo-action',
+  },
+  euromillones: {
+    id: 'euromillones',
+    symbol: '★',
+    label: 'Euromillones',
+    primary: '#1D4F9A',
+    deep: '#153A76',
+    soft: '#E6EEFB',
+    tint: '#F5F8FE',
+    highlight: '#E0B83F',
+    legacyActionClass: 'primy-euromillones-action',
+  },
+  eurodreams: {
+    id: 'eurodreams',
+    symbol: 'D',
+    label: 'EuroDreams',
+    primary: '#6E52C7',
+    deep: '#4E3997',
+    soft: '#EEE9FF',
+    tint: '#F8F6FF',
+    highlight: '#A992F1',
+    legacyActionClass: 'bg-eurodreams',
+  },
+  'loteria-nacional': {
+    id: 'loteria-nacional',
+    symbol: 'N',
+    label: 'Lotería Nacional',
+    primary: '#1F5EA8',
+    deep: '#153F75',
+    soft: '#E7F0FC',
+    tint: '#F4F8FE',
+    highlight: '#7EADE2',
+    legacyActionClass: 'primy-national-action',
+  },
+  quiniela: {
+    id: 'quiniela',
+    symbol: '1X2',
+    label: 'La Quiniela',
+    primary: '#C23B4A',
+    deep: '#8F2634',
+    soft: '#FCE7EA',
+    tint: '#FFF6F7',
+    highlight: '#E98A93',
+    legacyActionClass: 'primy-quiniela-action',
+  },
+  quinigol: {
+    id: 'quinigol',
+    symbol: 'QG',
+    label: 'El Quinigol',
+    primary: '#C76632',
+    deep: '#8B421F',
+    soft: '#FBEBDD',
+    tint: '#FFF8F2',
+    highlight: '#E9A277',
+    legacyActionClass: 'primy-quinigol-action',
+  },
+});
+
+const FALLBACK_THEME = GAME_VISUAL_THEMES.primitiva;
+
+export function getGameVisualTheme(gameId) {
+  return GAME_VISUAL_THEMES[gameId] || FALLBACK_THEME;
+}
+
+export function gameThemeStyle(gameId) {
+  const theme = getGameVisualTheme(gameId);
+  return {
+    '--game-primary': theme.primary,
+    '--game-deep': theme.deep,
+    '--game-soft': theme.soft,
+    '--game-tint': theme.tint,
+    '--game-highlight': theme.highlight,
+  };
+}

@@ -1,3 +1,14 @@
+# Primy v16.1.0 — Creative Restyle
+
+- reconstruido el selector de juegos para evitar solapamientos y mantener nombres legibles en 320 px;
+- añadida una identidad cromática centralizada y original para cada juego;
+- compactada la pantalla de preparación con coste, límite personal y CTA verde persistente en móvil;
+- conectada la experiencia Thinking a una presentación mínima de cuatro segundos;
+- convertido el catálogo en una experiencia editorial con menos badges y más jerarquía;
+- renovado el Archivo con resumen compacto, acentos por juego y prioridad visual de estados;
+- rediseñado el Perfil con hero personal, companion owl, presupuesto responsable y seguridad;
+- mantenidos sin cambios los motores matemáticos, reglas, datos y persistencia.
+
 # Primy v16.0.0 — Visual Foundation
 
 - nuovo sistema di token centralizzati per colore, superfici, spaziatura, radius, ombre e movimento;

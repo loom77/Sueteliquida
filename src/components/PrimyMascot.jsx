@@ -2,6 +2,11 @@ import React from 'react';
 import { PrimyMascotAvatar, PrimyMascotGraphic } from './BrandVisuals.jsx';
 
 export const MASCOT_ROLES = Object.freeze({
+  companion: {
+    variant: 'welcome',
+    label: 'Primy te acompaña',
+    defaultCaption: 'Tu espacio, a tu manera.',
+  },
   guide: {
     variant: 'helper',
     label: 'Primy te guía',

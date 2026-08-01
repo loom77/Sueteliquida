@@ -1,34 +1,35 @@
 import React from 'react';
 import { GAMES } from '../utils/gameConfig.js';
+import { getGameVisualTheme, gameThemeStyle } from '../utils/gameVisualTheme.js';
+import GameIdentity from './GameIdentity.jsx';
+import { CheckIcon } from './Icons.jsx';
 
-const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'gordoprimitiva', 'euromillones', 'eurodreams', 'loteria-nacional', 'quiniela'];
+const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'euromillones', 'gordoprimitiva', 'eurodreams', 'loteria-nacional', 'quiniela'];
+const LEGACY_SELECTOR_ACTIONS = 'primy-bonoloto-action primy-euromillones-action';
 
-function selectedTone(gameId) {
-  if (gameId === 'primitiva') return 'bg-primy-700 text-white shadow-soft';
-  if (gameId === 'bonoloto') return 'primy-bonoloto-action shadow-soft';
-  if (gameId === 'gordoprimitiva') return 'primy-gordo-action shadow-soft';
-  if (gameId === 'euromillones') return 'primy-euromillones-action shadow-soft';
-  if (gameId === 'loteria-nacional') return 'primy-national-action shadow-soft';
-  if (gameId === 'quiniela') return 'bg-sky-800 text-white shadow-soft';
-  return 'bg-eurodreams text-white shadow-soft';
-}
-
-export default function GameSwitch({ active, onChange, label = 'Juego' }) {
+export default function GameSwitch({ active, onChange, label = 'Juego', disabled = false }) {
   return (
-    <fieldset>
-      <legend className="mb-2 text-sm font-semibold text-primary">{label}</legend>
-      <div className="grid grid-cols-1 gap-2 rounded-2xl bg-muted-strong p-1.5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-7">
+    <fieldset className="primy-game-picker" disabled={disabled}>
+      <legend className="primy-game-picker__legend">{label}</legend>
+      <div className="primy-game-picker__track" data-legacy-actions={LEGACY_SELECTOR_ACTIONS}>
         {ACTIVE_GAME_ORDER.map(gameId => GAMES[gameId]).filter(Boolean).map(game => {
           const selected = active === game.id;
+          const theme = getGameVisualTheme(game.id);
           return (
             <button
               type="button"
               aria-pressed={selected}
               key={game.id}
               onClick={() => onChange(game.id)}
-              className={`min-h-12 rounded-xl px-3 py-2.5 text-sm font-semibold ${selected ? selectedTone(game.id) : 'text-secondary hover:bg-surface hover:text-primary'}`}
+              className="primy-game-picker__option"
+              data-selected={selected ? 'true' : 'false'}
+              data-game={game.id}
+              data-legacy-action={theme.legacyActionClass}
+              style={gameThemeStyle(game.id)}
             >
-              {game.shortName}
+              <GameIdentity gameId={game.id} size="sm" label={false}/>
+              <span className="primy-game-picker__name">{game.shortName}</span>
+              <span className="primy-game-picker__check" aria-hidden="true"><CheckIcon width="14" height="14"/></span>
             </button>
           );
         })}

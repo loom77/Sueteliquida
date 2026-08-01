@@ -6,6 +6,8 @@ import { getPlayDeleteDescription } from '../utils/playDeletion.js';
 import { NumberBall, TicketStatus } from './TicketUI.jsx';
 import { ChevronDownIcon, CopyIcon, RepeatIcon, SearchIcon, StarIcon, TrashIcon } from './Icons.jsx';
 import { PrimyMascotGraphic } from './BrandVisuals.jsx';
+import GameIdentity from './GameIdentity.jsx';
+import { gameThemeStyle } from '../utils/gameVisualTheme.js';
 import ConfirmDialog from './ConfirmDialog.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
@@ -257,11 +259,14 @@ function ArchiveSummary({ plays }) {
   const purchased = plays.filter(play => play.purchased).length;
   const awaiting = plays.filter(play => play.computedStatus === 'awaiting_check').length;
   const checked = plays.filter(play => play.computedStatus === 'checked').length;
+  const won = plays.reduce((sum, play) => sum + playKnownPrize(play), 0);
   return (
-    <div className="grid gap-3 sm:grid-cols-3" aria-label="Resumen del archivo">
-      <div className="primy-archive-stat"><span>Guardadas</span><strong>{plays.length}</strong></div>
-      <div className="primy-archive-stat"><span>Jugadas</span><strong>{purchased}</strong></div>
-      <div className="primy-archive-stat"><span>{awaiting ? 'Por comprobar' : 'Comprobadas'}</span><strong>{awaiting || checked}</strong></div>
+    <div className="primy-archive-summary" aria-label="Resumen del archivo">
+      <span><strong>{plays.length}</strong> guardadas</span>
+      <span><strong>{purchased}</strong> jugadas</span>
+      <span data-attention={awaiting > 0 ? 'true' : 'false'}><strong>{awaiting}</strong> por comprobar</span>
+      <span><strong>{checked}</strong> comprobadas</span>
+      <span data-prize={won > 0 ? 'true' : 'false'}><strong>{euro.format(won)}</strong> premios</span>
     </div>
   );
 }
@@ -320,17 +325,15 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
     <section className="space-y-5">
       <ArchiveSummary plays={plays}/>
 
-      <div className="overflow-x-auto pb-1" aria-label="Filtros rápidos por estado">
-        <div className="flex min-w-max gap-2">
-          {quickStatuses.map(([value, label, count]) => (
-            <button key={value} type="button" aria-pressed={statusFilter === value} onClick={() => setStatusFilter(value)} className={`min-h-10 rounded-full border px-4 text-sm font-semibold transition ${statusFilter === value ? 'border-primy-700 bg-primy-700 text-white' : 'border-default bg-surface text-primary hover:bg-muted'}`}>
-              {label} <span className="ml-1 tabular-nums opacity-80">{count}</span>
-            </button>
-          ))}
-        </div>
+      <div className="primy-archive-status-nav" aria-label="Filtros rápidos por estado">
+        {quickStatuses.map(([value, label, count]) => (
+          <button key={value} type="button" aria-pressed={statusFilter === value} onClick={() => setStatusFilter(value)} className={`primy-archive-status-chip ${statusFilter === value ? 'is-active' : ''}`}>
+            <span>{label}</span><strong>{count}</strong>
+          </button>
+        ))}
       </div>
 
-      <div className="primy-archive-filters grid gap-3 rounded-3xl border border-default bg-surface p-4 shadow-soft md:grid-cols-3 md:p-5">
+      <div className="primy-archive-filters">
         <label className="text-sm font-bold text-primary">Buscar<span className="mt-2 flex min-h-11 items-center gap-2 rounded-2xl border border-default px-3"><SearchIcon width="18" height="18"/><input value={query} onChange={event => setQuery(event.target.value)} className="w-full border-0 bg-transparent p-0 text-sm font-normal outline-none" placeholder="Fecha o juego"/></span></label>
         <label className="text-sm font-bold text-primary">Juego<select value={gameFilter} onChange={event => setGameFilter(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="all">Todos</option>{Object.values(GAMES).map(game => <option key={game.id} value={game.id}>{game.name}</option>)}</select></label>
         <label className="text-sm font-bold text-primary">Orden<select value={sort} onChange={event => setSort(event.target.value)} className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 text-sm font-normal"><option value="action">Acción necesaria</option><option value="newest">Más recientes</option><option value="oldest">Menos recientes</option></select></label>
@@ -366,11 +369,11 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
     ? Object.values(aggregateBreakdown).reduce((sum, count) => sum + Number(count || 0), 0)
     : play.columns.filter(column => column.prizeCategory).length;
               return (
-                <article key={play.id} className={`primy-archive-card rounded-3xl border bg-surface shadow-soft ${isExpanded ? 'is-open border-primy-200' : 'border-default'}`}>
+                <article key={play.id} className={`primy-archive-card ${isExpanded ? 'is-open' : ''}`} style={gameThemeStyle(play.gameId)} data-game={play.gameId}>
                   <div className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
-                        <div className="flex items-center gap-2"><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
+                        <div className="flex items-center gap-2"><GameIdentity gameId={play.gameId} size="sm" label={false}/><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
                         <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.gameId === 'loteria-nacional' ? `${play.nationalNumber} · ${play.ticketQuantity || 1} décimo(s)` : play.gameId === 'quiniela' ? '1 apuesta simple' : play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
                       </div>
                       <TicketStatus status={play.computedStatus}/>
@@ -400,9 +403,9 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                   const isExpanded = expanded === play.id;
                   return (
                     <React.Fragment key={play.id}>
-                      <tr className={isExpanded ? 'bg-primy-50/50' : 'hover:bg-muted'}>
+                      <tr className={isExpanded ? 'is-expanded' : ''} style={gameThemeStyle(play.gameId)} data-game={play.gameId}>
                         <td className="px-5 py-4 font-bold capitalize text-primary">{formatDrawDate(play.drawDateISO, { short: true })}</td>
-                        <td className="px-5 py-4"><div className="flex items-center gap-2 font-semibold text-primary">{game.name}{play.favorite && <StarIcon width="15" height="15" className="fill-amber-400 text-amber-500"/>}</div></td>
+                        <td className="px-5 py-4"><div className="flex items-center gap-2 font-semibold text-primary"><GameIdentity gameId={play.gameId} size="sm" label={false}/>{game.name}{play.favorite && <StarIcon width="15" height="15" className="fill-amber-400 text-amber-500"/>}</div></td>
                         <td className="px-5 py-4 text-secondary">{playBetCount(play)}</td>
                         <td className="px-5 py-4 font-bold text-primary">{euro.format(playCost(play))}</td>
                         <td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios: {euro.format(playKnownPrize(play))}</p>}</td>

@@ -1,6 +1,18 @@
-# Primy v16.0.0
+# Primy v16.1.0
 
 Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La aplicación no vende boletos, no reserva apuestas, no predice resultados como certezas y no garantiza premios.
+
+
+## Novedad v16.1.0 — Creative Restyle
+
+- Selector de juegos reconstruido sin solapamientos, con tarjetas legibles y color propio por juego.
+- Sistema cromático centralizado para Primitiva, Bonoloto, Euromillones, El Gordo, EuroDreams, Lotería Nacional, Quiniela y Quinigol.
+- Preparación de jugadas más compacta, con presupuesto, límite y CTA persistente en móvil.
+- Secuencia Thinking de cuatro segundos antes de revelar la combinación automática.
+- Catálogo editorial con identidad visual, menos etiquetas técnicas y acciones simplificadas.
+- Archivo con resumen compacto, acentos por juego y elementos que priorizan las acciones pendientes.
+- Perfil rediseñado con hero personal, companion owl, experiencia, juego responsable y seguridad.
+- Sin cambios en motores matemáticos, reglas, datos o persistencia.
 
 
 ## Novedad v16.0.0 — Visual Foundation

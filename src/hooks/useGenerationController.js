@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 const GENERATION_TIMEOUT_MS = 30_000;
+export const MIN_GENERATION_PRESENTATION_MS = 4_000;
+const PROGRESS_TICK_MS = 80;
 
 export function useGenerationController({ view }) {
   const [latest, setLatest] = useState(null);
@@ -10,12 +12,22 @@ export function useGenerationController({ view }) {
   const [generationError, setGenerationError] = useState('');
   const workerRef = useRef(null);
   const timeoutRef = useRef(null);
+  const revealTimerRef = useRef(null);
+  const progressTimerRef = useRef(null);
   const requestRef = useRef(0);
+  const startedAtRef = useRef(0);
 
-  const clearTimeoutRef = useCallback(() => {
+  const clearSafetyTimeout = useCallback(() => {
     if (!timeoutRef.current) return;
     window.clearTimeout(timeoutRef.current);
     timeoutRef.current = null;
+  }, []);
+
+  const clearPresentationTimers = useCallback(() => {
+    if (revealTimerRef.current) window.clearTimeout(revealTimerRef.current);
+    if (progressTimerRef.current) window.clearInterval(progressTimerRef.current);
+    revealTimerRef.current = null;
+    progressTimerRef.current = null;
   }, []);
 
   const terminateWorker = useCallback(() => {
@@ -25,12 +37,13 @@ export function useGenerationController({ view }) {
 
   const invalidateRequest = useCallback(() => {
     requestRef.current += 1;
-    clearTimeoutRef();
+    clearSafetyTimeout();
+    clearPresentationTimers();
     terminateWorker();
-  }, [clearTimeoutRef, terminateWorker]);
+  }, [clearPresentationTimers, clearSafetyTimeout, terminateWorker]);
 
   const cancel = useCallback(({ announce = true } = {}) => {
-    if (!busy && !workerRef.current) return;
+    if (!busy && !workerRef.current && !revealTimerRef.current) return;
     invalidateRequest();
     setBusy(false);
     setProgress(0);
@@ -61,28 +74,43 @@ export function useGenerationController({ view }) {
 
     const requestId = requestRef.current;
     const worker = ensureWorker();
+    startedAtRef.current = Date.now();
+
+    progressTimerRef.current = window.setInterval(() => {
+      if (requestRef.current !== requestId) return;
+      const elapsed = Date.now() - startedAtRef.current;
+      const timedProgress = Math.min(0.96, Math.max(0.02, (elapsed / MIN_GENERATION_PRESENTATION_MS) * 0.96));
+      setProgress(current => Math.max(current, timedProgress));
+    }, PROGRESS_TICK_MS);
 
     const fail = message => {
       if (requestRef.current !== requestId) return;
-      clearTimeoutRef();
+      clearSafetyTimeout();
+      clearPresentationTimers();
       terminateWorker();
       setBusy(false);
       setProgress(0);
       setGenerationError(message);
     };
 
+    const reveal = play => {
+      if (requestRef.current !== requestId) return;
+      clearPresentationTimers();
+      setProgress(1);
+      setLatest(play);
+      setBusy(false);
+    };
+
     worker.onmessage = ({ data }) => {
       if (data?.requestId !== requestId || requestRef.current !== requestId) return;
-      if (data.type === 'progress') {
-        setProgress(Math.min(0.96, Math.max(0.02, Number(data.progress) || 0)));
-        return;
-      }
+      if (data.type === 'progress') return;
       if (data.type === 'done') {
-        clearTimeoutRef();
+        clearSafetyTimeout();
         terminateWorker();
-        setLatest(data.play);
-        setProgress(1);
-        setBusy(false);
+        const elapsed = Date.now() - startedAtRef.current;
+        const remaining = Math.max(0, MIN_GENERATION_PRESENTATION_MS - elapsed);
+        if (remaining === 0) reveal(data.play);
+        else revealTimerRef.current = window.setTimeout(() => reveal(data.play), remaining);
         return;
       }
       if (data.type === 'error') fail(data.message || 'No se ha podido generar la jugada.');
@@ -105,12 +133,13 @@ export function useGenerationController({ view }) {
       betType,
       systemSize,
     });
-  }, [clearTimeoutRef, ensureWorker, invalidateRequest, terminateWorker]);
+  }, [clearPresentationTimers, clearSafetyTimeout, ensureWorker, invalidateRequest, terminateWorker]);
 
   useEffect(() => () => {
-    clearTimeoutRef();
+    clearSafetyTimeout();
+    clearPresentationTimers();
     terminateWorker();
-  }, [clearTimeoutRef, terminateWorker]);
+  }, [clearPresentationTimers, clearSafetyTimeout, terminateWorker]);
 
   useEffect(() => {
     if (view === 'generate' || !busy) return;

@@ -1,25 +1,23 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import HistoryLab from './HistoryLab.jsx';
-import { PrimyMascotGraphic } from './BrandVisuals.jsx';
+import { PrimyMascot } from './PrimyMascot.jsx';
 import { BellIcon, DatabaseIcon, DeviceIcon, DownloadIcon, InfoIcon, InstallIcon, MoonIcon, ShieldIcon, SunIcon, TrashIcon, UploadIcon } from './Icons.jsx';
 import { Eyebrow } from './DesignSystem.jsx';
+import { getMonthlyStats } from '../utils/appMetrics.js';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const syncTime = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
 const verificationDate = new Intl.DateTimeFormat('es-ES', { dateStyle: 'medium' });
 
-const ProfileSection = memo(function ProfileSection({ title, description, icon: Icon, children, className = '' }) {
+const ProfileSection = memo(function ProfileSection({ title, description, icon: Icon, children, tone = 'neutral', className = '' }) {
   return (
-    <section className={`primy-profile-section ${className}`}>
-      <div className="flex items-start gap-3">
-        {Icon && <span className="primy-action-icon" aria-hidden="true"><Icon width="20" height="20"/></span>}
-        <div className="min-w-0">
-          <h2 className="text-xl font-semibold text-primary">{title}</h2>
-          {description && <p className="mt-1 text-sm leading-6 text-secondary">{description}</p>}
-        </div>
-      </div>
-      <div className="mt-5">{children}</div>
+    <section className={`primy-profile-block ${className}`} data-tone={tone}>
+      <header>
+        {Icon && <span aria-hidden="true"><Icon width="20" height="20"/></span>}
+        <div><h2>{title}</h2>{description && <p>{description}</p>}</div>
+      </header>
+      <div className="primy-profile-block__content">{children}</div>
     </section>
   );
 });
@@ -27,22 +25,25 @@ const ProfileSection = memo(function ProfileSection({ title, description, icon: 
 export default function SettingsView({ activeGame, onGameChange, providerStatus, historyState, preferences, updatePreferences, preferenceError, storageError, history, onImport, onClear, onToast, installPrompt, user, onSignOut, syncStatus, lastSyncedAt, pendingSyncCount = 0, onRetrySync }) {
   const fileRef = useRef(null);
   const [limitDraft, setLimitDraft] = useState(preferences.monthlyLimit ?? '');
+  const [limitEditing, setLimitEditing] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const monthlyStats = useMemo(() => getMonthlyStats(history), [history]);
 
-  useEffect(() => {
-    setLimitDraft(preferences.monthlyLimit ?? '');
-  }, [preferences.monthlyLimit]);
+  useEffect(() => setLimitDraft(preferences.monthlyLimit ?? ''), [preferences.monthlyLimit]);
 
   const normalizedLimitDraft = limitDraft === '' ? null : Math.max(0, Number(limitDraft) || 0);
   const limitChanged = normalizedLimitDraft !== (preferences.monthlyLimit ?? null);
+  const limit = preferences.monthlyLimit > 0 ? preferences.monthlyLimit : null;
+  const limitPercent = limit ? Math.min(100, (monthlyStats.spent / limit) * 100) : 0;
+  const remaining = limit ? Math.max(0, limit - monthlyStats.spent) : null;
+  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'tu';
 
   const syncLabel = useMemo(() => {
-    if (syncStatus === 'synced') return `Datos sincronizados${lastSyncedAt ? ` · ${syncTime.format(lastSyncedAt)}` : ''}`;
-    if (syncStatus === 'syncing' || syncStatus === 'loading') return 'Sincronizando datos…';
-    if (syncStatus === 'offline') return pendingSyncCount ? `${pendingSyncCount} ${pendingSyncCount === 1 ? 'cambio pendiente de sincronizar' : 'cambios pendientes de sincronizar'}` : 'Cambios pendientes de sincronizar';
-    return 'No se puede conectar con la cuenta';
+    if (syncStatus === 'synced') return `Sincronizada${lastSyncedAt ? ` · ${syncTime.format(lastSyncedAt)}` : ''}`;
+    if (syncStatus === 'syncing' || syncStatus === 'loading') return 'Sincronizando…';
+    if (syncStatus === 'offline') return pendingSyncCount ? `${pendingSyncCount} ${pendingSyncCount === 1 ? 'cambio pendiente' : 'cambios pendientes'}` : 'Pendiente de sincronizar';
+    return 'Conexión no disponible';
   }, [syncStatus, lastSyncedAt, pendingSyncCount]);
-
 
   const retrySync = async () => {
     if (!onRetrySync) return;
@@ -53,6 +54,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   const saveLimit = () => {
     const value = normalizedLimitDraft;
     updatePreferences({ monthlyLimit: value });
+    setLimitEditing(false);
     onToast(value == null ? 'Límite mensual eliminado.' : `Límite mensual establecido en ${euro.format(value)}.`);
   };
 
@@ -65,7 +67,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   };
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ version: '15.3', exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ version: '16.1', exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -89,165 +91,88 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   };
 
   return (
-    <div className="primy-page-enter mx-auto max-w-[1120px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
-      <header className="max-w-3xl">
-        <Eyebrow>Perfil</Eyebrow>
-        <h1 className="mt-4 text-4xl font-semibold tracking-[-.05em] text-primary sm:text-5xl">Tu cuenta, a tu manera.</h1>
-        <p className="mt-4 text-base leading-7 text-secondary">Personaliza Primy, protege tus datos y mantén tus límites bajo control.</p>
-      </header>
+    <div className="primy-page-enter mx-auto max-w-[1180px] px-4 py-6 sm:px-6 lg:px-8 lg:py-10">
+      <section className="primy-profile-hero">
+        <div className="primy-profile-hero__copy">
+          <Eyebrow>Mi Primy</Eyebrow>
+          <h1>Hola, {displayName}.</h1>
+          <p>Tu cuenta, tus preferencias y tus límites reunidos sin ruido.</p>
+          <div className="primy-profile-hero__identity">
+            <span>{user?.email}</span>
+            <strong data-status={syncStatus}>{syncLabel}</strong>
+            {syncStatus === 'offline' && pendingSyncCount > 0 && onRetrySync && <button type="button" onClick={retrySync}>Reintentar</button>}
+          </div>
+        </div>
+        <div className="primy-profile-hero__mascot"><PrimyMascot role="companion" size="dashboard" compact showCaption={false}/></div>
+      </section>
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-[1.1fr_.9fr]">
-        <div className="space-y-5">
-          <ProfileSection title="Tu cuenta" description={user?.email}>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <p className="text-lg font-semibold text-primary">{user?.user_metadata?.display_name || user?.email}</p>
-                <p aria-live="polite" className={`mt-2 text-sm font-bold ${syncStatus === 'synced' ? 'text-emerald-700' : syncStatus === 'error' ? 'text-rose-700' : 'text-amber-700'}`}>{syncLabel}</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {syncStatus === 'offline' && pendingSyncCount > 0 && onRetrySync && (
-                  <button type="button" onClick={retrySync} disabled={syncStatus === 'syncing'} className="min-h-11 rounded-2xl bg-primy-700 px-4 text-sm font-semibold text-white hover:bg-primy-800 disabled:opacity-50">Reintentar sincronización</button>
-                )}
-                <button type="button" onClick={onSignOut} className="min-h-11 rounded-2xl border border-default px-4 text-sm font-semibold text-primary hover:bg-muted">Cerrar sesión</button>
-              </div>
-            </div>
-          </ProfileSection>
-
-          <ProfileSection title="Apariencia" description="Elige un tema o deja que Primy siga la configuración del dispositivo." icon={DeviceIcon}>
-            <div className="grid gap-3 sm:grid-cols-3">
+      <div className="primy-profile-layout">
+        <div className="primy-profile-layout__main">
+          <ProfileSection title="Mi experiencia Primy" description="Ajusta el aspecto y cómo quieres recibir avisos." icon={DeviceIcon} tone="mint">
+            <div className="primy-profile-themes">
               {[{ id:'system', label:'Sistema', icon:DeviceIcon },{ id:'light', label:'Claro', icon:SunIcon },{ id:'dark', label:'Oscuro', icon:MoonIcon }].map(item => {
                 const Icon = item.icon;
                 const selected = preferences.appearance === item.id;
-                return (
-                  <button
-                    type="button"
-                    key={item.id}
-                    onClick={() => updatePreferences({ appearance:item.id })}
-                    aria-pressed={selected}
-                    className={`primy-profile-choice ${selected ? 'is-selected' : ''}`}
-                  >
-                    <Icon width="19" height="19"/>{item.label}
-                  </button>
-                );
+                return <button type="button" key={item.id} onClick={() => updatePreferences({ appearance:item.id })} aria-pressed={selected} data-selected={selected ? 'true' : 'false'}><Icon width="19" height="19"/><span>{item.label}</span></button>;
               })}
             </div>
+            <div className="primy-profile-inline-action">
+              <span><BellIcon width="19" height="19"/><span><strong>Avisos de comprobación</strong><small>Primy te avisa cuando una jugada está lista.</small></span></span>
+              <button type="button" onClick={preferences.notifications ? () => updatePreferences({ notifications:false }) : enableNotifications}>{preferences.notifications ? 'Desactivar' : 'Activar'}</button>
+            </div>
+            <div className="primy-profile-inline-action">
+              <span><InstallIcon width="19" height="19"/><span><strong>Instalar Primy</strong><small>Úsala como una aplicación independiente.</small></span></span>
+              {installPrompt.canInstall ? <button type="button" onClick={installPrompt.promptInstall}>Instalar</button> : <em>Compartir → Añadir a inicio</em>}
+            </div>
           </ProfileSection>
 
-          <ProfileSection title="Límite mensual personal" description="Un recordatorio privado para mantener el gasto dentro de la cantidad que tú decidas." icon={ShieldIcon}>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-              <label className="flex-1 text-sm font-bold text-primary">
-                Límite en euros
-                <input type="number" min="0" step="1" inputMode="decimal" value={limitDraft} onChange={event => setLimitDraft(event.target.value)} placeholder="Sin límite" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/>
-              </label>
-              <button type="button" onClick={saveLimit} disabled={!limitChanged} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800 disabled:cursor-not-allowed disabled:opacity-50">Guardar límite</button>
+          <ProfileSection title="Mi juego responsable" description="Una vista clara de lo que habías decidido gastar." icon={ShieldIcon} tone="responsible">
+            <div className="primy-profile-budget">
+              <div><span>Gastado este mes</span><strong>{euro.format(monthlyStats.spent)}</strong></div>
+              <div><span>{limit ? 'Disponible' : 'Límite personal'}</span><strong>{limit ? euro.format(remaining) : 'Sin límite'}</strong></div>
+              {limit && <span className="primy-profile-budget__track" aria-label={`${Math.round(limitPercent)}% del límite utilizado`}><span style={{ width: `${Math.max(3, limitPercent)}%` }}/></span>}
+              <p>{limit ? `${euro.format(monthlyStats.spent)} utilizados de ${euro.format(limit)}` : 'Puedes establecer una cantidad mensual como recordatorio privado.'}</p>
             </div>
-            {(preferenceError || storageError) && <div role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{preferenceError || storageError}</div>}
+            {limitEditing ? (
+              <div className="primy-profile-limit-editor">
+                <label>Límite en euros<input type="number" min="0" step="1" inputMode="decimal" value={limitDraft} onChange={event => setLimitDraft(event.target.value)} placeholder="Sin límite"/></label>
+                <button type="button" onClick={saveLimit} disabled={!limitChanged}>Guardar</button>
+                <button type="button" onClick={() => { setLimitDraft(preferences.monthlyLimit ?? ''); setLimitEditing(false); }}>Cancelar</button>
+              </div>
+            ) : <button type="button" className="primy-profile-text-action" onClick={() => setLimitEditing(true)}>{limit ? 'Modificar límite' : 'Establecer límite'}</button>}
+            {(preferenceError || storageError) && <div role="alert" className="primy-profile-error">{preferenceError || storageError}</div>}
           </ProfileSection>
         </div>
 
-        <div className="space-y-5">
-          <ProfileSection title="Verificación de edad" description="Primy solo permite el acceso a personas de 18 años o más." icon={ShieldIcon}>
-            <div className="rounded-2xl bg-emerald-50 p-4 text-emerald-900">
-              <p className="font-semibold">Edad confirmada</p>
-              <p className="mt-1 text-sm leading-6">{preferences.ageConfirmedAt ? `Verificada el ${verificationDate.format(new Date(preferences.ageConfirmedAt))}.` : 'Verificación completada.'} La fecha de nacimiento no se almacena.</p>
-            </div>
-          </ProfileSection>
-
-          <ProfileSection title="Avisos" description="Recibe un aviso cuando Primy encuentre jugadas listas para comprobar." icon={BellIcon}>
-            <button type="button" onClick={preferences.notifications ? () => updatePreferences({ notifications:false }) : enableNotifications} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">
-              {preferences.notifications ? 'Desactivar notificaciones' : 'Activar notificaciones'}
-            </button>
-          </ProfileSection>
-
-          <ProfileSection title="Instalación" description="Usa Primy como aplicación independiente desde la pantalla de inicio." icon={InstallIcon}>
-            {installPrompt?.installed ? (
-              <p className="rounded-xl bg-emerald-50 p-4 font-bold text-emerald-900">Primy ya está instalada.</p>
-            ) : installPrompt?.canInstall ? (
-              <button type="button" onClick={installPrompt.install} className="min-h-11 rounded-xl bg-primy-700 px-5 text-sm font-semibold text-white hover:bg-primy-800">Instalar Primy</button>
-            ) : (
-              <p className="text-sm leading-6 text-secondary">En iPhone o iPad: Compartir → Añadir a pantalla de inicio.</p>
-            )}
-          </ProfileSection>
-
-          <ProfileSection title="Copia de seguridad" description="Exporta tus jugadas o restaura una copia de Primy." icon={DownloadIcon}>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={exportData} disabled={!history.length} className="flex min-h-11 items-center gap-2 rounded-2xl border border-default px-4 text-sm font-bold hover:bg-muted disabled:opacity-50"><DownloadIcon width="18" height="18"/>Exportar</button>
-              <button type="button" onClick={() => fileRef.current?.click()} className="flex min-h-11 items-center gap-2 rounded-2xl border border-default px-4 text-sm font-bold hover:bg-muted"><UploadIcon width="18" height="18"/>Importar</button>
+        <aside className="primy-profile-layout__side">
+          <ProfileSection title="Privacidad y seguridad" description="Controla el acceso y las copias de tus datos." icon={ShieldIcon} tone="blue">
+            <div className="primy-profile-security-item"><strong>Edad confirmada</strong><span>{preferences.ageConfirmedAt ? `Verificada el ${verificationDate.format(new Date(preferences.ageConfirmedAt))}` : 'Verificación completada'}. La fecha de nacimiento no se almacena.</span></div>
+            <div className="primy-profile-backup">
+              <button type="button" onClick={exportData} disabled={!history.length}><DownloadIcon width="18" height="18"/>Exportar</button>
+              <button type="button" onClick={() => fileRef.current?.click()}><UploadIcon width="18" height="18"/>Importar</button>
               <input ref={fileRef} type="file" accept="application/json,.json" onChange={importFile} className="sr-only"/>
             </div>
+            <button type="button" onClick={onSignOut} className="primy-profile-signout">Cerrar sesión</button>
           </ProfileSection>
-        </div>
+
+          <ProfileSection title="Consejo de Primy" description="Organizar mejor no significa jugar más." icon={InfoIcon} tone="lavender">
+            <p className="primy-profile-advice">Mantén tus límites personales y utiliza Primy como herramienta de organización, nunca como promesa de premio.</p>
+          </ProfileSection>
+        </aside>
       </div>
 
-      <section className="primy-profile-advanced mt-5">
-        <button
-          type="button"
-          onClick={() => setAdvancedOpen(value => !value)}
-          aria-expanded={advancedOpen}
-          aria-controls="profile-advanced-content"
-          className="flex min-h-14 w-full items-center justify-between gap-4 text-left"
-        >
-          <span>
-            <span className="flex items-center gap-2 text-xl font-semibold text-primary"><InfoIcon width="21" height="21"/>Información y ajustes avanzados</span>
-            <span className="mt-1 block text-sm leading-6 text-secondary">Fuente de datos, guía inicial e información técnica.</span>
-          </span>
-          <span aria-hidden="true" className={`text-2xl transition-transform ${advancedOpen ? 'rotate-45' : ''}`}>+</span>
+      <section className="primy-profile-advanced">
+        <button type="button" onClick={() => setAdvancedOpen(value => !value)} aria-expanded={advancedOpen} aria-controls="profile-advanced-content">
+          <span><DatabaseIcon width="21" height="21"/><span><strong>Datos y ajustes avanzados</strong><small>Proveedor oficial, análisis e información técnica.</small></span></span>
+          <span aria-hidden="true">{advancedOpen ? '−' : '+'}</span>
         </button>
-
         {advancedOpen && (
-          <div id="profile-advanced-content" className="mt-5 space-y-5 border-t border-default pt-5">
-            <div className="rounded-2xl bg-muted p-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h3 className="flex items-center gap-2 text-lg font-semibold text-primary"><DatabaseIcon width="20" height="20"/>Fuente de datos</h3>
-                  <p className="mt-1 text-sm leading-6 text-secondary">Conexión utilizada para el historial, los botes y la comprobación.</p>
-                </div>
-                <button type="button" onClick={providerStatus.reload} className="min-h-11 rounded-2xl border border-default bg-surface px-4 text-sm font-bold hover:bg-muted">Volver a comprobar</button>
-              </div>
-              <div className={`mt-4 rounded-xl p-4 ${providerStatus.online ? 'bg-emerald-50 text-emerald-900' : providerStatus.configured === false ? 'bg-amber-50 text-amber-950' : 'bg-rose-50 text-rose-900'}`} role="status">
-                <p className="font-semibold">{providerStatus.loading ? 'Comprobando…' : providerStatus.online ? 'Fuente de datos conectada' : providerStatus.configured === false ? 'Archivo persistente no configurado' : 'Fuente de datos no disponible'}</p>
-                {providerStatus.message && <p className="mt-1 text-sm leading-6">{providerStatus.message}</p>}
-              </div>
-            </div>
-
-            <div className="rounded-2xl bg-muted p-4">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-primary">Guía inicial</h3>
-                  <p className="mt-1 text-sm leading-6 text-secondary">Vuelve a ver el recorrido de bienvenida cuando quieras.</p>
-                </div>
-                <button type="button" onClick={() => updatePreferences({ onboardingSeen:false })} className="min-h-11 rounded-2xl border border-default bg-surface px-4 text-sm font-semibold text-primary hover:bg-muted">Ver introducción</button>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-primary">Cómo funciona Primy Core</h3>
-              <p className="mt-1 text-sm leading-6 text-secondary">Primy Core usa un motor inteligente de análisis avanzado para generar combinaciones válidas, mostrar estadísticas informativas y ayudarte a comprobar resultados sin prometer premios.</p>
-              <div className="mt-4"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego que analizar"/></div>
-              <div className="mt-5"><HistoryLab historyState={historyState}/></div>
-            </div>
+          <div id="profile-advanced-content" className="primy-profile-advanced__content">
+            <div className="primy-profile-provider"><div><h3>Fuente de datos</h3><p>{providerStatus.message || 'Resultados y archivo oficial.'}</p></div><button type="button" onClick={providerStatus.reload}>Volver a comprobar</button></div>
+            <div><h3>Cómo funciona Primy Core</h3><p>Selecciona un juego para consultar sus estadísticas informativas. Ningún análisis garantiza resultados.</p><div className="mt-4"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego que analizar"/></div><div className="mt-5"><HistoryLab historyState={historyState}/></div></div>
+            <div className="primy-profile-danger"><div><h3>Eliminar las jugadas</h3><p>Borra definitivamente el archivo sincronizado de tu cuenta.</p></div><button type="button" onClick={onClear} disabled={!history.length}><TrashIcon width="18" height="18"/>Eliminar todo</button></div>
           </div>
         )}
-      </section>
-
-      <section className="mt-5 grid gap-5 rounded-[2rem] border border-primy-100 bg-gradient-to-br from-ivory via-white to-sky/30 p-5 shadow-soft md:grid-cols-[minmax(0,1fr)_280px] md:p-6">
-        <div className="flex flex-col justify-center">
-          <p className="text-sm font-bold text-primy-700">Consejo de Primy</p>
-          <h2 className="mt-2 text-2xl font-semibold text-primary">Usa la app con calma y criterio</h2>
-          <p className="mt-3 text-sm leading-7 text-secondary">Primy está para organizar tus jugadas, no para empujarte a jugar más. Mantén siempre tus límites personales y disfruta del juego de forma responsable.</p>
-        </div>
-        <PrimyMascotGraphic className="mx-auto w-full max-w-[280px]" variant="responsible" size="dashboard" caption="Tu guía para jugar con cabeza"/>
-      </section>
-
-      <section className="mt-5 rounded-2xl border border-rose-200 bg-surface p-5 md:p-6">
-        <h2 className="text-xl font-semibold text-rose-800">Eliminar las jugadas de la cuenta</h2>
-        <p className="mt-1 text-sm leading-6 text-secondary">Esta acción elimina definitivamente las jugadas y los borradores sincronizados con tu cuenta.</p>
-        <button type="button" onClick={onClear} disabled={!history.length} className="mt-5 flex min-h-11 items-center gap-2 rounded-xl bg-rose-700 px-4 text-sm font-semibold text-white hover:bg-rose-800 disabled:opacity-50"><TrashIcon width="18" height="18"/>Eliminar todo</button>
-      </section>
-
-      <section className="mt-5 rounded-2xl bg-primy-700 p-5 text-white md:p-6">
-        <h2 className="text-xl font-semibold">Juego responsable</h2>
-        <p className="mt-2 text-sm leading-6 text-primy-100">Primy es una herramienta informativa para mayores de edad. No vende boletos, no predice sorteos ni garantiza premios. No persigas las pérdidas ni utilices dinero necesario para gastos esenciales.</p>
       </section>
     </div>
   );
