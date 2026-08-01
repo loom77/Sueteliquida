@@ -3,9 +3,13 @@ import {
   CalendarIcon,
   ChevronRightIcon,
   GridIcon,
+  HorseRacingIcon,
   InfoIcon,
+  NationalDrawIcon,
+  NumbersLotteryIcon,
   SearchIcon,
   SparklesIcon,
+  SportsBallIcon,
   TicketIcon,
 } from './Icons.jsx';
 import { Eyebrow, PrimaryButton, SecondaryButton } from './DesignSystem.jsx';
@@ -21,6 +25,14 @@ import {
   getCatalogFamily,
   searchCatalogGames,
 } from '../utils/gameCatalog.js';
+
+
+const FAMILY_ICONS = {
+  numbers: NumbersLotteryIcon,
+  national: NationalDrawIcon,
+  sports: SportsBallIcon,
+  horse: HorseRacingIcon,
+};
 
 const STATUS_STYLES = {
   active: 'is-active',
@@ -127,17 +139,20 @@ export default function ExploreView({ now, history, onCreate, onRegister, onOpen
         </div>
       </section>
 
-      {groupedGames.length > 0 ? groupedGames.map(family => (
-        <section key={family.id} className="primy-games-family" aria-labelledby={`family-${family.id}`}>
+      {groupedGames.length > 0 ? groupedGames.map(family => {
+        const FamilyIcon = FAMILY_ICONS[family.id] || GridIcon;
+        return (
+          <section key={family.id} className="primy-games-family" aria-labelledby={`family-${family.id}`}>
           <div className="primy-games-family__heading">
-            <span aria-hidden="true"><GridIcon width="21" height="21"/></span>
+            <span aria-hidden="true"><FamilyIcon width="23" height="23"/></span>
             <div><h2 id={`family-${family.id}`}>{family.name}</h2><p>{family.description}</p></div>
           </div>
           <div className="primy-games-grid">
             {family.games.map(game => <GameCard key={game.id} game={game} now={now} onCreate={onCreate} onRegister={onRegister} onOpenArchive={onOpenArchive}/>) }
           </div>
         </section>
-      )) : (
+        );
+      }) : (
         <section className="primy-games-empty" role="status"><SearchIcon width="28" height="28"/><h2>No se ha encontrado ningún juego</h2><p>Prueba con otro nombre o selecciona otra familia.</p></section>
       )}
 

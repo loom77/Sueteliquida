@@ -1,3 +1,11 @@
+# Primy v16.4.0 — Iconografía creativa y pulido visual
+
+- Nuevo sistema de iconos UI para Presupuesto, Mi archivo, Todos los juegos y Próximo sorteo.
+- Nueva iconografía de familia para Loterías de números, Lotería Nacional, Apuestas deportivas y Apuestas hípicas.
+- Integración de los nuevos iconos en Home, catálogo de juegos y panel de preparación.
+- Release visual de continuidad sobre la base mobile/iPad v16.3.0.
+
+
 # Primy v16.3.0 — Mobile & iPad UX Redesign
 
 - rifatta l’icona Presupuesto con un simbolo specifico per controllo e configurazione del budget;
