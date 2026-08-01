@@ -95,3 +95,8 @@ Las acciones deportivas siguen bloqueadas. Antes de activarlas deben completarse
 5. comprobación de jornadas excluidas o modificadas;
 6. validación temporal con datos históricos reales;
 7. revisión legal, UX y juego responsable.
+
+
+## Continuación v15.8.0
+
+El proveedor oficial y el repositorio persistente se implementan en `SPORTS-DATA-FOUNDATION-V15.8.md`.

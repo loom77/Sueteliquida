@@ -1,6 +1,29 @@
-# Primy v15.7.0
+# Primy v16.0.0
 
 Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La aplicación no vende boletos, no reserva apuestas, no predice resultados como certezas y no garantiza premios.
+
+
+## Novedad v16.0.0 — Visual Foundation
+
+- Design system centralizado y coherente con el nuevo logo Primy.
+- Sidebar y navegación simplificadas.
+- Home más corta, con una acción principal dominante.
+- Roles funcionales de la mascota y base del ritual de preparación en cuatro fases.
+- Sin cambios en motores matemáticos, reglas, datos o persistencia.
+
+
+## Novedad v15.9.0 — Quiniela simple operativa
+
+- Jornada oficial SELAE cargada desde el archivo deportivo versionado.
+- Boleto dedicado con 14 selectores `1-X-2` y Pleno al 15 `0-1-2-M`.
+- Una apuesta simple a 0,75 €, con coste visible y control del límite mensual.
+- El pronóstico conserva jornada, revisión, `source_hash` y composición completa.
+- Guardado como borrador no comprado en el Archivo de Primy.
+- Vista de detalle deportiva propia; compra, escrutinio, múltiples, Elige8, reducidas y condicionadas siguen bloqueados.
+
+## Novedad v15.8.0
+
+La Quiniela y El Quinigol disponen de proveedor oficial de composición y archivo versionado de jornadas. Las acciones de juego siguen desactivadas hasta completar su UX y verificador.
 
 ## Novedades de v15.7.0
 
@@ -22,8 +45,9 @@ Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La ap
 - **EuroDreams**
 - **El Gordo de la Primitiva**
 - **Lotería Nacional**
+- **La Quiniela**, limitada en v15.9.0 a una apuesta simple preparada como borrador
 
-La Quiniela y El Quinigol disponen de una base matemática en validación, pero todavía no exponen acciones operativas. Los juegos hípicos permanecen en fase de arquitectura.
+El Quinigol mantiene la base matemática y el archivo oficial en validación, sin acciones operativas. En La Quiniela todavía permanecen bloqueados compra, comprobación, múltiples, Elige8, reducidas y condicionadas. Los juegos hípicos continúan en fase de arquitectura.
 
 ## Modelo específico de Lotería Nacional
 

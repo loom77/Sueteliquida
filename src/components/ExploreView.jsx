@@ -27,6 +27,8 @@ const STATUS_STYLES = {
   'rules-review': 'border-amber-200 bg-amber-50 text-amber-800',
   'architecture-review': 'border-slate-200 bg-slate-50 text-slate-700',
   'sports-foundation': 'border-sky-200 bg-sky-50 text-sky-800',
+  'sports-data-foundation': 'border-cyan-200 bg-cyan-50 text-cyan-900',
+  'quiniela-simple-beta': 'border-sky-200 bg-sky-50 text-sky-900',
 };
 
 function CapabilityList({ capabilities }) {
@@ -52,9 +54,9 @@ function CapabilityList({ capabilities }) {
 
 const GameCard = memo(function GameCard({ game, now, onCreate, onRegister }) {
   const family = getCatalogFamily(game.familyId);
-  const active = game.availability === 'active';
+  const active = Boolean(game.capabilities.createCombination);
   const implementedGame = active ? getGameConfig(game.id) : null;
-  const draw = active ? getNextDrawInfo(game.id, now) : null;
+  const draw = active && game.familyId !== 'sports' ? getNextDrawInfo(game.id, now) : null;
 
   return (
     <article className="primy-panel flex h-full flex-col p-5 sm:p-6">
@@ -95,9 +97,9 @@ const GameCard = memo(function GameCard({ game, now, onCreate, onRegister }) {
 
       <div className="mt-auto pt-5">
         {active ? (
-          <div className="grid gap-2 sm:grid-cols-2">
-            <PrimaryButton onClick={() => onCreate(game.id)} icon={SparklesIcon} className="w-full">Crear</PrimaryButton>
-            <SecondaryButton onClick={() => onRegister(game.id)} icon={TicketIcon} className="w-full">Registrar</SecondaryButton>
+          <div className={`grid gap-2 ${game.capabilities.manualEntry ? 'sm:grid-cols-2' : ''}`}>
+            <PrimaryButton onClick={() => onCreate(game.id)} icon={SparklesIcon} className="w-full">{game.id === 'quiniela' ? 'Preparar Quiniela' : 'Crear'}</PrimaryButton>
+            {game.capabilities.manualEntry && <SecondaryButton onClick={() => onRegister(game.id)} icon={TicketIcon} className="w-full">Registrar</SecondaryButton>}
           </div>
         ) : (
           <details className="group rounded-2xl border border-default bg-surface">
@@ -106,9 +108,9 @@ const GameCard = memo(function GameCard({ game, now, onCreate, onRegister }) {
               <ChevronRightIcon width="18" height="18" className="transition-transform group-open:rotate-90" aria-hidden="true"/>
             </summary>
             <div className="border-t border-default px-4 py-4 text-sm leading-6 text-secondary">
-              {game.availability === 'sports-foundation' ? (
+              {['sports-foundation', 'sports-data-foundation'].includes(game.availability) ? (
                 <>
-                  <p>La base matemática ya está implementada y permanece aislada de los juegos numéricos. Las acciones siguen bloqueadas hasta completar datos oficiales, boleto, persistencia y comprobación.</p>
+                  <p>La base matemática y el archivo oficial de jornadas ya están separados de los juegos numéricos. Las acciones siguen bloqueadas hasta completar el boleto, los pronósticos del usuario, las reducidas y la comprobación.</p>
                   <p className="mt-3 text-xs font-bold uppercase tracking-[.12em] text-sky-800">Completado</p>
                   <ul className="mt-1 list-disc space-y-1 pl-5">
                     {(game.foundation?.completed || []).map(item => <li key={item}>{item}</li>)}

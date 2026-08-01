@@ -7,7 +7,7 @@ const home = fs.readFileSync(new URL('../src/components/HomeExperience.jsx', imp
 const dialog = fs.readFileSync(new URL('../src/components/PrimyCoreDialog.jsx', import.meta.url), 'utf8');
 const css = fs.readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
 
-test('Primy Core recibe una presentación destacada y accesible', () => {
+test('Primy Core mantiene una explicación compartida y accesible en el contexto de creación', () => {
   assert.match(generator, /primy-core-spotlight/);
   assert.match(generator, /Descubre más sobre Primy Core/);
   assert.match(generator, /aria-haspopup="dialog"/);
@@ -15,12 +15,11 @@ test('Primy Core recibe una presentación destacada y accesible', () => {
   assert.match(dialog, /id="primy-core-dialog-title"/);
 });
 
-test('la página principal abre el mismo diálogo de Primy Core desde un acceso evidente', () => {
-  assert.match(home, /Cómo funciona Primy Core/);
-  assert.match(home, /primy-home-core-trigger/);
-  assert.match(home, /aria-controls="primy-core-info-dialog"/);
-  assert.match(home, /<PrimyCoreDialog open=\{coreInfoOpen\}/);
-  assert.match(css, /\.primy-home-core-trigger\s*\{/);
+test('la home v16 elimina la repetición promocional de Primy Core y prioriza una sola acción', () => {
+  assert.doesNotMatch(home, /Cómo funciona Primy Core/);
+  assert.doesNotMatch(home, /primy-home-core-trigger/);
+  assert.match(home, /Preparar una jugada/);
+  assert.match(home, /PrimyMascot role="welcome"/);
 });
 
 test('el diálogo compartido explica con lenguaje simple qué hace y qué no hace Primy Core', () => {
@@ -31,9 +30,8 @@ test('el diálogo compartido explica con lenguaje simple qué hace y qué no hac
   assert.match(dialog, /PrimyMascotGraphic variant="helper"/);
 });
 
-test('la experiencia translúcida respeta movimiento reducido', () => {
+test('la experiencia translúcida y el sistema v16 respetan movimiento reducido', () => {
   assert.match(css, /\.primy-core-spotlight\s*\{[\s\S]*backdrop-filter:\s*blur\(18px\)/);
   assert.match(css, /@keyframes primyCoreGlassSweep/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.primy-core-spotlight::after[\s\S]*animation:\s*none !important/);
-  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.primy-home-core-trigger/);
+  assert.match(css, /@media \(prefers-reduced-motion: reduce\)[\s\S]*transition-duration:\s*\.01ms !important/);
 });

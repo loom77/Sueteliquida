@@ -4,6 +4,11 @@ function cleanText(value, maxLength = 140) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }
 
+function validDateKey(value) {
+  const text = String(value || '');
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
+}
+
 function validIso(value) {
   if (!value) return null;
   const date = new Date(value);
@@ -44,11 +49,16 @@ export function sanitizeSportsRound(raw, { expectedMatches } = {}) {
     gameId,
     season: cleanText(raw?.season, 40),
     officialRoundNumber: cleanText(raw?.officialRoundNumber, 40),
+    roundDate: validDateKey(raw?.roundDate),
     status,
     salesOpenAt: validIso(raw?.salesOpenAt),
     salesCloseAt: validIso(raw?.salesCloseAt),
+    source: cleanText(raw?.source || 'SELAE oficial', 100),
     sourceUrl: cleanText(raw?.sourceUrl, 500),
     sourceHash: cleanText(raw?.sourceHash, 160),
+    officialUpdatedAt: validIso(raw?.officialUpdatedAt),
+    fetchedAt: validIso(raw?.fetchedAt) || new Date().toISOString(),
+    revision: Number.isInteger(Number(raw?.revision)) && Number(raw.revision) > 0 ? Number(raw.revision) : 1,
     updatedAt: validIso(raw?.updatedAt) || new Date().toISOString(),
     matches,
     metadata: raw?.metadata && typeof raw.metadata === 'object' ? { ...raw.metadata } : {},
@@ -86,6 +96,7 @@ export function sportsRoundFingerprint(round) {
     roundId: round?.roundId || '',
     gameId: round?.gameId || '',
     officialRoundNumber: round?.officialRoundNumber || '',
+    roundDate: round?.roundDate || '',
     matches: (round?.matches || []).map(match => [match.position, match.officialMatchId || match.matchId, match.homeTeam, match.awayTeam, match.kickoffAt, match.status]),
   });
   let hash = 2166136261;

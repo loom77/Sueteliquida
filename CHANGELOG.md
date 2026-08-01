@@ -1,3 +1,36 @@
+# Primy v16.0.0 — Visual Foundation
+
+- nuovo sistema di token centralizzati per colore, superfici, spaziatura, radius, ombre e movimento;
+- design system React ampliato con Button, Card, PageHeader, SectionHeader, StatusNotice, EmptyState, SegmentedControl e ActionMenu;
+- ruoli funzionali della mascotte centralizzati: welcome, guide, thinking, confirmation, responsible ed empty;
+- base accessibile del rituale di elaborazione Primy in quattro fasi, pronta per l’integrazione nel generatore;
+- sidebar desktop semplificata e pannello promozionale duplicato rimosso;
+- navigazione “Crear” rinominata “Preparar” per coerenza terminologica;
+- home ridotta a hero, stato pendente, ultima attività e accessi rapidi;
+- CTA principali uniformate al verde Primy e colori di gioco mantenuti come accenti secondari;
+- nessuna modifica ai motori matematici, alle regole di gioco o alla persistenza.
+
+# Primy v15.9.0 — Quiniela simple operativa
+
+- activada la primera experiencia deportiva de Primy sobre la jornada oficial archivada;
+- añadidos 14 selectores 1-X-2 y Pleno al 15 con buckets 0, 1, 2 y M;
+- coste fijo de una apuesta simple y control del límite mensual;
+- nuevo modelo persistente que vincula pronóstico, revisión y huella de la fuente oficial;
+- guardado únicamente como borrador no comprado;
+- vista específica de Quiniela en el Archivo;
+- compra, comprobación, dobles, triples, Elige8, reducidas y condicionadas permanecen bloqueados;
+- cache PWA actualizada a v15.9.0.
+
+# Primy v15.8.0 — Datos deportivos oficiales y archivo versionado
+
+- proveedor oficial de composiciones para La Quiniela y El Quinigol;
+- parser estricto de 15 y 6 partidos sin completar datos ausentes;
+- archivo Supabase `primy_sports_rounds`;
+- historial inmutable de revisiones por `source_hash`;
+- Edge Function y tareas programadas de sincronización;
+- endpoint público de lectura y proxy limitado de actualización;
+- juegos deportivos todavía bloqueados hasta completar UX, pronósticos y comprobación.
+
 # Primy v15.7.0 — Fundación matemática de apuestas deportivas
 
 - separada la arquitectura deportiva del motor de loterías numéricas;

@@ -15,6 +15,7 @@ import { useResultChecking } from './useResultChecking.js';
 import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { getDueByGame, getDueTotal, getMonthlyStats, getPurchasedTotals } from '../utils/appMetrics.js';
 import { createNationalPlay } from '../utils/nationalLottery.js';
+import { createSimpleQuinielaPlay } from '../sports/quinielaPlay.js';
 
 const VIEW_TITLES = {
   dashboard: 'Inicio',
@@ -104,6 +105,17 @@ export function useAppController(auth) {
     }
   }, [generation]);
 
+  const prepareQuiniela = useCallback(config => {
+    try {
+      const play = createSimpleQuinielaPlay(config || {});
+      generation.setLatest(play);
+      generation.setSaveState('unsaved');
+      generation.setGenerationError('');
+    } catch (error) {
+      generation.setGenerationError(error?.message || 'No se ha podido preparar La Quiniela.');
+    }
+  }, [generation]);
+
   const playActions = usePlayActions({
     history,
     savePlay: historyStore.savePlay,
@@ -178,6 +190,7 @@ export function useAppController(auth) {
       setSystemSize,
       onGenerate: generate,
       onPrepareNational: prepareNational,
+      onPrepareQuiniela: prepareQuiniela,
       onCancel: cancelGeneration,
       busy: generation.busy,
       progress: generation.progress,
@@ -255,7 +268,7 @@ export function useAppController(auth) {
     overlays: {
       manual: {
         open: manualOpen,
-        initialGame: activeGame,
+        initialGame: activeGame === 'quiniela' ? 'primitiva' : activeGame,
         onClose: () => setManualOpen(false),
         onSave: playActions.saveExternal,
       },

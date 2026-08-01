@@ -86,9 +86,54 @@ function NationalPlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, on
   );
 }
 
+
+function QuinielaPlayDetails({ play, onRequestRemove, onFavorite }) {
+  const column = play.columns?.[0] || { signs: [], pleno: {} };
+  const matches = play.matches || [];
+  return (
+    <div className="p-4 md:p-6">
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-sky-800">Quiniela preparada</p>
+          <h3 className="mt-1 text-xl font-semibold text-primary">{play.officialRoundNumber ? `Jornada ${play.officialRoundNumber}` : 'Jornada oficial'} · {formatDrawDate(play.drawDateISO)}</h3>
+          <p className="mt-1 text-sm text-secondary">Una apuesta simple · Coste {euro.format(playCost(play))}</p>
+        </div>
+        <TicketStatus status={play.computedStatus}/>
+      </div>
+
+      <div className="grid gap-2 xl:grid-cols-2">
+        {matches.slice(0, 14).map((match, index) => (
+          <div key={match.matchId} className="grid grid-cols-[2rem_minmax(0,1fr)_3rem] items-center gap-3 rounded-xl border border-default bg-muted px-3 py-2.5">
+            <span className="text-xs font-bold text-secondary">{index + 1}</span>
+            <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{match.homeTeam}</p><p className="truncate text-xs text-secondary">{match.awayTeam}</p></div>
+            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-800 text-lg font-extrabold text-white">{column.signs?.[index]}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <p className="text-xs font-bold uppercase tracking-wide text-amber-900">Pleno al 15</p>
+        <p className="mt-2 font-semibold text-primary">{matches[14]?.homeTeam} {column.pleno?.home} – {column.pleno?.away} {matches[14]?.awayTeam}</p>
+        <p className="mt-1 text-xs text-secondary">M representa tres o más goles.</p>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
+        <p className="font-semibold">Borrador deportivo: todavía no comprado</p>
+        <p className="mt-1">Esta versión conserva la jornada y el pronóstico. El registro de compra y la comprobación oficial se activarán en un milestone posterior.</p>
+      </div>
+
+      <div className="mt-6 grid gap-2 sm:grid-cols-2">
+        <button type="button" onClick={() => onFavorite(play.id)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted"><StarIcon width="17" height="17" className={play.favorite ? 'fill-amber-400 text-amber-500' : ''}/>{play.favorite ? 'Quitar favorito' : 'Favorito'}</button>
+        <button type="button" onClick={() => onRequestRemove(play)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>
+      </div>
+    </div>
+  );
+}
+
 function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const [purchaseExtra, setPurchaseExtra] = useState('');
   if (play.gameId === 'loteria-nacional') return <NationalPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat}/>;
+  if (play.gameId === 'quiniela') return <QuinielaPlayDetails play={play} onRequestRemove={onRequestRemove} onFavorite={onFavorite}/>;
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
   const receiptScopedExtra = game.extra?.scope === 'receipt';
@@ -239,7 +284,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
     return plays
       .filter(play => gameFilter === 'all' || play.gameId === gameFilter)
       .filter(play => statusFilter === 'all' || play.computedStatus === statusFilter)
-      .filter(play => !normalizedQuery || `${getGameConfig(play.gameId).name} ${play.drawDateKey || ''} ${play.nationalNumber || ''}`.toLowerCase().includes(normalizedQuery))
+      .filter(play => !normalizedQuery || `${getGameConfig(play.gameId).name} ${play.drawDateKey || ''} ${play.nationalNumber || ''} ${play.officialRoundNumber || ''}`.toLowerCase().includes(normalizedQuery))
       .sort((a, b) => {
         if (sort === 'action') {
           const statusDiff = (priority[a.computedStatus] ?? 9) - (priority[b.computedStatus] ?? 9);
@@ -326,7 +371,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
-                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.gameId === 'loteria-nacional' ? `${play.nationalNumber} · ${play.ticketQuantity || 1} décimo(s)` : play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
+                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.gameId === 'loteria-nacional' ? `${play.nationalNumber} · ${play.ticketQuantity || 1} décimo(s)` : play.gameId === 'quiniela' ? '1 apuesta simple' : play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
                       </div>
                       <TicketStatus status={play.computedStatus}/>
                     </div>

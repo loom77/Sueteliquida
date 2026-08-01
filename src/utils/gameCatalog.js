@@ -109,14 +109,14 @@ export const GAME_CATALOG = {
     name: 'La Quiniela',
     shortName: 'Quiniela',
     familyId: 'sports',
-    description: 'Pronósticos 1-X-2 y pleno al quince con múltiples y reducidas.',
-    betModel: 'Pronóstico deportivo',
-    availability: 'sports-foundation',
-    capabilities: REVIEW_CAPABILITIES,
+    description: 'Primera experiencia operativa: una apuesta simple con 14 pronósticos 1-X-2 y Pleno al 15.',
+    betModel: 'Pronóstico deportivo simple',
+    availability: 'quiniela-simple-beta',
+    capabilities: { ...REVIEW_CAPABILITIES, createCombination: true, history: true, officialData: true },
     foundation: {
-      phase: 'Modelo matemático y reglas base',
-      completed: ['Modelo de jornada', 'Combinatoria 1-X-2', 'Pleno al 15', 'Poisson/Dixon-Coles', 'Simulación reproducible'],
-      pending: ['Proveedor oficial de jornadas', 'Matrices oficiales de reducidas', 'UX de boleto', 'Comprobación y persistencia'],
+      phase: 'Quiniela simple operativa',
+      completed: ['Modelo matemático', 'Proveedor oficial SELAE', 'Archivo versionado', 'Boleto 1-X-2', 'Pleno al 15', 'Borradores persistentes'],
+      pending: ['Compra y registro', 'Comprobación y escrutinio', 'Dobles y triples', 'Elige8', 'Reducidas y condicionadas'],
     },
   },
   quinigol: {
@@ -126,12 +126,12 @@ export const GAME_CATALOG = {
     familyId: 'sports',
     description: 'Pronóstico de resultados mediante rangos de goles.',
     betModel: 'Pronóstico de marcador',
-    availability: 'sports-foundation',
+    availability: 'sports-data-foundation',
     capabilities: REVIEW_CAPABILITIES,
     foundation: {
-      phase: 'Modelo matemático y reglas base',
-      completed: ['Modelo de jornada', 'Matriz 4×4 de marcadores', 'Agregación 0-1-2-M', 'Poisson/Dixon-Coles', 'Simulación reproducible'],
-      pending: ['Proveedor oficial de jornadas', 'UX de marcador', 'Comprobación y persistencia'],
+      phase: 'Datos oficiales y archivo versionado',
+      completed: ['Modelo matemático', 'Matriz 4×4', 'Proveedor oficial SELAE', 'Archivo versionado', 'Revisiones de composición'],
+      pending: ['UX de marcador', 'Persistencia de pronósticos', 'Comprobación y escrutinio'],
     },
   },
   lototurf: {
@@ -157,7 +157,7 @@ export const GAME_CATALOG = {
 };
 
 export const GAME_CATALOG_IDS = Object.keys(GAME_CATALOG);
-export const ACTIVE_GAME_IDS = GAME_CATALOG_IDS.filter(gameId => GAME_CATALOG[gameId].availability === 'active');
+export const ACTIVE_GAME_IDS = GAME_CATALOG_IDS.filter(gameId => GAME_CATALOG[gameId].capabilities.createCombination);
 
 export const CAPABILITY_LABELS = {
   createCombination: 'Crear',
@@ -173,6 +173,8 @@ export const AVAILABILITY_LABELS = {
   'rules-review': 'Reglas en validación',
   'architecture-review': 'Arquitectura en definición',
   'sports-foundation': 'Base matemática en validación',
+  'sports-data-foundation': 'Datos oficiales en validación',
+  'quiniela-simple-beta': 'Quiniela simple disponible',
 };
 
 export function getCatalogGame(gameId) {

@@ -3,6 +3,8 @@ import GeneratorPanel from './GeneratorPanel.jsx';
 import TicketPreview from './TicketPreview.jsx';
 import NationalLotteryPanel from './NationalLotteryPanel.jsx';
 import NationalTicketPreview from './NationalTicketPreview.jsx';
+import QuinielaPanel from './QuinielaPanel.jsx';
+import QuinielaTicketPreview from './QuinielaTicketPreview.jsx';
 import { CheckIcon, SparklesIcon, TicketIcon } from './Icons.jsx';
 
 const STEPS = [
@@ -35,6 +37,7 @@ export default function CreateJourney(props) {
     if (props.latest) return { icon: TicketIcon, eyebrow: 'Tu jugada', title: 'Lista para guardarla', description: 'Revisa el boleto y decide cómo quieres conservarlo.' };
     if (props.busy) return { icon: SparklesIcon, eyebrow: 'Primy Core', title: 'Estamos creando tu jugada', description: 'Solo tardará un momento. No necesitas hacer nada más.' };
     if (props.activeGame === 'loteria-nacional') return { icon: TicketIcon, eyebrow: 'Lotería Nacional', title: 'Prepara tu número de cinco cifras', description: 'Selecciona el sorteo, elige las cifras y guarda el décimo cuando lo hayas comprado.' };
+    if (props.activeGame === 'quiniela') return { icon: TicketIcon, eyebrow: 'La Quiniela', title: 'Prepara tu primera apuesta deportiva', description: 'Marca los 14 signos y el Pleno al 15 sobre la composición oficial de la jornada.' };
     return { icon: SparklesIcon, eyebrow: 'Crear', title: 'Tu próxima jugada empieza aquí', description: 'Elige el juego, ajusta las columnas y crea tu boleto en pocos segundos.' };
   }, [props.latest, props.busy, props.activeGame]);
 
@@ -67,14 +70,18 @@ export default function CreateJourney(props) {
         <div className="min-w-0">
           {props.activeGame === 'loteria-nacional'
             ? <NationalLotteryPanel {...props} onPrepareNational={props.onPrepareNational} layout={props.latest ? 'compact' : 'wide'}/>
-            : <GeneratorPanel {...props} layout={props.latest ? 'compact' : 'wide'}/>
+            : props.activeGame === 'quiniela'
+              ? <QuinielaPanel {...props} onPrepareQuiniela={props.onPrepareQuiniela}/>
+              : <GeneratorPanel {...props} layout={props.latest ? 'compact' : 'wide'}/>
           }
         </div>
         {props.latest && (
           <div ref={resultRef} id="generated-ticket" className="min-w-0 scroll-mt-24">
             {props.activeGame === 'loteria-nacional'
               ? <NationalTicketPreview play={props.latest} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={() => props.onPrepareNational?.({})} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>
-              : <TicketPreview play={props.latest} game={props.game} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={props.onGenerate} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>
+              : props.activeGame === 'quiniela'
+                ? <QuinielaTicketPreview play={props.latest} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays}/>
+                : <TicketPreview play={props.latest} game={props.game} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={props.onGenerate} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>
             }
           </div>
         )}

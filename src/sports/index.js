@@ -6,3 +6,5 @@ export * from './quinielaRules.js';
 export * from './quinigolRules.js';
 export * from './scenarioEngine.js';
 export * from './modelEvaluation.js';
+export * from './officialRoundParser.js';
+export * from './quinielaPlay.js';

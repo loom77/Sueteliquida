@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GridIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
-import { PrimyMark, PrimyMascotAvatar, PrimyWordmark } from './BrandVisuals.jsx';
+import { PrimyWordmark } from './BrandVisuals.jsx';
+import { Button, Card, StatusNotice } from './DesignSystem.jsx';
+import { PrimyMascot } from './PrimyMascot.jsx';
 
 const NAV = [
   { id: 'dashboard', label: 'Inicio', icon: HomeIcon },
-  { id: 'generate', label: 'Crear', icon: PlusIcon },
+  { id: 'generate', label: 'Preparar', icon: PlusIcon },
   { id: 'explore', label: 'Juegos', icon: GridIcon },
   { id: 'plays', label: 'Archivo', icon: ListIcon },
   { id: 'settings', label: 'Perfil', icon: SettingsIcon },
@@ -12,27 +14,20 @@ const NAV = [
 
 function NavButton({ item, active, onSelect, mobile = false, badge = 0 }) {
   const Icon = item.icon;
-  const desktopClass = active
-    ? 'bg-primy-700 text-white shadow-soft'
-    : 'text-secondary hover:bg-primy-50 hover:text-primy-800';
-  const mobileClass = active ? 'text-primy-700' : 'text-secondary';
   return (
     <button
       type="button"
       onClick={() => onSelect(item.id)}
       aria-current={active ? 'page' : undefined}
-      className={mobile
-        ? `relative flex min-h-16 flex-1 flex-col items-center justify-center gap-1 px-2 text-xs font-semibold ${mobileClass}`
-        : `relative flex min-h-12 w-full items-center gap-3 rounded-2xl px-4 py-2.5 text-left text-sm font-semibold ${desktopClass}`}
+      className={mobile ? 'primy-mobile-nav__item' : 'primy-nav-item'}
+      data-active={active ? 'true' : 'false'}
     >
-      <span className={mobile && active ? 'flex h-8 w-11 items-center justify-center rounded-full bg-primy-100' : ''}>
-        <Icon width={mobile ? 21 : 19} height={mobile ? 21 : 19}/>
+      <span className={mobile ? 'primy-mobile-nav__icon' : 'primy-nav-item__icon'}>
+        <Icon width={mobile ? 21 : 19} height={mobile ? 21 : 19} aria-hidden="true" />
       </span>
       <span>{item.label}</span>
       {badge > 0 && (
-        <span className={mobile
-          ? 'absolute right-[calc(50%-28px)] top-1 min-w-5 rounded-full bg-gold px-1 text-center text-[11px] font-bold leading-5 text-primary'
-          : 'ml-auto min-w-6 rounded-full bg-gold px-1.5 text-center text-xs font-bold leading-6 text-primary'}>
+        <span className={mobile ? 'primy-mobile-nav__badge' : 'primy-nav-item__badge'}>
           <span aria-hidden="true">{badge > 99 ? '99+' : badge}</span>
           <span className="sr-only">{badge} {badge === 1 ? 'jugada pendiente' : 'jugadas pendientes'}</span>
         </span>
@@ -56,11 +51,15 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
   const [online, setOnline] = useState(() => navigator.onLine !== false);
   const mainRef = useRef(null);
   const previousViewRef = useRef(view);
+
   useEffect(() => {
     const update = () => setOnline(navigator.onLine !== false);
     window.addEventListener('online', update);
     window.addEventListener('offline', update);
-    return () => { window.removeEventListener('online', update); window.removeEventListener('offline', update); };
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
   }, []);
 
   useEffect(() => {
@@ -76,44 +75,68 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
     <div className="min-h-screen bg-app text-primary">
       <a href="#main-content" className="sr-only z-50 rounded-xl bg-surface px-4 py-2 font-semibold text-primary focus:not-sr-only focus:fixed focus:left-4 focus:top-4">Ir al contenido</a>
 
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-72 flex-col border-r border-primy-100 bg-surface/95 p-5 backdrop-blur lg:flex">
-        <PrimyWordmark/>
-        <div className="primy-card-enter mt-7 rounded-3xl bg-gradient-to-br from-primy-700 to-primy-900 p-5 text-white">
-          <p className="font-display text-lg font-semibold">Todo lo que necesitas para vivir cada sorteo con claridad.</p>
-          <p className="mt-2 text-xs leading-5 text-primy-100">Crea, organiza y comprueba tus jugadas desde un solo lugar.</p>
-          <div className="mt-4 flex items-center gap-3" aria-hidden="true">
-            <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/95 shadow-sm"><PrimyMark className="h-8 w-8" title="" /></span>
-            <span className="h-px flex-1 bg-white/30" />
-            <span className="h-3 w-3 rounded-full bg-gold shadow-[0_0_0_5px_rgba(244,200,74,.15)]" />
-          </div>
-        </div>
-        <nav className="mt-7 space-y-2" aria-label="Navegación principal">
-          {NAV.map(item => <NavButton key={item.id} item={item} active={view === item.id} onSelect={onNavigate} badge={item.id === 'plays' ? dueCount : 0}/>) }
+      <aside className="primy-sidebar">
+        <div className="primy-sidebar__brand"><PrimyWordmark compact /></div>
+        <nav className="primy-sidebar__nav" aria-label="Navegación principal">
+          {NAV.map(item => (
+            <NavButton
+              key={item.id}
+              item={item}
+              active={view === item.id}
+              onSelect={onNavigate}
+              badge={item.id === 'plays' ? dueCount : 0}
+            />
+          ))}
         </nav>
-        <section className="mt-auto rounded-3xl border border-primy-100 bg-primy-50 p-4">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-primy-200 bg-ivory"><PrimyMascotAvatar className="h-14 w-14"/></span>
-            <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{displayName}</p><p className="truncate text-xs text-secondary">{user?.email}</p></div>
+
+        <Card as="section" tone="inset" padding="sm" className="primy-account-card">
+          <div className="primy-account-card__identity">
+            <PrimyMascot role="guide" protagonist={false} className="h-11 w-11 shrink-0" />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-primary">{displayName}</p>
+              <p className="truncate text-xs text-secondary">{user?.email}</p>
+            </div>
           </div>
-          <p aria-live="polite" className="mt-3 text-xs font-semibold"><SyncLabel status={syncStatus} lastSyncedAt={lastSyncedAt} pendingCount={pendingSyncCount}/></p>
-          <button type="button" onClick={onSignOut} className="mt-3 min-h-10 w-full rounded-xl border border-primy-200 bg-surface px-3 text-sm font-semibold text-primary hover:bg-primy-100">Cerrar sesión</button>
-        </section>
+          <p aria-live="polite" className="primy-account-card__sync">
+            <SyncLabel status={syncStatus} lastSyncedAt={lastSyncedAt} pendingCount={pendingSyncCount} />
+          </p>
+          <Button variant="ghost" size="sm" onClick={onSignOut} className="w-full">Cerrar sesión</Button>
+        </Card>
       </aside>
 
-      <header className="sticky top-0 z-20 border-b border-primy-100 bg-surface/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="flex items-center justify-between gap-3">
-          <PrimyWordmark compact/>
-          <div className="flex items-center gap-2">
-            {dueCount > 0 && <button type="button" onClick={() => onNavigate('plays')} className="rounded-full bg-gold px-3 py-1.5 text-xs font-bold text-primary">{dueCount}</button>}
-            <button type="button" onClick={onSignOut} className="min-h-10 rounded-xl border border-default px-3 text-xs font-semibold text-primary">Salir</button>
-          </div>
+      <header className="primy-mobile-header">
+        <PrimyWordmark compact />
+        <div className="flex items-center gap-2">
+          {dueCount > 0 && (
+            <button type="button" onClick={() => onNavigate('plays')} className="ds-badge ds-badge--accent min-h-9 px-3">
+              <span className="sr-only">Jugadas pendientes: </span>{dueCount}
+            </button>
+          )}
+          <Button variant="ghost" size="sm" onClick={onSignOut}>Salir</Button>
         </div>
       </header>
 
-      {!online && <div role="status" className="border-b border-amber-300 bg-amber-100 px-4 py-2 text-center text-sm font-semibold text-amber-950 lg:ml-72">Modo sin conexión: los cambios se guardarán en este dispositivo y se sincronizarán al recuperar internet.</div>}
-      <main ref={mainRef} id="main-content" tabIndex="-1" className="pb-24 outline-none lg:ml-72 lg:pb-0">{children}</main>
-      <nav className="fixed inset-x-0 bottom-0 z-30 flex border-t border-primy-100 bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden" aria-label="Navegación principal">
-        {NAV.map(item => <NavButton key={item.id} item={item} active={view === item.id} onSelect={onNavigate} mobile badge={item.id === 'plays' ? dueCount : 0}/>) }
+      {!online && (
+        <div className="primy-connectivity-notice">
+          <StatusNotice tone="warning" title="Modo sin conexión">
+            Los cambios se guardarán en este dispositivo y se sincronizarán al recuperar internet.
+          </StatusNotice>
+        </div>
+      )}
+
+      <main ref={mainRef} id="main-content" tabIndex="-1" className="primy-main-content">{children}</main>
+
+      <nav className="primy-mobile-nav" aria-label="Navegación principal">
+        {NAV.map(item => (
+          <NavButton
+            key={item.id}
+            item={item}
+            active={view === item.id}
+            onSelect={onNavigate}
+            mobile
+            badge={item.id === 'plays' ? dueCount : 0}
+          />
+        ))}
       </nav>
     </div>
   );
