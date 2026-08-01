@@ -26,6 +26,7 @@ const STATUS_STYLES = {
   active: 'border-primy-200 bg-primy-50 text-primy-800',
   'rules-review': 'border-amber-200 bg-amber-50 text-amber-800',
   'architecture-review': 'border-slate-200 bg-slate-50 text-slate-700',
+  'sports-foundation': 'border-sky-200 bg-sky-50 text-sky-800',
 };
 
 function CapabilityList({ capabilities }) {
@@ -105,8 +106,24 @@ const GameCard = memo(function GameCard({ game, now, onCreate, onRegister }) {
               <ChevronRightIcon width="18" height="18" className="transition-transform group-open:rotate-90" aria-hidden="true"/>
             </summary>
             <div className="border-t border-default px-4 py-4 text-sm leading-6 text-secondary">
-              <p>Este juego ya forma parte del catálogo, pero sus acciones permanecen bloqueadas hasta validar reglas, boleto, resultados oficiales, accesibilidad y pruebas.</p>
-              <p className="mt-2 font-semibold text-primary">No se mostrará una función simulada como si estuviera terminada.</p>
+              {game.availability === 'sports-foundation' ? (
+                <>
+                  <p>La base matemática ya está implementada y permanece aislada de los juegos numéricos. Las acciones siguen bloqueadas hasta completar datos oficiales, boleto, persistencia y comprobación.</p>
+                  <p className="mt-3 text-xs font-bold uppercase tracking-[.12em] text-sky-800">Completado</p>
+                  <ul className="mt-1 list-disc space-y-1 pl-5">
+                    {(game.foundation?.completed || []).map(item => <li key={item}>{item}</li>)}
+                  </ul>
+                  <p className="mt-3 text-xs font-bold uppercase tracking-[.12em] text-secondary">Siguiente gate</p>
+                  <ul className="mt-1 list-disc space-y-1 pl-5">
+                    {(game.foundation?.pending || []).map(item => <li key={item}>{item}</li>)}
+                  </ul>
+                </>
+              ) : (
+                <>
+                  <p>Este juego ya forma parte del catálogo, pero sus acciones permanecen bloqueadas hasta validar reglas, boleto, resultados oficiales, accesibilidad y pruebas.</p>
+                  <p className="mt-2 font-semibold text-primary">No se mostrará una función simulada como si estuviera terminada.</p>
+                </>
+              )}
             </div>
           </details>
         )}

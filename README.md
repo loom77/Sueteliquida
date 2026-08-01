@@ -1,17 +1,18 @@
-# Primy v15.6.0
+# Primy v15.7.0
 
-Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La aplicación no vende boletos, no reserva números, no predice sorteos y no garantiza premios.
+Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La aplicación no vende boletos, no reserva apuestas, no predice resultados como certezas y no garantiza premios.
 
-## Novedades de v15.6.0
+## Novedades de v15.7.0
 
-- Lotería Nacional operativa con una experiencia propia, separada del modelo de columnas numéricas.
-- Preparación de números de cinco cifras, preservando ceros iniciales como `00742`.
-- Elección de sorteo, generación uniforme, bloqueo parcial de cifras y números favoritos.
-- Registro de 1 a 10 décimos con coste dinámico, serie y fracción opcionales.
-- Comprobación por número, aproximaciones, centenas, terminaciones, reintegros y Premio Especial.
-- Lectura del listado oficial completo de premios cuando SELAE lo publica; si falta, Primy mantiene la jugada pendiente y no inventa un resultado.
-- Archivo Supabase y sincronización oficial ampliados para Lotería Nacional.
-- Evolución de marca: símbolo Primy simplificado, wordmark revisado, iconos PWA renovados y una interfaz más diferenciada por juego.
+- Primera base deportiva aislada completamente del motor de loterías numéricas.
+- Modelo formal de jornadas y partidos oficiales para La Quiniela y El Quinigol.
+- Motor probabilístico de goles Poisson con ajuste Dixon-Coles y snapshots versionados.
+- Conversión de una misma matriz de marcadores a probabilidades `1-X-2`, Pleno al 15 y casillas `0-1-2-M`.
+- Combinatoria y coste de apuestas directas, dobles, triples, Elige8 y múltiples de Quinigol.
+- Condiciones por variantes, empates y victorias visitantes.
+- Simulación Monte Carlo reproducible para evaluar carteras sin prometer resultados.
+- Métricas científicas de log-loss, Brier, calibración y detección de fuga temporal.
+- La Quiniela y El Quinigol siguen bloqueados en producción hasta completar jornadas oficiales, UX, persistencia y comprobación.
 
 ## Juegos operativos
 
@@ -22,7 +23,7 @@ Primy es una PWA en castellano para preparar, guardar y comprobar jugadas. La ap
 - **El Gordo de la Primitiva**
 - **Lotería Nacional**
 
-Los juegos deportivos e hípicos permanecen en fase de arquitectura y no exponen funciones incompletas.
+La Quiniela y El Quinigol disponen de una base matemática en validación, pero todavía no exponen acciones operativas. Los juegos hípicos permanecen en fase de arquitectura.
 
 ## Modelo específico de Lotería Nacional
 

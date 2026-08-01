@@ -111,8 +111,13 @@ export const GAME_CATALOG = {
     familyId: 'sports',
     description: 'Pronósticos 1-X-2 y pleno al quince con múltiples y reducidas.',
     betModel: 'Pronóstico deportivo',
-    availability: 'architecture-review',
+    availability: 'sports-foundation',
     capabilities: REVIEW_CAPABILITIES,
+    foundation: {
+      phase: 'Modelo matemático y reglas base',
+      completed: ['Modelo de jornada', 'Combinatoria 1-X-2', 'Pleno al 15', 'Poisson/Dixon-Coles', 'Simulación reproducible'],
+      pending: ['Proveedor oficial de jornadas', 'Matrices oficiales de reducidas', 'UX de boleto', 'Comprobación y persistencia'],
+    },
   },
   quinigol: {
     id: 'quinigol',
@@ -121,8 +126,13 @@ export const GAME_CATALOG = {
     familyId: 'sports',
     description: 'Pronóstico de resultados mediante rangos de goles.',
     betModel: 'Pronóstico de marcador',
-    availability: 'architecture-review',
+    availability: 'sports-foundation',
     capabilities: REVIEW_CAPABILITIES,
+    foundation: {
+      phase: 'Modelo matemático y reglas base',
+      completed: ['Modelo de jornada', 'Matriz 4×4 de marcadores', 'Agregación 0-1-2-M', 'Poisson/Dixon-Coles', 'Simulación reproducible'],
+      pending: ['Proveedor oficial de jornadas', 'UX de marcador', 'Comprobación y persistencia'],
+    },
   },
   lototurf: {
     id: 'lototurf',
@@ -162,6 +172,7 @@ export const AVAILABILITY_LABELS = {
   active: 'Disponible',
   'rules-review': 'Reglas en validación',
   'architecture-review': 'Arquitectura en definición',
+  'sports-foundation': 'Base matemática en validación',
 };
 
 export function getCatalogGame(gameId) {

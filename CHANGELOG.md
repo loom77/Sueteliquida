@@ -1,3 +1,15 @@
+# Primy v15.7.0 — Fundación matemática de apuestas deportivas
+
+- separada la arquitectura deportiva del motor de loterías numéricas;
+- añadido modelo de jornada y partido oficial con validación y fingerprint;
+- implementado motor de goles Poisson/Dixon-Coles con probabilidades 1-X-2 y 0-1-2-M;
+- añadidas reglas combinatorias de Quiniela, Pleno al 15, Elige8, condiciones y Quinigol;
+- catalogadas las reducidas oficiales sin inventar matrices ni garantías todavía no importadas;
+- añadidas simulaciones Monte Carlo reproducibles para carteras deportivas;
+- añadidas métricas log-loss, Brier, calibración y control de leakage temporal;
+- Quiniela y Quinigol permanecen bloqueados hasta completar proveedor oficial, UX, persistencia y verificación;
+- 129 pruebas automáticas superadas.
+
 # Primy v15.6.0 — Lotería Nacional + evolución de marca
 
 - Lotería Nacional activa con flujo dedicado para preparar números y registrar décimos comprados.

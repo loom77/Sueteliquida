@@ -17,17 +17,17 @@ export default defineConfig({
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/bootstrap'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'primy-bootstrap-v15-6-0', networkTimeoutSeconds: 6, expiration: { maxEntries: 8, maxAgeSeconds: 1800 } },
+            options: { cacheName: 'primy-bootstrap-v15-7-0', networkTimeoutSeconds: 6, expiration: { maxEntries: 8, maxAgeSeconds: 1800 } },
           },
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/history'),
             handler: 'StaleWhileRevalidate',
-            options: { cacheName: 'primy-history-v15-6-0', expiration: { maxEntries: 12, maxAgeSeconds: 86400 } },
+            options: { cacheName: 'primy-history-v15-7-0', expiration: { maxEntries: 12, maxAgeSeconds: 86400 } },
           },
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/api/check-results'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'primy-results-v15-6-0', networkTimeoutSeconds: 4, expiration: { maxEntries: 24, maxAgeSeconds: 300 } },
+            options: { cacheName: 'primy-results-v15-7-0', networkTimeoutSeconds: 4, expiration: { maxEntries: 24, maxAgeSeconds: 300 } },
           },
         ],
       },
