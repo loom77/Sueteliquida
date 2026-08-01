@@ -10,8 +10,8 @@ test('la revisión mobile e iPad usa icono de presupuesto, navegación compacta 
   const settings = read('../src/components/SettingsView.jsx');
   const history = read('../src/components/TicketHistory.jsx');
   const css = read('../src/index.css');
-  assert.match(generator, /BudgetControlIcon/);
-  assert.match(icons, /export const BudgetControlIcon/);
+  assert.match(generator, /BudgetCreativeIcon/);
+  assert.match(icons, /export function BudgetCreativeIcon|export const BudgetControlIcon/);
   assert.match(settings, /primy-profile-mobile-nav/);
   assert.match(history, /primy-archive-mobile-filters/);
   assert.match(css, /Primy v16\.3/);

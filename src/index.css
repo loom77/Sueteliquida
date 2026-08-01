@@ -2551,3 +2551,72 @@ html[data-theme='dark'] .primy-generator__error { border-color: #7f3531; backgro
   .primy-mobile-nav__item,
   .primy-mobile-nav__icon { transition: none !important; }
 }
+
+/* v16.4.1 — real creative icon assets (not placeholder line icons). */
+.primy-creative-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 7px 10px rgb(7 84 56 / .10));
+  transform: translateZ(0);
+}
+
+.ds-action-card__icon {
+  width: 3.35rem;
+  height: 3.35rem;
+  padding: 0;
+  overflow: visible;
+  border-radius: 1.05rem;
+  background: transparent;
+  color: inherit;
+}
+.ds-action-card:hover .primy-creative-icon,
+.ds-action-card:focus-visible .primy-creative-icon {
+  transform: translateY(-2px) scale(1.04) rotate(-1deg);
+}
+
+.primy-home-v16__next-icon {
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border-radius: 1rem;
+  background: transparent;
+  color: inherit;
+}
+
+.primy-generator__budget-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+  padding: 0;
+  overflow: visible;
+  border-radius: 1.4rem;
+  background: transparent !important;
+  color: inherit !important;
+  box-shadow: none !important;
+}
+.primy-generator__budget-icon .primy-creative-icon { filter: drop-shadow(0 10px 14px rgb(7 84 56 / .15)); }
+
+.primy-games-family__heading > span {
+  width: 3.6rem;
+  height: 3.6rem;
+  padding: 0;
+  border-radius: 1.15rem;
+  background: transparent;
+  color: inherit;
+}
+
+@media (max-width: 639px) {
+  .primy-generator__budget-icon { width: 3.65rem; height: 3.65rem; }
+  .ds-action-card__icon { width: 3rem; height: 3rem; }
+  .primy-games-family__heading > span { width: 3.25rem; height: 3.25rem; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .primy-creative-icon { transition: transform 220ms cubic-bezier(.2,.8,.2,1), filter 220ms ease; }
+  .primy-home-v16__next:hover .primy-creative-icon,
+  .primy-games-family:hover .primy-games-family__heading .primy-creative-icon {
+    transform: translateY(-2px) scale(1.035);
+    filter: drop-shadow(0 10px 14px rgb(7 84 56 / .16));
+  }
+}

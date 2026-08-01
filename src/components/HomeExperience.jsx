@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
 import { formatDrawDate, formatDrawTime, formatSyncTime } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
-import { CalendarIcon, EditIcon, GridIcon, ListIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
+import { EditIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
+import { ArchiveCreativeIcon, CalendarCreativeIcon, GamesCreativeIcon } from './CreativeUiIcon.jsx';
 import { ActionCard, Button, Card, Eyebrow, PrimaryButton, SecondaryButton, SectionHeader, StatusNotice } from './DesignSystem.jsx';
 import { PrimyMascot } from './PrimyMascot.jsx';
 
@@ -18,7 +19,7 @@ export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, displayNam
 
         {nextDraw && (
           <div className="primy-home-v16__next" aria-label="Próximo sorteo de La Primitiva">
-            <span className="primy-home-v16__next-icon" aria-hidden="true"><CalendarIcon width="18" height="18" /></span>
+            <span className="primy-home-v16__next-icon" aria-hidden="true"><CalendarCreativeIcon /></span>
             <div>
               <p className="text-xs font-bold uppercase tracking-[.12em] text-secondary">Próximo sorteo</p>
               <p className="mt-1 text-sm font-semibold text-primary">
@@ -120,11 +121,11 @@ export const HomeQuickActions = memo(function HomeQuickActions({ historyCount, d
         <ActionCard
           title="Mi archivo"
           description={historyCount ? `${historyCount} ${historyCount === 1 ? 'jugada guardada' : 'jugadas guardadas'}.` : 'Organiza y comprueba tus jugadas.'}
-          icon={ListIcon}
+          icon={ArchiveCreativeIcon}
           badge={dueTotal}
           onClick={onOpenPlays}
         />
-        <ActionCard title="Todos los juegos" description="Consulta el catálogo y el estado de cada juego." icon={GridIcon} onClick={onExplore} />
+        <ActionCard title="Todos los juegos" description="Consulta el catálogo y el estado de cada juego." icon={GamesCreativeIcon} onClick={onExplore} />
       </div>
     </section>
   );

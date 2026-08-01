@@ -3,15 +3,12 @@ import {
   CalendarIcon,
   ChevronRightIcon,
   GridIcon,
-  HorseRacingIcon,
   InfoIcon,
-  NationalDrawIcon,
-  NumbersLotteryIcon,
   SearchIcon,
   SparklesIcon,
-  SportsBallIcon,
   TicketIcon,
 } from './Icons.jsx';
+import { HorseCreativeIcon, NationalCreativeIcon, NumbersCreativeIcon, SportsCreativeIcon } from './CreativeUiIcon.jsx';
 import { Eyebrow, PrimaryButton, SecondaryButton } from './DesignSystem.jsx';
 import GameIdentity from './GameIdentity.jsx';
 import { gameThemeStyle } from '../utils/gameVisualTheme.js';
@@ -28,10 +25,10 @@ import {
 
 
 const FAMILY_ICONS = {
-  numbers: NumbersLotteryIcon,
-  national: NationalDrawIcon,
-  sports: SportsBallIcon,
-  horse: HorseRacingIcon,
+  numbers: NumbersCreativeIcon,
+  national: NationalCreativeIcon,
+  sports: SportsCreativeIcon,
+  horse: HorseCreativeIcon,
 };
 
 const STATUS_STYLES = {

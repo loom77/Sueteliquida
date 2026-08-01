@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import GameIdentity from './GameIdentity.jsx';
 import { ThinkingProgress } from './ThinkingProgress.jsx';
-import { AlertIcon, BudgetControlIcon, InfoIcon, SparklesIcon } from './Icons.jsx';
+import { AlertIcon, InfoIcon, SparklesIcon } from './Icons.jsx';
+import { BudgetCreativeIcon } from './CreativeUiIcon.jsx';
 import { BONOLOTO_SYSTEM_SIZES, bonolotoEquivalentBets } from '../utils/bonoloto.js';
 import { GORDO_SYSTEM_SIZES, gordoEquivalentBets } from '../utils/gordoPrimitiva.js';
 import { gameRuleSummary } from '../utils/gameConfig.js';
@@ -107,7 +108,7 @@ export default function GeneratorPanel({
 
       <div key={`budget-${activeGame}`} className="primy-generator__budget">
         <div className="primy-generator__budget-heading">
-          <span className="primy-generator__budget-icon" aria-hidden="true"><BudgetControlIcon width="25" height="25"/></span>
+          <span className="primy-generator__budget-icon" aria-hidden="true"><BudgetCreativeIcon /></span>
           <div><p>Presupuesto</p><span>{isMultiple ? `${equivalentBets} apuestas equivalentes` : `${columnCount} ${columnCount === 1 ? 'columna' : 'columnas'}`}</span></div>
           <strong>{euro.format(totalCost)}</strong>
         </div>

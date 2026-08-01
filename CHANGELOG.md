@@ -1,3 +1,11 @@
+# Primy v16.4.1 — Creative icons hotfix
+
+- Replaced placeholder inline icons with dedicated SVG illustration assets.
+- Fixed Presupuesto, Mi archivo, Todos los juegos and Próximo sorteo.
+- Added dedicated family icons for numbers, national lottery, sports and horse racing.
+- Updated icon wrappers so the graphics render large and without the old colored-circle background.
+
+
 # Primy v16.4.0 — Iconografía creativa y pulido visual
 
 - Nuevo sistema de iconos UI para Presupuesto, Mi archivo, Todos los juegos y Próximo sorteo.
