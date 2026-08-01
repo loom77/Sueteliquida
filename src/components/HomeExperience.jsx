@@ -8,11 +8,11 @@ import { PrimyMascot } from './PrimyMascot.jsx';
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const shortDate = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' });
 
-export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, onGenerate, onAddExternal }) {
+export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, displayName = '', onGenerate, onAddExternal }) {
   return (
     <Card tone="feature" padding="none" className="primy-home-v16__hero primy-page-enter" aria-labelledby="home-hero-title">
       <div className="primy-home-v16__hero-copy">
-        <Eyebrow>Tu espacio Primy</Eyebrow>
+        <Eyebrow>{displayName ? `Hola, ${displayName}` : 'Tu espacio Primy'}</Eyebrow>
         <h1 id="home-hero-title" className="primy-home-v16__title">Prepara tu próxima jugada con claridad.</h1>
         <p className="primy-home-v16__lead">{dailyLine}</p>
 

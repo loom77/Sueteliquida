@@ -1,6 +1,7 @@
 export const GAME_VISUAL_THEMES = Object.freeze({
   primitiva: {
     id: 'primitiva',
+    icon: '/game-icons/primitiva.png',
     symbol: '6',
     label: 'La Primitiva',
     primary: '#0B7A49',
@@ -12,6 +13,7 @@ export const GAME_VISUAL_THEMES = Object.freeze({
   },
   bonoloto: {
     id: 'bonoloto',
+    icon: '/game-icons/bonoloto.png',
     symbol: 'B',
     label: 'Bonoloto',
     primary: '#0B8793',
@@ -23,6 +25,7 @@ export const GAME_VISUAL_THEMES = Object.freeze({
   },
   gordoprimitiva: {
     id: 'gordoprimitiva',
+    icon: '/game-icons/gordoprimitiva.png',
     symbol: 'G',
     label: 'El Gordo',
     primary: '#A63D4D',
@@ -34,6 +37,7 @@ export const GAME_VISUAL_THEMES = Object.freeze({
   },
   euromillones: {
     id: 'euromillones',
+    icon: '/game-icons/euromillones.png',
     symbol: '★',
     label: 'Euromillones',
     primary: '#1D4F9A',
@@ -45,6 +49,7 @@ export const GAME_VISUAL_THEMES = Object.freeze({
   },
   eurodreams: {
     id: 'eurodreams',
+    icon: '/game-icons/eurodreams.png',
     symbol: 'D',
     label: 'EuroDreams',
     primary: '#6E52C7',
@@ -56,6 +61,7 @@ export const GAME_VISUAL_THEMES = Object.freeze({
   },
   'loteria-nacional': {
     id: 'loteria-nacional',
+    icon: '/game-icons/loteria-nacional.png',
     symbol: 'N',
     label: 'Lotería Nacional',
     primary: '#1F5EA8',
@@ -67,6 +73,7 @@ export const GAME_VISUAL_THEMES = Object.freeze({
   },
   quiniela: {
     id: 'quiniela',
+    icon: '/game-icons/quiniela.png',
     symbol: '1X2',
     label: 'La Quiniela',
     primary: '#C23B4A',
@@ -78,6 +85,7 @@ export const GAME_VISUAL_THEMES = Object.freeze({
   },
   quinigol: {
     id: 'quinigol',
+    icon: '/game-icons/quinigol.png',
     symbol: 'QG',
     label: 'El Quinigol',
     primary: '#C76632',

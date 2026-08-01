@@ -5,6 +5,7 @@ import { PrimyMascot } from './PrimyMascot.jsx';
 import { BellIcon, DatabaseIcon, DeviceIcon, DownloadIcon, InfoIcon, InstallIcon, MoonIcon, ShieldIcon, SunIcon, TrashIcon, UploadIcon } from './Icons.jsx';
 import { Eyebrow } from './DesignSystem.jsx';
 import { getMonthlyStats } from '../utils/appMetrics.js';
+import { APP_VERSION } from '../utils/release.js';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const syncTime = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit' });
@@ -22,21 +23,50 @@ const ProfileSection = memo(function ProfileSection({ title, description, icon: 
   );
 });
 
-export default function SettingsView({ activeGame, onGameChange, providerStatus, historyState, preferences, updatePreferences, preferenceError, storageError, history, onImport, onClear, onToast, installPrompt, user, onSignOut, syncStatus, lastSyncedAt, pendingSyncCount = 0, onRetrySync }) {
+export default function SettingsView({
+  activeGame,
+  onGameChange,
+  providerStatus,
+  historyState,
+  preferences,
+  updatePreferences,
+  preferenceError,
+  storageError,
+  history,
+  onImport,
+  onClear,
+  onToast,
+  installPrompt,
+  user,
+  displayName = '',
+  profileLoading = false,
+  onUpdateDisplayName,
+  onSignOut,
+  syncStatus,
+  lastSyncedAt,
+  pendingSyncCount = 0,
+  onRetrySync,
+}) {
   const fileRef = useRef(null);
   const [limitDraft, setLimitDraft] = useState(preferences.monthlyLimit ?? '');
   const [limitEditing, setLimitEditing] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [nameDraft, setNameDraft] = useState(displayName);
+  const [nameBusy, setNameBusy] = useState(false);
+  const [nameError, setNameError] = useState('');
   const monthlyStats = useMemo(() => getMonthlyStats(history), [history]);
 
   useEffect(() => setLimitDraft(preferences.monthlyLimit ?? ''), [preferences.monthlyLimit]);
+  useEffect(() => setNameDraft(displayName || ''), [displayName]);
 
   const normalizedLimitDraft = limitDraft === '' ? null : Math.max(0, Number(limitDraft) || 0);
   const limitChanged = normalizedLimitDraft !== (preferences.monthlyLimit ?? null);
   const limit = preferences.monthlyLimit > 0 ? preferences.monthlyLimit : null;
   const limitPercent = limit ? Math.min(100, (monthlyStats.spent / limit) * 100) : 0;
   const remaining = limit ? Math.max(0, limit - monthlyStats.spent) : null;
-  const displayName = user?.user_metadata?.display_name || user?.email?.split('@')[0] || 'tu';
+  const greetingName = displayName?.trim();
+  const normalizedNameDraft = nameDraft.replace(/\s+/g, ' ').trim();
+  const nameChanged = normalizedNameDraft !== (displayName || '');
 
   const syncLabel = useMemo(() => {
     if (syncStatus === 'synced') return `Sincronizada${lastSyncedAt ? ` · ${syncTime.format(lastSyncedAt)}` : ''}`;
@@ -49,6 +79,23 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
     if (!onRetrySync) return;
     const synced = await onRetrySync();
     onToast(synced ? 'Los cambios pendientes se han sincronizado.' : 'La sincronización sigue pendiente. Comprueba la conexión e inténtalo de nuevo.');
+  };
+
+  const saveName = async () => {
+    if (!onUpdateDisplayName || nameBusy) return;
+    if (normalizedNameDraft && normalizedNameDraft.length < 2) {
+      setNameError('El nombre debe tener al menos 2 caracteres.');
+      return;
+    }
+    setNameBusy(true);
+    setNameError('');
+    const result = await onUpdateDisplayName(normalizedNameDraft);
+    setNameBusy(false);
+    if (result?.error) {
+      setNameError(result.error);
+      return;
+    }
+    onToast(normalizedNameDraft ? `Perfecto, ${normalizedNameDraft}. Primy ya sabe cómo saludarte.` : 'Nombre eliminado. Puedes añadirlo cuando quieras.');
   };
 
   const saveLimit = () => {
@@ -67,7 +114,7 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
   };
 
   const exportData = () => {
-    const blob = new Blob([JSON.stringify({ version: '16.1', exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ version: APP_VERSION, exportedAt: new Date().toISOString(), plays: history }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
@@ -95,10 +142,10 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
       <section className="primy-profile-hero">
         <div className="primy-profile-hero__copy">
           <Eyebrow>Mi Primy</Eyebrow>
-          <h1>Hola, {displayName}.</h1>
-          <p>Tu cuenta, tus preferencias y tus límites reunidos sin ruido.</p>
+          <h1>{greetingName ? `Hola, ${greetingName}.` : 'Hola.'}</h1>
+          <p>Tu espacio personal para ajustar Primy, cuidar tus límites y decidir cómo quieres que te acompañe.</p>
           <div className="primy-profile-hero__identity">
-            <span>{user?.email}</span>
+            <span>Cuenta privada</span>
             <strong data-status={syncStatus}>{syncLabel}</strong>
             {syncStatus === 'offline' && pendingSyncCount > 0 && onRetrySync && <button type="button" onClick={retrySync}>Reintentar</button>}
           </div>
@@ -108,6 +155,17 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
 
       <div className="primy-profile-layout">
         <div className="primy-profile-layout__main">
+          <ProfileSection title="Cómo quieres que te llame" description="Este nombre se guarda en tu cuenta y se usa únicamente para personalizar los saludos." icon={InfoIcon} tone="lavender">
+            <div className="primy-profile-name-editor">
+              <label htmlFor="profile-display-name">Nombre
+                <input id="profile-display-name" type="text" value={nameDraft} onChange={event => setNameDraft(event.target.value)} maxLength="60" placeholder="Añade tu nombre" autoComplete="name" disabled={profileLoading || nameBusy}/>
+              </label>
+              <button type="button" onClick={saveName} disabled={!nameChanged || profileLoading || nameBusy}>{nameBusy ? 'Guardando…' : 'Guardar nombre'}</button>
+            </div>
+            {nameError && <p role="alert" className="primy-profile-error">{nameError}</p>}
+            <p className="primy-profile-account-email"><span>Correo de acceso</span><strong>{user?.email}</strong></p>
+          </ProfileSection>
+
           <ProfileSection title="Mi experiencia Primy" description="Ajusta el aspecto y cómo quieres recibir avisos." icon={DeviceIcon} tone="mint">
             <div className="primy-profile-themes">
               {[{ id:'system', label:'Sistema', icon:DeviceIcon },{ id:'light', label:'Claro', icon:SunIcon },{ id:'dark', label:'Oscuro', icon:MoonIcon }].map(item => {
@@ -155,7 +213,21 @@ export default function SettingsView({ activeGame, onGameChange, providerStatus,
             <button type="button" onClick={onSignOut} className="primy-profile-signout">Cerrar sesión</button>
           </ProfileSection>
 
-          <ProfileSection title="Consejo de Primy" description="Organizar mejor no significa jugar más." icon={InfoIcon} tone="lavender">
+          <ProfileSection title="Legal y uso responsable" description="Qué hace Primy, qué no hace y cómo trata la información." icon={InfoIcon} tone="lavender">
+            <ul className="primy-profile-legal-list">
+              <li>Primy no vende boletos, no realiza apuestas y no garantiza premios ni resultados futuros.</li>
+              <li>Las estadísticas y sugerencias son informativas. La decisión de jugar, el gasto y la compra son responsabilidad exclusiva del usuario.</li>
+              <li>Primy no asume responsabilidad por pérdidas económicas, juego excesivo o uso contrario a tus límites personales.</li>
+              <li>Las jugadas que decides guardar se almacenan en tu cuenta privada para que funcionen el archivo y la sincronización; no se venden ni se usan para publicidad y puedes eliminarlas.</li>
+            </ul>
+            <nav className="primy-profile-legal-links" aria-label="Documentos legales">
+              <a href="/legal/terms.html">Condiciones de uso</a>
+              <a href="/legal/privacy.html">Privacidad</a>
+              <a href="/legal/responsible-play.html">Juego responsable</a>
+            </nav>
+          </ProfileSection>
+
+          <ProfileSection title="Consejo de Primy" description="Organizar mejor no significa jugar más." icon={InfoIcon} tone="mint">
             <p className="primy-profile-advice">Mantén tus límites personales y utiliza Primy como herramienta de organización, nunca como promesa de premio.</p>
           </ProfileSection>
         </aside>

@@ -3,6 +3,7 @@ import { GridIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.js
 import { PrimyWordmark } from './BrandVisuals.jsx';
 import { Button, Card, StatusNotice } from './DesignSystem.jsx';
 import { PrimyMascot } from './PrimyMascot.jsx';
+import ReleaseStamp from './ReleaseStamp.jsx';
 
 const NAV = [
   { id: 'dashboard', label: 'Inicio', icon: HomeIcon },
@@ -47,7 +48,7 @@ function SyncLabel({ status, lastSyncedAt, pendingCount = 0 }) {
   return <span className="text-secondary">Cuenta conectada</span>;
 }
 
-export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignOut, syncStatus, lastSyncedAt, pendingSyncCount = 0, children }) {
+export default function AppShell({ view, onNavigate, dueCount = 0, user, displayName = '', onSignOut, syncStatus, lastSyncedAt, pendingSyncCount = 0, children }) {
   const [online, setOnline] = useState(() => navigator.onLine !== false);
   const mainRef = useRef(null);
   const previousViewRef = useRef(view);
@@ -69,7 +70,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
     return () => window.cancelAnimationFrame(frame);
   }, [view]);
 
-  const displayName = user?.user_metadata?.display_name?.trim() || user?.email?.split('@')[0] || 'Cuenta';
+  const accountName = displayName?.trim() || 'Cuenta Primy';
 
   return (
     <div className="min-h-screen bg-app text-primary">
@@ -93,7 +94,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
           <div className="primy-account-card__identity">
             <PrimyMascot role="guide" protagonist={false} className="h-11 w-11 shrink-0" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-primary">{displayName}</p>
+              <p className="truncate text-sm font-semibold text-primary">{accountName}</p>
               <p className="truncate text-xs text-secondary">{user?.email}</p>
             </div>
           </div>
@@ -124,7 +125,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, onSignO
         </div>
       )}
 
-      <main ref={mainRef} id="main-content" tabIndex="-1" className="primy-main-content">{children}</main>
+      <main ref={mainRef} id="main-content" tabIndex="-1" className="primy-main-content">{children}<footer className="primy-global-footer"><ReleaseStamp/></footer></main>
 
       <nav className="primy-mobile-nav" aria-label="Navegación principal">
         {NAV.map(item => (

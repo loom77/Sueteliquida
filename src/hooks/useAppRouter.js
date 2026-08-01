@@ -19,6 +19,10 @@ function viewFromLocation() {
   return VIEWS[path] || 'dashboard';
 }
 
+function prefersReducedMotion() {
+  return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+}
+
 export function useAppRouter() {
   const [view, setView] = useState(() => viewFromLocation());
 
@@ -30,11 +34,21 @@ export function useAppRouter() {
 
   const navigate = useCallback((nextView, { replace = false } = {}) => {
     const normalized = ROUTES[nextView] ? nextView : 'dashboard';
-    const path = ROUTES[normalized];
-    if (window.location.pathname !== path) window.history[replace ? 'replaceState' : 'pushState']({ view: normalized }, '', path);
-    setView(normalized);
-    window.scrollTo({ top: 0, behavior: 'auto' });
-  }, []);
+    if (normalized === view && window.location.pathname === ROUTES[normalized]) return;
+
+    const commit = () => {
+      const path = ROUTES[normalized];
+      if (window.location.pathname !== path) window.history[replace ? 'replaceState' : 'pushState']({ view: normalized }, '', path);
+      setView(normalized);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    };
+
+    if (document.startViewTransition && !prefersReducedMotion()) {
+      document.startViewTransition(commit);
+    } else {
+      commit();
+    }
+  }, [view]);
 
   return useMemo(() => ({ view, navigate, routes: ROUTES }), [view, navigate]);
 }

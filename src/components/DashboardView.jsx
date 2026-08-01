@@ -9,14 +9,14 @@ const DAILY_LINES = [
   'Cada sorteo empieza con una elección sencilla.',
 ];
 
-export default function DashboardView({ now, history, dueByGame, drawOverview, onGenerate, onAddExternal, onOpenPlays, onExplore, onCheckAll, checking }) {
+export default function DashboardView({ now, history, dueByGame, drawOverview, onGenerate, onAddExternal, onOpenPlays, onExplore, onCheckAll, checking, displayName = '' }) {
   const dueTotal = Object.values(dueByGame).reduce((sum, count) => sum + count, 0);
   const nextDraw = useMemo(() => getNextDrawInfo('primitiva', now), [now]);
   const dailyLine = DAILY_LINES[new Date(now).getDate() % DAILY_LINES.length];
 
   return (
     <div className="primy-home-v16 mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-      <HomeHero nextDraw={nextDraw} dailyLine={dailyLine} onGenerate={onGenerate} onAddExternal={onAddExternal} />
+      <HomeHero nextDraw={nextDraw} dailyLine={dailyLine} displayName={displayName} onGenerate={onGenerate} onAddExternal={onAddExternal} />
       <PendingDraws dueTotal={dueTotal} checking={checking} onCheckAll={onCheckAll} />
       <RecentPlays plays={history} onOpenPlays={onOpenPlays} />
       <HomeQuickActions historyCount={history.length} dueTotal={dueTotal} onExplore={onExplore} onOpenPlays={onOpenPlays} />

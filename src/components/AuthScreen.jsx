@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { CheckIcon, ShieldIcon } from './Icons.jsx';
 import { PrimyMascotGraphic, PrimyWordmark } from './BrandVisuals.jsx';
+import ReleaseStamp from './ReleaseStamp.jsx';
 
-function Field({ label, type = 'text', value, onChange, autoComplete, minLength, required = true, hint }) {
+function Field({ label, type = 'text', value, onChange, autoComplete, minLength, maxLength, required = true, hint, placeholder }) {
   return (
     <label className="block text-sm font-semibold text-primary">
       {label}
@@ -12,7 +13,9 @@ function Field({ label, type = 'text', value, onChange, autoComplete, minLength,
         onChange={event => onChange(event.target.value)}
         autoComplete={autoComplete}
         minLength={minLength}
+        maxLength={maxLength}
         required={required}
+        placeholder={placeholder}
         className="mt-2 min-h-12 w-full rounded-2xl border border-default bg-surface px-4 font-normal text-primary shadow-sm hover:border-primy-300 focus:border-primy-500"
       />
       {hint && <span className="mt-1.5 block text-xs font-normal leading-5 text-secondary">{hint}</span>}
@@ -62,7 +65,7 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
   });
 
   if (!auth.configured) {
-    return <main className="flex min-h-screen items-center justify-center bg-app px-4 py-10 text-primary"><section className="primy-panel w-full max-w-lg p-8 text-center"><PrimyWordmark className="justify-center"/><h1 className="mt-6 text-2xl font-semibold">Primy no está configurada</h1><p className="mt-3 text-sm leading-6 text-secondary">Faltan las variables VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY en el despliegue.</p></section></main>;
+    return <main className="flex min-h-screen items-center justify-center bg-app px-4 py-10 text-primary"><section className="primy-panel w-full max-w-lg p-8 text-center"><PrimyWordmark className="justify-center"/><h1 className="mt-6 text-2xl font-semibold">Primy no está configurada</h1><p className="mt-3 text-sm leading-6 text-secondary">Faltan las variables VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY en el despliegue.</p><ReleaseStamp className="mt-6 block"/></section></main>;
   }
 
   if (mode === 'check-email') {
@@ -79,6 +82,7 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
             <button type="button" onClick={resend} disabled={busy} className="min-h-12 rounded-2xl border border-primy-200 px-4 font-semibold hover:bg-primy-50 disabled:opacity-60">Reenviar correo</button>
             <button type="button" onClick={() => setMode('signin')} className="min-h-12 rounded-2xl bg-primy-700 px-4 font-semibold text-white hover:bg-primy-800">Volver a iniciar sesión</button>
           </div>
+          <ReleaseStamp className="mt-7 block"/>
         </section>
       </main>
     );
@@ -86,7 +90,7 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
 
   const titles = {
     signin: ['Bienvenido de nuevo', 'Accede a tus jugadas desde cualquier dispositivo.'],
-    signup: ['Crea tu cuenta', 'Tus jugadas quedarán privadas y sincronizadas.'],
+    signup: ['Crea tu cuenta', 'Dinos cómo te llamas y configura tu espacio privado.'],
     forgot: ['Recupera tu contraseña', 'Te enviaremos un enlace seguro por correo.'],
     'update-password': ['Elige una nueva contraseña', 'La nueva contraseña debe tener al menos 8 caracteres.'],
   };
@@ -123,7 +127,7 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
             <p className="mt-3 max-w-lg text-sm leading-6 text-secondary">{subtitle}</p>
 
             <form onSubmit={submit} className="mt-7 space-y-4">
-              {mode === 'signup' && <Field label="Nombre" value={displayName} onChange={setDisplayName} autoComplete="name" hint="Se utiliza únicamente para personalizar tu cuenta."/>}
+              {mode === 'signup' && <Field label="¿Cómo te llamas?" value={displayName} onChange={setDisplayName} autoComplete="name" minLength={2} maxLength={60} placeholder="Tu nombre" hint="Primy lo usará para saludarte. Podrás cambiarlo después en Perfil."/>}
               {mode !== 'update-password' && <Field label="Correo electrónico" type="email" value={email} onChange={setEmail} autoComplete="email"/>}
               {(mode === 'signin' || mode === 'signup' || mode === 'update-password') && <Field label={mode === 'update-password' ? 'Nueva contraseña' : 'Contraseña'} type="password" value={password} onChange={setPassword} autoComplete={mode === 'signin' ? 'current-password' : 'new-password'} minLength={8} hint={mode !== 'signin' ? 'Mínimo 8 caracteres.' : undefined}/>}
               {mode === 'signup' && <Field label="Repite la contraseña" type="password" value={confirmPassword} onChange={setConfirmPassword} autoComplete="new-password" minLength={8}/>}
@@ -150,9 +154,15 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
               <p><strong className="text-primary">Sin acceso con Google.</strong> Solo email y contraseña.</p>
               <p><strong className="text-primary">Privado por cuenta.</strong> Cada usuario ve únicamente sus datos.</p>
             </div>
+            <nav className="mt-4 flex flex-wrap gap-3 text-xs font-semibold text-primy-700" aria-label="Información legal">
+              <a href="/legal/terms.html" className="hover:underline">Condiciones</a>
+              <a href="/legal/privacy.html" className="hover:underline">Privacidad</a>
+              <a href="/legal/responsible-play.html" className="hover:underline">Juego responsable</a>
+            </nav>
           </div>
         </section>
       </div>
+      <ReleaseStamp className="mx-auto mt-4 block text-center"/>
     </main>
   );
 }

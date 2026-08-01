@@ -6,6 +6,7 @@ import AuthScreen from './components/AuthScreen.jsx';
 import AgeVerificationDialog from './components/AgeVerificationDialog.jsx';
 import AppViews from './app/AppViews.jsx';
 import AppOverlays from './app/AppOverlays.jsx';
+import ReleaseStamp from './components/ReleaseStamp.jsx';
 
 function AuthenticatedApp({ auth }) {
   const app = useAppController(auth);
@@ -14,6 +15,7 @@ function AuthenticatedApp({ auth }) {
     return (
       <main className="min-h-screen bg-app text-primary">
         <AgeVerificationDialog {...app.ageGate}/>
+        <ReleaseStamp className="fixed bottom-4 left-1/2 -translate-x-1/2"/>
       </main>
     );
   }
@@ -30,6 +32,7 @@ function AuthLoadingScreen() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-app px-4 text-primary">
       <div role="status" className="rounded-2xl border border-default bg-surface px-6 py-5 text-sm font-bold text-secondary">Abriendo tu cuenta…</div>
+      <ReleaseStamp className="fixed bottom-4 left-1/2 -translate-x-1/2"/>
     </main>
   );
 }

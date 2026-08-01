@@ -1,3 +1,16 @@
+# Primy v16.2.0 — Iconos, movimiento, nombre personal y centro legal
+
+- ocho iconos gráficos originales para las familias de juego;
+- selector responsive sin nombres partidos ni solapamientos;
+- transiciones entre vistas mediante View Transition API con fallback y movimiento reducido;
+- animación escalonada de tarjetas, selección de juego y estados;
+- nombre obligatorio durante el registro y editable desde Perfil;
+- persistencia del nombre en `primy_profiles` y metadatos de autenticación;
+- saludo personalizado sin utilizar el correo como nombre;
+- condiciones de uso, privacidad y juego responsable accesibles desde la aplicación;
+- aviso veraz sobre las jugadas almacenadas para archivo y sincronización;
+- número de release visible en todas las pantallas principales.
+
 # Primy v16.1.0 — Creative Restyle
 
 - reconstruido el selector de juegos para evitar solapamientos y mantener nombres legibles en 320 px;
