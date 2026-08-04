@@ -1,3 +1,64 @@
+# Primy v16.9.0 — Unified Fast Verification
+
+- Motore unico di verifica premi per lotterie numeriche, Lotería Nacional, giochi sportivi e giochi ippici.
+- Distinzione rigorosa tra categoria confermata, importo ufficiale disponibile e importo ancora in attesa di scrutinio.
+- Feed Supabase `primy_verification_events` unificato con trigger, indici, RPC e Realtime.
+- Sincronizzazione Fast: ogni 2 minuti nella fascia serale, fallback notturno e controlli diurni.
+- Realtime nell’app: una nuova pubblicazione ufficiale avvia automaticamente la verifica delle giocate in attesa.
+- Orchestrazione differenziata per evitare sovraccarico: numeriche a ogni ciclo, sportive ogni 5 minuti, ippiche ogni 15 minuti.
+
+
+# Primy v16.8.1 — Coincidencias ganadoras de alta visibilidad
+
+- Nueva comparación visual entre el boleto y el resultado oficial.
+- Los números coincidentes se muestran con relleno intenso, aro dorado y distintivo ✓.
+- Los números no coincidentes pierden protagonismo después de la comprobación.
+- Se destacan también estrellas, complementario, reintegro, clave o número Sueño cuando corresponden.
+- Resumen visible de coincidencias por boleto y por columna.
+- Diseño adaptado a móvil, iPad, escritorio, modo oscuro y movimiento reducido.
+
+# Primy v16.8.0 — Immediate Results Verification
+
+- Acción `Comprobar ahora` en cada jugada pendiente.
+- Verificación individual por ID de jugada.
+- Consulta oficial en vivo cuando el archivo todavía no contiene el sorteo.
+- Respuestas de comprobación sin caché negativa.
+- Revisión automática en primer plano cada dos minutos.
+- Cron SELAE acelerado durante la ventana nocturna.
+
+# Primy v16.7.0 — Módulos operativos de Lototurf y Quíntuple Plus
+
+- Activa la creación de jugadas hípicas sobre jornadas oficiales versionadas.
+- Añade UX específica para Lototurf: selección 6/31, dorsales activos, simples y múltiples.
+- Añade UX específica para Quíntuple Plus: cinco ganadores, segundo de la quinta, simples y múltiples.
+- Conserva coste y apuestas equivalentes sin expandir combinaciones masivas.
+- Rechaza dorsales retirados o ausentes de la composición oficial.
+- Integra previsualización, borradores, sincronización y Archivo.
+- Mantiene bloqueados el registro de compra y el escrutinio monetario hasta validar jornadas reales.
+
+# Primy v16.6.0 — Datos oficiales de apuestas hípicas
+
+- Descubrimiento de programas oficiales PDF de Lototurf y Quíntuple Plus.
+- Extracción server-side de texto PDF, incluidos streams FlateDecode.
+- Parser de carreras, participantes, dorsales, horarios, distancias y retirados.
+- Parser de resultados oficiales por fecha para ambos juegos.
+- Archivo Supabase versionado para jornadas hípicas y revisiones documentales.
+- Nuevos endpoints `horse-rounds` y `sync-horse-rounds`.
+- Validación estricta: Primy bloquea documentos incompletos o no interpretables.
+- Lototurf y Quíntuple Plus permanecen sin creación de jugadas hasta completar UX y validación real.
+
+# Primy v16.5.0 — Base matemática de apuestas hípicas
+
+- Implementadas las reglas oficiales de Lototurf vigentes desde junio de 2026.
+- Añadida la combinatoria autorizada de 6–10 números y 1–4 caballos.
+- Añadidas las siete categorías de Lototurf y el control independiente del reintegro.
+- Implementada la sustitución reglamentaria por retirada de caballo.
+- Implementadas las reglas de Quíntuple Plus para cinco ganadores y segundo de la quinta carrera.
+- Añadido el cálculo de múltiples excluyendo combinaciones imposibles en la quinta carrera.
+- Añadidas las cuatro categorías de Quíntuple Plus y el límite de 65.535 apuestas.
+- Catálogo hípico actualizado a “Base hípica en validación” sin activar funciones prematuras.
+- Nuevas identidades visuales originales para Lototurf y Quíntuple Plus.
+
 # Primy v16.4.1 — Creative icons hotfix
 
 - Replaced placeholder inline icons with dedicated SVG illustration assets.

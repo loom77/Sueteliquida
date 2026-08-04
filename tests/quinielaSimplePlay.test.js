@@ -59,13 +59,17 @@ test('la selección simple exige catorce signos y los dos valores del Pleno', ()
   assert.throws(() => createSimpleQuinielaPlay({ round: round(), selection: incomplete }), /partido 8/i);
 });
 
-test('la persistencia conserva solo borradores deportivos válidos y rechaza una compra prematura', () => {
+test('la persistencia conserva borradores y boletos deportivos comprados válidos', () => {
   const play = createSimpleQuinielaPlay({ round: round(), selection: selection() });
   const stored = sanitizePlay(play);
   assert.ok(stored);
   assert.equal(stored.status, 'draft');
   assert.equal(stored.columns[0].signs[1], 'X');
-  assert.equal(sanitizeQuinielaPlay({ ...play, purchased: true, status: 'scheduled' }), null);
+  const purchased = sanitizeQuinielaPlay({ ...play, purchased: true, status: 'scheduled' });
+  assert.ok(purchased);
+  assert.equal(purchased.purchased, true);
+  assert.equal(purchased.status, 'scheduled');
+  assert.equal(purchased.metadata.preparedOnly, false);
 });
 
 test('rechaza una composición que no contiene los quince partidos oficiales', () => {

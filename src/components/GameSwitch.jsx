@@ -4,15 +4,15 @@ import { getGameVisualTheme, gameThemeStyle } from '../utils/gameVisualTheme.js'
 import GameIdentity from './GameIdentity.jsx';
 import { CheckIcon } from './Icons.jsx';
 
-const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'euromillones', 'gordoprimitiva', 'eurodreams', 'loteria-nacional', 'quiniela'];
+const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'euromillones', 'gordoprimitiva', 'eurodreams', 'loteria-nacional', 'quiniela', 'lototurf', 'quintuple-plus'];
 const LEGACY_SELECTOR_ACTIONS = 'primy-bonoloto-action primy-euromillones-action';
 
-export default function GameSwitch({ active, onChange, label = 'Juego', disabled = false }) {
+export default function GameSwitch({ active, onChange, label = 'Juego', disabled = false, gameIds = ACTIVE_GAME_ORDER }) {
   return (
     <fieldset className="primy-game-picker" disabled={disabled}>
       <legend className="primy-game-picker__legend">{label}</legend>
       <div className="primy-game-picker__track" data-legacy-actions={LEGACY_SELECTOR_ACTIONS}>
-        {ACTIVE_GAME_ORDER.map(gameId => GAMES[gameId]).filter(Boolean).map(game => {
+        {gameIds.map(gameId => GAMES[gameId]).filter(Boolean).map(game => {
           const selected = active === game.id;
           const theme = getGameVisualTheme(game.id);
           return (

@@ -15,8 +15,13 @@ export default async function handler(req, res) {
     return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'La sincronización deportiva ya se ha solicitado recientemente.' });
   }
   try {
+    const serviceRoleKey = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
     const response = await fetch(SYNC_ENDPOINT, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(serviceRoleKey ? { Authorization: `Bearer ${serviceRoleKey}` } : {}),
+      },
       body: JSON.stringify({ gameId: req.query?.game || null, trigger: 'vercel-manual' }),
       signal: AbortSignal.timeout(65000),
     });

@@ -34,6 +34,15 @@ const ACTIVE_CAPABILITIES = {
   officialData: true,
 };
 
+const HORSE_OPERATIONAL_CAPABILITIES = {
+  createCombination: true,
+  manualEntry: false,
+  resultChecking: false,
+  history: true,
+  statisticalLab: false,
+  officialData: true,
+};
+
 const REVIEW_CAPABILITIES = {
   createCombination: false,
   manualEntry: false,
@@ -139,20 +148,30 @@ export const GAME_CATALOG = {
     name: 'Lototurf',
     shortName: 'Lototurf',
     familyId: 'horse',
-    description: 'Selección numérica combinada con un pronóstico de carrera.',
+    description: 'Seis números del 1 al 31 combinados con el dorsal ganador de la carrera Lototurf.',
     betModel: 'Combinación numérica e hípica',
-    availability: 'architecture-review',
-    capabilities: REVIEW_CAPABILITIES,
+    availability: 'hipicas-operational-beta',
+    capabilities: HORSE_OPERATIONAL_CAPABILITIES,
+    foundation: {
+      phase: 'Datos oficiales hípicos en validación',
+      completed: ['Selección 6/31', 'Caballo 1–12', 'Apuestas simples y múltiples', 'Programa oficial', 'Caballos retirados', 'UX del boleto', 'Persistencia de jugadas', 'Archivo versionado', 'Resultados oficiales'],
+      pending: ['Validación en jornadas reales', 'Registro de compra', 'Comprobación y escrutinio monetario'],
+    },
   },
   'quintuple-plus': {
     id: 'quintuple-plus',
     name: 'Quíntuple Plus',
     shortName: 'Quíntuple Plus',
     familyId: 'horse',
-    description: 'Pronóstico de posiciones en cinco carreras con estructura específica.',
-    betModel: 'Pronóstico hípico',
-    availability: 'architecture-review',
-    capabilities: REVIEW_CAPABILITIES,
+    description: 'Pronóstico del ganador de cinco carreras y del segundo clasificado de la quinta.',
+    betModel: 'Seis pronósticos hípicos',
+    availability: 'hipicas-operational-beta',
+    capabilities: HORSE_OPERATIONAL_CAPABILITIES,
+    foundation: {
+      phase: 'Datos oficiales hípicos en validación',
+      completed: ['Cinco ganadores', 'Segundo de la quinta carrera', 'Apuestas simples y múltiples', 'Programa oficial de cinco carreras', 'Caballos retirados', 'UX por dorsales', 'Persistencia de jugadas', 'Archivo versionado', 'Resultados oficiales'],
+      pending: ['Validación en jornadas reales', 'Registro de compra', 'Comprobación y escrutinio monetario'],
+    },
   },
 };
 
@@ -175,6 +194,9 @@ export const AVAILABILITY_LABELS = {
   'sports-foundation': 'Base matemática en validación',
   'sports-data-foundation': 'Datos oficiales en validación',
   'quiniela-simple-beta': 'Quiniela simple disponible',
+  'hipicas-foundation': 'Base hípica en validación',
+  'hipicas-data-foundation': 'Datos hípicos oficiales en validación',
+  'hipicas-operational-beta': 'Jugada hípica disponible',
 };
 
 export function getCatalogGame(gameId) {

@@ -134,8 +134,7 @@ export function sanitizeQuinielaPlay(play) {
   const column = play.columns?.[0];
   const validation = validateSimpleQuinielaSelection({ signs: column?.signs, pleno: column?.pleno });
   if (!validation.valid) return null;
-  const purchased = Boolean(play.purchased);
-  if (purchased) return null;
+  const purchased = Boolean(play.purchased ?? play.status !== 'draft');
   const drawDateISO = play.drawDateISO || roundDateIso(round);
   return {
     ...play,
@@ -149,7 +148,7 @@ export function sanitizeQuinielaPlay(play) {
       index: 1,
       signs: validation.selection.signs,
       pleno: validation.selection.pleno,
-      status: 'draft',
+      status: play.status === 'checked' ? 'checked' : purchased ? 'scheduled' : 'draft',
     }],
     roundId: round.roundId,
     officialRoundNumber: round.officialRoundNumber,
@@ -161,16 +160,16 @@ export function sanitizeQuinielaPlay(play) {
     drawDateISO,
     drawDateTimeISO: play.drawDateTimeISO || drawDateISO,
     drawDateKey: play.drawDateKey || round.roundDate || drawDateISO.slice(0, 10),
-    checkableFromISO: null,
+    checkableFromISO: purchased ? (play.checkableFromISO || drawDateISO) : null,
     method: play.method || 'quiniela-simple-manual',
     metadata: {
       ...(play.metadata || {}),
-      preparedOnly: true,
+      preparedOnly: !purchased,
       sportsRoundSnapshot: roundSnapshot(round),
       unitPrice: QUINIELA_UNIT_PRICE,
     },
-    purchased: false,
-    purchasedAt: undefined,
-    status: 'draft',
+    purchased,
+    purchasedAt: purchased ? (play.purchasedAt || play.createdAt || new Date().toISOString()) : undefined,
+    status: play.status === 'checked' ? 'checked' : purchased ? 'scheduled' : 'draft',
   };
 }

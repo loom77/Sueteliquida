@@ -2620,3 +2620,271 @@ html[data-theme='dark'] .primy-generator__error { border-color: #7f3531; backgro
     filter: drop-shadow(0 10px 14px rgb(7 84 56 / .16));
   }
 }
+
+
+/* Primy v16.8 — result verification actions */
+.primy-check-play-button {
+  display: inline-flex;
+  min-height: 2.85rem;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  border: 1px solid #e6bd42;
+  border-radius: .95rem;
+  background: linear-gradient(135deg, #fff8db 0%, #ffefb8 100%);
+  padding: .7rem 1rem;
+  color: #624300;
+  font-size: .875rem;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgb(127 88 0 / .08);
+  transition: transform 140ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+.primy-check-play-button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 10px 26px rgb(127 88 0 / .13); }
+.primy-check-play-button:active:not(:disabled) { transform: translateY(0) scale(.985); }
+.primy-check-play-button:disabled { cursor: wait; opacity: .68; }
+.primy-check-play-button--compact { min-height: 2.35rem; border-radius: .8rem; padding: .5rem .72rem; font-size: .78rem; box-shadow: none; }
+@media (max-width: 699px) { .primy-check-play-button { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .primy-check-play-button { transition: none; } }
+
+/* Primy v16.8.1 — winning-number comparison and high-visibility matches */
+.number-ball-ui {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid color-mix(in srgb, var(--game-primary, #0b7a49) 24%, #dbe9e1);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 31% 24%, rgb(255 255 255 / .96) 0 11%, transparent 12%),
+    linear-gradient(145deg, #fffef9, color-mix(in srgb, var(--game-soft, #eaf7ef) 74%, white));
+  box-shadow:
+    inset 0 -4px 8px color-mix(in srgb, var(--game-primary, #0b7a49) 10%, transparent),
+    0 5px 12px rgb(9 54 37 / .10);
+  color: color-mix(in srgb, var(--game-deep, #075438) 90%, #102139);
+  font-family: Sora, Inter, system-ui, sans-serif;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  isolation: isolate;
+  transition: opacity 180ms ease, transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.number-ball--compact { width: 2.35rem; height: 2.35rem; font-size: .88rem; }
+.number-ball--regular { width: 2.85rem; height: 2.85rem; font-size: 1rem; }
+.number-ball-ui__value { position: relative; z-index: 2; line-height: 1; }
+
+.number-ball-ui--extra:not(.number-ball-ui--hit) {
+  border-color: #e6bd45;
+  background:
+    radial-gradient(circle at 31% 24%, rgb(255 255 255 / .78) 0 11%, transparent 12%),
+    linear-gradient(145deg, #fff1b9, #f1c650);
+  color: #644600;
+  box-shadow: inset 0 -4px 8px rgb(116 76 0 / .13), 0 5px 12px rgb(116 76 0 / .13);
+}
+
+.number-ball-ui--winning:not(.number-ball-ui--hit) {
+  border-width: 2px;
+  border-color: color-mix(in srgb, var(--game-primary, #0b7a49) 45%, white);
+  box-shadow:
+    inset 0 -4px 8px color-mix(in srgb, var(--game-primary, #0b7a49) 12%, transparent),
+    0 6px 15px rgb(9 54 37 / .13);
+}
+
+.number-ball-ui--dimmed {
+  opacity: .42;
+  filter: saturate(.55);
+  box-shadow: none;
+}
+
+.number-ball-ui--hit {
+  z-index: 3;
+  border: 2px solid #fff7cf;
+  background:
+    radial-gradient(circle at 30% 22%, rgb(255 255 255 / .55) 0 10%, transparent 11%),
+    linear-gradient(145deg, color-mix(in srgb, var(--game-primary, #0b7a49) 82%, #39d18b), var(--game-deep, #075438));
+  color: white;
+  box-shadow:
+    0 0 0 3px #f4c94f,
+    0 0 0 6px color-mix(in srgb, var(--game-primary, #0b7a49) 18%, transparent),
+    0 10px 24px color-mix(in srgb, var(--game-primary, #0b7a49) 32%, transparent),
+    inset 0 -5px 9px rgb(0 0 0 / .16);
+  transform: scale(1.1);
+  animation: primyMatchReveal 680ms cubic-bezier(.18,.82,.25,1) both;
+}
+
+.number-ball-ui__match {
+  position: absolute;
+  top: -.42rem;
+  right: -.42rem;
+  z-index: 5;
+  display: flex;
+  width: 1.08rem;
+  height: 1.08rem;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+  border-radius: 999px;
+  background: #f4c64f;
+  box-shadow: 0 3px 8px rgb(84 57 0 / .24);
+  color: #4e3900;
+  font: 900 .64rem/1 Inter, system-ui, sans-serif;
+}
+
+@keyframes primyMatchReveal {
+  0% { opacity: .25; transform: scale(.72) rotate(-7deg); }
+  58% { transform: scale(1.18) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1.1) rotate(0); }
+}
+
+.primy-official-result {
+  margin-bottom: 1.25rem;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--game-primary, #0b7a49) 25%, #dfe9e3);
+  border-radius: 1.35rem;
+  background:
+    radial-gradient(circle at 100% 0, color-mix(in srgb, var(--game-soft, #eaf7ef) 88%, transparent), transparent 18rem),
+    linear-gradient(145deg, #fffef9, #f7fbf8);
+  box-shadow: 0 14px 34px rgb(11 66 44 / .08);
+  padding: 1rem;
+}
+
+.primy-official-result__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: .9rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--game-primary, #0b7a49) 14%, #e6ede9);
+}
+
+.primy-official-result__eyebrow {
+  color: var(--game-deep, #075438);
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.primy-official-result__header h4 {
+  margin-top: .2rem;
+  color: rgb(var(--c-text-primary));
+  font-family: Sora, Inter, system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 780;
+  letter-spacing: -.025em;
+}
+
+.primy-official-result__header p:last-child {
+  margin-top: .25rem;
+  color: rgb(var(--c-text-secondary));
+  font-size: .76rem;
+  line-height: 1.45;
+}
+
+.primy-official-result__count {
+  display: inline-flex;
+  min-width: 5rem;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--game-primary, #0b7a49) 26%, white);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--game-soft, #eaf7ef) 72%, white);
+  padding: .55rem .7rem;
+  color: var(--game-deep, #075438);
+}
+
+.primy-official-result__count[data-zero='true'] { border-color: #d8e1dc; background: #f6f8f7; color: #68766f; }
+.primy-official-result__count strong { font-family: Sora, Inter, sans-serif; font-size: 1.4rem; line-height: 1; }
+.primy-official-result__count span { margin-top: .18rem; font-size: .62rem; font-weight: 800; }
+
+.primy-official-result__group { margin-top: .9rem; }
+.primy-official-result__label {
+  display: block;
+  margin-bottom: .55rem;
+  color: rgb(var(--c-text-secondary));
+  font-size: .67rem;
+  font-weight: 850;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+}
+.primy-official-result__balls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; padding: .25rem .1rem; }
+.primy-official-result__extras { display: flex; flex-wrap: wrap; align-items: flex-start; gap: .8rem 1.4rem; }
+.primy-official-result__legend {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  margin-top: 1rem;
+  border-radius: .8rem;
+  background: color-mix(in srgb, var(--game-soft, #eaf7ef) 60%, white);
+  padding: .55rem .7rem;
+  color: var(--game-deep, #075438);
+  font-size: .7rem;
+  font-weight: 750;
+}
+.primy-official-result__legend span {
+  display: flex;
+  width: 1.05rem;
+  height: 1.05rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #f4c64f;
+  color: #513b00;
+  font-size: .62rem;
+  font-weight: 900;
+}
+
+.primy-match-count {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: baseline;
+  gap: .22rem;
+  border: 1px solid color-mix(in srgb, var(--game-primary, #0b7a49) 30%, white);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--game-soft, #eaf7ef) 72%, white);
+  padding: .38rem .65rem;
+  color: var(--game-deep, #075438);
+  font-size: .68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.primy-match-count strong { font-size: .86rem; }
+.primy-match-count[data-zero='true'] { border-color: #dce4df; background: #f7f9f8; color: #68766f; }
+
+.primy-archive-column[data-matches='true'] {
+  border-color: color-mix(in srgb, var(--game-primary, #0b7a49) 38%, #d4e7dc) !important;
+  box-shadow: 0 10px 25px color-mix(in srgb, var(--game-primary, #0b7a49) 10%, transparent);
+}
+
+@media (max-width: 520px) {
+  .primy-official-result { padding: .85rem; }
+  .primy-official-result__header { align-items: center; }
+  .primy-official-result__header p:last-child { max-width: 15rem; }
+  .primy-official-result__count { min-width: 4.25rem; padding-inline: .45rem; }
+  .primy-official-result__count strong { font-size: 1.2rem; }
+  .primy-official-result__balls { gap: .66rem; }
+  .number-ball-ui--hit { transform: scale(1.07); }
+  @keyframes primyMatchReveal {
+    0% { opacity: .25; transform: scale(.72); }
+    58% { transform: scale(1.13); }
+    100% { opacity: 1; transform: scale(1.07); }
+  }
+}
+
+html[data-theme='dark'] .primy-official-result {
+  border-color: color-mix(in srgb, var(--game-primary, #27b879) 30%, #28473a);
+  background: linear-gradient(145deg, #11291f, #0e211a);
+}
+html[data-theme='dark'] .primy-official-result__count,
+html[data-theme='dark'] .primy-match-count,
+html[data-theme='dark'] .primy-official-result__legend {
+  background: color-mix(in srgb, var(--game-primary, #27b879) 17%, #10231b);
+  color: #d9f8e7;
+}
+html[data-theme='dark'] .number-ball-ui--dimmed { opacity: .34; }
+
+@media (prefers-reduced-motion: reduce) {
+  .number-ball-ui--hit { animation: none; }
+}

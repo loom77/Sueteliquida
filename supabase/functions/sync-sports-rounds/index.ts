@@ -54,9 +54,20 @@ function parseMatches(html: string, expected: number) {
 
 async function syncGame(supabase: any, gameId: string) {
   const source = SOURCES[gameId];
-  const response = await fetch(source.url, { headers: { Accept: 'text/html', 'Accept-Language': 'es-ES,es;q=0.9', 'User-Agent': 'Primy/15.8 sports sync' } });
-  if (!response.ok) throw new Error(`SELAE ${gameId}: HTTP ${response.status}`);
-  const html = await response.text();
+  let html = '';
+  let lastStatus = 0;
+  const urls = [source.url, `https://r.jina.ai/${source.url}`];
+  for (const url of urls) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const response = await fetch(url, { headers: { Accept: url.includes('r.jina.ai') ? 'text/plain,text/markdown,*/*' : 'text/html', 'Accept-Language': 'es-ES,es;q=0.9', 'User-Agent': 'Primy/16.9 sports sync', 'x-no-cache': 'true' } });
+      lastStatus = response.status;
+      if (response.ok) { html = await response.text(); break; }
+      if (![403, 429].includes(response.status)) break;
+      await new Promise(resolve => setTimeout(resolve, 900 * (attempt + 1)));
+    }
+    if (html) break;
+  }
+  if (!html) throw new Error(`SELAE ${gameId}: HTTP ${lastStatus}`);
   const matches = parseMatches(html, source.expected);
   if (matches.length !== source.expected) throw new Error(`SELAE ${gameId}: ${matches.length}/${source.expected} partidos interpretados`);
   const sourceHash = hashText(clean(html, 250000));
@@ -68,13 +79,13 @@ async function syncGame(supabase: any, gameId: string) {
     round_id: roundId, game_id: gameId, season: null, official_round_number: null, round_date: null,
     status: 'published', sales_open_at: null, sales_close_at: null, source: 'SELAE oficial', source_url: source.url,
     source_hash: sourceHash, official_updated_at: null, fetched_at: now, revision, matches,
-    metadata: { parserVersion: 'sports-edge-v1', sourceType: 'checker-composition', provisionalIdentity: true },
+    metadata: { parserVersion: 'sports-edge-v2', sourceType: 'checker-composition', provisionalIdentity: true },
   };
   const { error } = await supabase.from('primy_sports_rounds').upsert(row, { onConflict: 'round_id' });
   if (error) throw error;
   const { error: revisionError } = await supabase.from('primy_sports_round_revisions').upsert({
     round_id: roundId, source_hash: sourceHash, game_id: gameId, status: 'published', fetched_at: now, matches,
-    metadata: { revision, parserVersion: 'sports-edge-v1' },
+    metadata: { revision, parserVersion: 'sports-edge-v2' },
   }, { onConflict: 'round_id,source_hash', ignoreDuplicates: true });
   if (revisionError) throw revisionError;
   return { gameId, roundId, matches: matches.length, revision, changed: previous?.source_hash !== sourceHash, sourceHash };

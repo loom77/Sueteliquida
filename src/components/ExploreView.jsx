@@ -38,6 +38,9 @@ const STATUS_STYLES = {
   'sports-foundation': 'is-review',
   'sports-data-foundation': 'is-review',
   'quiniela-simple-beta': 'is-beta',
+  'hipicas-operational-beta': 'is-beta',
+  'hipicas-foundation': 'is-review',
+  'hipicas-data-foundation': 'is-review',
 };
 
 const GameCard = memo(function GameCard({ game, now, onCreate, onRegister, onOpenArchive }) {

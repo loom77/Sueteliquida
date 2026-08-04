@@ -21,9 +21,11 @@ test('la UX de Quiniela simple usa la jornada oficial, 1-X-2, Pleno y coste pers
   assert.match(journey, /QuinielaTicketPreview/);
 });
 
-test('el archivo muestra el pronóstico deportivo sin habilitar compra ni repetición', () => {
+test('el archivo muestra el pronóstico deportivo y permite registrarlo y comprobarlo', () => {
   const archive = read('../src/components/TicketHistory.jsx');
   assert.match(archive, /QuinielaPlayDetails/);
-  assert.match(archive, /Borrador deportivo: todavía no comprado/);
+  assert.match(archive, /Registrar boleto comprado/);
+  assert.match(archive, /Registrar como comprado/);
+  assert.match(archive, /CheckNowButton/);
   assert.match(archive, /Pleno al 15/);
 });

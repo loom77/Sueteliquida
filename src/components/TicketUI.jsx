@@ -1,10 +1,27 @@
 import React from 'react';
 
-export function NumberBall({ children, extra = false, hit = false, compact = false }) {
-  const size = compact ? 'h-9 w-9 text-sm' : 'h-11 w-11 text-base';
-  const tone = extra ? 'number-ball-extra border-amber-300 text-amber-950' : hit ? 'number-ball border-primy-500 text-primy-950 ring-2 ring-primy-200' : 'number-ball border-primy-200 text-primy-900';
-  const label = extra ? `Número extra ${children}` : hit ? `Número ${children}, extraído` : `Número ${children}`;
-  return <span aria-label={label} className={`inline-flex ${size} primy-reveal items-center justify-center rounded-full border font-display font-bold tabular-nums ${tone}`}>{children}</span>;
+export function NumberBall({ children, extra = false, hit = false, compact = false, winning = false, dimmed = false }) {
+  const size = compact ? 'number-ball--compact' : 'number-ball--regular';
+  const classes = [
+    'number-ball-ui',
+    size,
+    extra && 'number-ball-ui--extra',
+    winning && 'number-ball-ui--winning',
+    hit && 'number-ball-ui--hit',
+    dimmed && !hit && 'number-ball-ui--dimmed',
+  ].filter(Boolean).join(' ');
+  const numberType = extra ? 'extra' : 'principal';
+  const context = winning ? 'del resultado oficial' : 'de tu jugada';
+  const label = hit
+    ? `Número ${numberType} ${children}, coincide con el resultado oficial`
+    : `Número ${numberType} ${children}, ${context}`;
+
+  return (
+    <span aria-label={label} className={classes} data-hit={hit ? 'true' : 'false'} data-extra={extra ? 'true' : 'false'}>
+      <span className="number-ball-ui__value">{children}</span>
+      {hit && <span className="number-ball-ui__match" aria-hidden="true">✓</span>}
+    </span>
+  );
 }
 
 export function TicketStatus({ status }) {

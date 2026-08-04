@@ -17,18 +17,32 @@ function normalizeCategory(value) {
     .replace(/\s/g, '');
 }
 
+function tokenizeCategory(value) {
+  return normalizeCategory(value)
+    .replace(/\+/g, ' ')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
 function findOfficialPrize(results, keys = []) {
   const tiers = Array.isArray(results.prizes) ? results.prizes : [];
-  const normalized = keys.map(normalizeCategory).filter(Boolean);
+  const normalized = keys.map(normalizeCategory).filter(key => key && key.length >= 2);
   let best = null;
 
   for (const candidate of tiers) {
-    const haystack = normalizeCategory([candidate.category, candidate.match, candidate.name, candidate.label].filter(Boolean).join(' '));
+    const haystackSource = [candidate.category, candidate.match, candidate.name, candidate.label].filter(Boolean).join(' ');
+    const haystack = normalizeCategory(haystackSource);
+    const haystackTokens = new Set(tokenizeCategory(haystackSource));
     let score = -1;
     for (const key of normalized) {
-      if (haystack === key) score = Math.max(score, 1000 + key.length);
-      else if (haystack.startsWith(key)) score = Math.max(score, 800 + key.length);
-      else if (key.length >= 2 && haystack.includes(key)) score = Math.max(score, 100 + key.length);
+      const keyTokens = tokenizeCategory(key);
+      const tokensContained = keyTokens.length && keyTokens.every(token => haystackTokens.has(token));
+      if (haystack === key) score = Math.max(score, 1200 + key.length);
+      else if (tokensContained) score = Math.max(score, 1000 + keyTokens.length * 20 + key.length);
+      else if (haystack.startsWith(key)) score = Math.max(score, 700 + key.length);
+      else if (key.length >= 4 && haystack.includes(key)) score = Math.max(score, 200 + key.length);
     }
     if (score > (best?.score ?? -1)) best = { candidate, score };
   }
@@ -72,12 +86,12 @@ function primitiva(ticket, results, { includeStandaloneReintegro = true } = {}) 
   const complementary = Number(results.complementary);
   const complementaryMatch = matches === 5 && (ticket.ticket || []).some(number => Number(number) === complementary);
   const reintegro = Number(ticket.extra) === Number(results.extra);
-  if (matches === 6 && reintegro) return result('Especial (6 + Reintegro)', matches, findOfficialPrize(results, ['especial', '6+r']), 'Premio variable', 'variable', { extraMatch: true });
-  if (matches === 6) return result('1.ª categoría (6 números)', matches, findOfficialPrize(results, ['1', '6']), 'Premio variable', 'variable');
-  if (complementaryMatch) return result('2.ª categoría (5 + Complementario)', matches, findOfficialPrize(results, ['2', '5+c']), 'Premio variable', 'variable', { complementaryMatch: true });
-  if (matches === 5) return result('3.ª categoría (5 números)', matches, findOfficialPrize(results, ['3', '5']), 'Premio variable', 'variable');
-  if (matches === 4) return result('4.ª categoría (4 números)', matches, findOfficialPrize(results, ['4']), 'Premio variable', 'variable');
-  if (matches === 3) return result('5.ª categoría (3 números)', matches, findOfficialPrize(results, ['5', '3']), '8,00 €', 'cash');
+  if (matches === 6 && reintegro) return result('Especial (6 + Reintegro)', matches, findOfficialPrize(results, ['especial', '6 + reintegro', '6 reintegro']), 'Premio variable', 'variable', { extraMatch: true });
+  if (matches === 6) return result('1.ª categoría (6 números)', matches, findOfficialPrize(results, ['1a categoria', '6 numeros', '6 aciertos']), 'Premio variable', 'variable');
+  if (complementaryMatch) return result('2.ª categoría (5 + Complementario)', matches, findOfficialPrize(results, ['2a categoria', '5 complementario', '5 + complementario']), 'Premio variable', 'variable', { complementaryMatch: true });
+  if (matches === 5) return result('3.ª categoría (5 números)', matches, findOfficialPrize(results, ['3a categoria', '5 numeros', '5 aciertos']), 'Premio variable', 'variable');
+  if (matches === 4) return result('4.ª categoría (4 números)', matches, findOfficialPrize(results, ['4a categoria', '4 numeros', '4 aciertos']), 'Premio variable', 'variable');
+  if (matches === 3) return result('5.ª categoría (3 números)', matches, findOfficialPrize(results, ['5a categoria', '3 numeros', '3 aciertos']), '8,00 €', 'cash');
   if (includeStandaloneReintegro && reintegro) return result('Reintegro', matches, findOfficialPrize(results, ['reintegro']) ?? 1, '1,00 €', 'cash', { extraMatch: true });
   return result(null, matches, 0, 'Sin premio', 'cash', { extraMatch: reintegro });
 }
@@ -88,11 +102,11 @@ function bonolotoBet(ticket, results, { includeStandaloneReintegro = true } = {}
   const complementary = Number(results.complementary);
   const complementaryMatch = matches === 5 && (ticket.ticket || []).some(number => Number(number) === complementary);
   const reintegro = Number(ticket.extra) === Number(results.extra);
-  if (matches === 6) return result('1.ª categoría (6 números)', matches, findOfficialPrize(results, ['1', '6']), 'Premio variable', 'variable');
-  if (complementaryMatch) return result('2.ª categoría (5 + Complementario)', matches, findOfficialPrize(results, ['2', '5+c']), 'Premio variable', 'variable', { complementaryMatch: true });
-  if (matches === 5) return result('3.ª categoría (5 números)', matches, findOfficialPrize(results, ['3', '5']), 'Premio variable', 'variable');
-  if (matches === 4) return result('4.ª categoría (4 números)', matches, findOfficialPrize(results, ['4']), 'Premio variable', 'variable');
-  if (matches === 3) return result('5.ª categoría (3 números)', matches, findOfficialPrize(results, ['5', '3']), 'Premio variable', 'variable');
+  if (matches === 6) return result('1.ª categoría (6 números)', matches, findOfficialPrize(results, ['1a categoria', '6 numeros', '6 aciertos']), 'Premio variable', 'variable');
+  if (complementaryMatch) return result('2.ª categoría (5 + Complementario)', matches, findOfficialPrize(results, ['2a categoria', '5 complementario', '5 + complementario']), 'Premio variable', 'variable', { complementaryMatch: true });
+  if (matches === 5) return result('3.ª categoría (5 números)', matches, findOfficialPrize(results, ['3a categoria', '5 numeros', '5 aciertos']), 'Premio variable', 'variable');
+  if (matches === 4) return result('4.ª categoría (4 números)', matches, findOfficialPrize(results, ['4a categoria', '4 numeros', '4 aciertos']), 'Premio variable', 'variable');
+  if (matches === 3) return result('5.ª categoría (3 números)', matches, findOfficialPrize(results, ['5a categoria', '3 numeros', '3 aciertos']), 'Premio variable', 'variable');
   if (includeStandaloneReintegro && reintegro) return result('Reintegro', matches, findOfficialPrize(results, ['reintegro']) ?? 0.5, '0,50 €', 'cash', { extraMatch: true });
   return result(null, matches, 0, 'Sin premio', 'cash', { extraMatch: reintegro });
 }
@@ -150,9 +164,9 @@ function euromillones(ticket, results) {
   const category = EUROMILLONES_CATEGORIES.get(`${matches}+${secondaryMatches}`);
   if (!category) return result(null, matches, 0, 'Sin premio', 'cash', { secondaryMatches });
   const amount = findOfficialPrize(results, [
-    `${category.number}ª`,
+    `${category.number}a categoria`,
     `${matches}+${secondaryMatches}`,
-    `${matches}aciertos+${secondaryMatches}estrellas`,
+    `${matches} aciertos ${secondaryMatches} estrellas`,
     category.label,
   ]);
   return result(category.label, matches, amount, amount == null ? 'Premio variable' : null, amount == null ? 'variable' : 'cash', { secondaryMatches });
@@ -175,10 +189,10 @@ function gordoPrimitiva(ticket, results) {
   const category = categories.get(`${matches}+${keyMatch ? 1 : 0}`);
   if (!category) return result(null, matches, 0, 'Sin premio', 'cash', { extraMatch: keyMatch });
   const amount = findOfficialPrize(results, [
-    `${category.number}ª`,
+    `${category.number}a categoria`,
     `${matches}+${keyMatch ? 1 : 0}`,
     category.label,
-    keyMatch ? 'clave' : 'numeros',
+    keyMatch ? `${matches} clave` : `${matches} numeros`,
   ]);
   return result(category.label, matches, amount, amount == null ? 'Premio variable' : null, amount == null ? 'variable' : 'cash', { extraMatch: keyMatch });
 }

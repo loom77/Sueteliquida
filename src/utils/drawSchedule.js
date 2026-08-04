@@ -73,6 +73,19 @@ export function drawInfoForDate(gameId, dateKey) {
   if (![year, month, day].every(Number.isInteger)) return null;
   const calendarDate = { year, month, day };
   const weekday = weekdayForCalendarDate(calendarDate);
+  if (!game.drawTime) {
+    const provisional = madridDateFromParts({ ...calendarDate, hour: 12, minute: 0 });
+    return {
+      drawDateISO: provisional.toISOString(),
+      drawDateTimeISO: provisional.toISOString(),
+      drawDateKey: dateKeyFromParts(calendarDate),
+      salesCloseISO: provisional.toISOString(),
+      resultPublicationISO: provisional.toISOString(),
+      checkableFromISO: provisional.toISOString(),
+      timeZone: APP_TIME_ZONE,
+      provisionalSchedule: true,
+    };
+  }
   const national = gameId === 'loteria-nacional';
   const drawTime = national && weekday === 6 ? { hour: 13, minute: 0 } : game.drawTime;
   const salesTime = national && weekday === 6 ? { hour: 12, minute: 30 } : (game.salesCloseTime || drawTime);
@@ -95,6 +108,7 @@ export function drawInfoForDate(gameId, dateKey) {
 export function getNextDrawInfo(gameId, from = new Date()) {
   const game = getGameConfig(gameId);
   const local = zonedParts(from);
+  if (!game.drawDays?.length) return drawInfoForDate(gameId, toLocalDateKey(from));
   if (!local) return drawInfoForDate(gameId, toLocalDateKey(new Date()));
   let calendarDate = { year: local.year, month: local.month, day: local.day };
   let candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));

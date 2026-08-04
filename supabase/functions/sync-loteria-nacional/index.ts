@@ -90,11 +90,19 @@ function fullRules(text: string, first: string, second: string, third: string, s
 }
 
 async function fetchText(url: string, timeout = 45000) {
-  const response = await fetch(url, { headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/15.6 (+https://sueteliquida.vercel.app; national-sync)", "x-no-cache": "true" }, signal: AbortSignal.timeout(timeout), redirect: "follow" });
-  if (!response.ok) throw new SyncError(`Fuente HTTP ${response.status}`, "SOURCE_REJECTED", response.status === 429 ? 429 : 502);
-  const text = clean(await response.text());
-  if (text.length < 300) throw new SyncError("Fuente incompleta.", "SOURCE_INVALID");
-  return text;
+  let lastStatus = 0;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(url, { headers: { accept: "text/plain,text/markdown,*/*", "user-agent": "Primy/16.9 (+https://sueteliquida.vercel.app; national-sync)", "x-no-cache": "true" }, signal: AbortSignal.timeout(timeout), redirect: "follow" });
+    lastStatus = response.status;
+    if (response.ok) {
+      const text = clean(await response.text());
+      if (text.length < 300) throw new SyncError("Fuente incompleta.", "SOURCE_INVALID");
+      return text;
+    }
+    if (response.status !== 429) break;
+    await new Promise(resolve => setTimeout(resolve, 1400 * (attempt + 1)));
+  }
+  throw new SyncError(`Fuente HTTP ${lastStatus}`, "SOURCE_REJECTED", lastStatus === 429 ? 429 : 502);
 }
 
 async function save(draw: Record<string, unknown>) {

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Quíntuple Plus">
+  <defs>
+    <linearGradient id="bg" x1="16" y1="12" x2="112" y2="118" gradientUnits="userSpaceOnUse"><stop stop-color="#9A6AD0"/><stop offset="1" stop-color="#4F2D7C"/></linearGradient>
+    <linearGradient id="medal" x1="38" y1="46" x2="92" y2="108" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF1AD"/><stop offset="1" stop-color="#D7A72D"/></linearGradient>
+  </defs>
+  <rect x="5" y="5" width="118" height="118" rx="34" fill="url(#bg)"/>
+  <path d="M24 64c8-20 23-32 42-32 14 0 27 7 35 20l-10 6c-6-9-14-14-25-14-12 0-22 7-28 20l18 1c15 1 26 11 28 26l-11 2c-2-9-8-15-18-16l-23-1-7 20H14l10-32Z" fill="#FFF8F0"/>
+  <circle cx="83" cy="91" r="25" fill="url(#medal)" stroke="#FFF" stroke-width="4"/>
+  <text x="83" y="99" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="800" fill="#5A3A0B">5+</text>
+  <path d="M98 21c2 8 6 12 14 14-8 2-12 6-14 14-2-8-6-12-14-14 8-2 12-6 14-14Z" fill="#FFD45A"/>
+</svg>

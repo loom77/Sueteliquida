@@ -1,5 +1,6 @@
 import { GAMES } from '../src/utils/gameConfig.js';
-import { readDrawRange, readLatestDraw, repositoryStatus } from './_drawRepository.js';
+import { readDrawRange, readLatestDraw, repositoryStatus, upsertDraws } from './_drawRepository.js';
+import { fetchOfficialDraw } from './_selaeProvider.js';
 
 export class ProviderError extends Error {
   constructor(message, { code = 'PROVIDER_ERROR', status = 502, providerStatus = null, retryAfter = null } = {}) {
@@ -13,6 +14,14 @@ export class ProviderError extends Error {
 }
 
 const DEFAULT_FRESH_MS = 18 * 60 * 60 * 1000;
+const LIVE_RESULT_GAMES = new Set([
+  'primitiva',
+  'bonoloto',
+  'euromillones',
+  'gordoprimitiva',
+  'eurodreams',
+  'loteria-nacional',
+]);
 
 function freshEnough(draw, now = Date.now()) {
   const fetched = new Date(draw?.fetchedAt || 0).getTime();
@@ -25,6 +34,44 @@ function dedupeDraws(draws) {
   const map = new Map();
   for (const draw of draws || []) if (draw?.date) map.set(draw.date, draw);
   return [...map.values()].sort((a, b) => a.date.localeCompare(b.date));
+}
+
+async function mapWithConcurrency(values, limit, worker) {
+  const output = new Array(values.length);
+  let cursor = 0;
+  const runners = Array.from({ length: Math.min(limit, values.length) }, async () => {
+    while (cursor < values.length) {
+      const index = cursor;
+      cursor += 1;
+      output[index] = await worker(values[index], index);
+    }
+  });
+  await Promise.all(runners);
+  return output;
+}
+
+async function fetchMissingDraws(game, dates, { fetchImpl = globalThis.fetch } = {}) {
+  if (!LIVE_RESULT_GAMES.has(game.id) || !dates.length) return { draws: [], errors: [] };
+  const attempts = await mapWithConcurrency(dates, 2, async date => {
+    try {
+      const draw = await fetchOfficialDraw({ game, date, timeoutMs: 14000, fetchImpl });
+      return { date, draw };
+    } catch (error) {
+      return {
+        date,
+        error: {
+          code: error?.code || 'LIVE_RESULT_ERROR',
+          message: error?.message || 'Resultado oficial no disponible.',
+        },
+      };
+    }
+  });
+  const draws = attempts.map(item => item.draw).filter(Boolean);
+  if (draws.length) await upsertDraws(draws, { fetchImpl });
+  return {
+    draws,
+    errors: attempts.filter(item => item.error).map(item => ({ date: item.date, ...item.error })),
+  };
 }
 
 export async function getLatestDraw(game, { fetchImpl = globalThis.fetch, now = new Date() } = {}) {
@@ -43,15 +90,31 @@ export async function getLatestDraw(game, { fetchImpl = globalThis.fetch, now = 
   };
 }
 
-export async function getDrawsForDates(game, dates, { fetchImpl = globalThis.fetch } = {}) {
+export async function getDrawsForDates(game, dates, {
+  fetchImpl = globalThis.fetch,
+  fetchMissing = true,
+} = {}) {
   const wanted = [...new Set(dates)].sort();
-  if (!wanted.length) return { draws: [], unavailableDates: [], errors: [] };
+  if (!wanted.length) return { draws: [], unavailableDates: [], errors: [], liveFetched: 0 };
+
   const cached = await readDrawRange(game.id, wanted[0], wanted.at(-1), { fetchImpl });
   const byDate = new Map(cached.filter(draw => wanted.includes(draw.date)).map(draw => [draw.date, draw]));
+  const missing = wanted.filter(date => !byDate.has(date));
+  let live = { draws: [], errors: [] };
+
+  // A user-triggered verification must not wait for the next cron cycle. When
+  // the archive has no row yet, query the official per-game result directly,
+  // validate it and persist it for all users.
+  if (fetchMissing && missing.length) {
+    live = await fetchMissingDraws(game, missing, { fetchImpl });
+    for (const draw of live.draws) byDate.set(draw.date, draw);
+  }
+
   return {
     draws: wanted.map(date => byDate.get(date)).filter(Boolean),
     unavailableDates: wanted.filter(date => !byDate.has(date)),
-    errors: [],
+    errors: live.errors,
+    liveFetched: live.draws.length,
     source: 'SELAE oficial / archivo Primy',
     repository: repositoryStatus(),
   };
@@ -93,4 +156,3 @@ export function coverageYears(draws, requestedYears) {
   if (!Number.isFinite(first) || !Number.isFinite(last)) return 0;
   return Math.min(requestedYears, Math.max(0, Math.round(((last - first) / 31557600000) * 10) / 10));
 }
-

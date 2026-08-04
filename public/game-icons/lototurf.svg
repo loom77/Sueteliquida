@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Lototurf">
+  <defs>
+    <linearGradient id="bg" x1="18" y1="14" x2="110" y2="116" gradientUnits="userSpaceOnUse"><stop stop-color="#E89C45"/><stop offset="1" stop-color="#8D4B13"/></linearGradient>
+    <linearGradient id="ball" x1="34" y1="70" x2="84" y2="120" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF6CF"/><stop offset="1" stop-color="#E4B941"/></linearGradient>
+  </defs>
+  <rect x="5" y="5" width="118" height="118" rx="34" fill="url(#bg)"/>
+  <path d="M27 67c7-22 22-35 41-35 13 0 24 6 32 17l-9 6c-6-7-13-11-22-11-11 0-20 6-26 17l18 2c13 1 23 10 25 23l-10 2c-2-8-7-12-15-13l-22-2-7 21H20l7-27Z" fill="#FFF9EF"/>
+  <circle cx="80" cy="91" r="24" fill="url(#ball)" stroke="#FFF" stroke-width="4"/>
+  <text x="80" y="99" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="800" fill="#70400E">6</text>
+  <path d="M94 23c2 7 5 10 12 12-7 2-10 5-12 12-2-7-5-10-12-12 7-2 10-5 12-12Z" fill="#FFD45A"/>
+</svg>

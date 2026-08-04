@@ -4,7 +4,7 @@ import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { playBetCount, playCost, playKnownPrize } from '../utils/playModel.js';
 import { getPlayDeleteDescription } from '../utils/playDeletion.js';
 import { NumberBall, TicketStatus } from './TicketUI.jsx';
-import { ChevronDownIcon, CopyIcon, RepeatIcon, SearchIcon, StarIcon, TrashIcon } from './Icons.jsx';
+import { ChevronDownIcon, CopyIcon, RefreshIcon, RepeatIcon, SearchIcon, StarIcon, TrashIcon } from './Icons.jsx';
 import { PrimyMascotGraphic } from './BrandVisuals.jsx';
 import GameIdentity from './GameIdentity.jsx';
 import { gameThemeStyle } from '../utils/gameVisualTheme.js';
@@ -12,6 +12,24 @@ import ConfirmDialog from './ConfirmDialog.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const priority = { awaiting_check: 0, scheduled: 1, draft: 2, checked: 3 };
+
+function CheckNowButton({ play, onCheckPlay, checkingPlayId, checkingGame, compact = false, className = '' }) {
+  if (play.computedStatus !== 'awaiting_check' || typeof onCheckPlay !== 'function') return null;
+  const checking = String(checkingPlayId || '') === String(play.id);
+  const otherCheckRunning = Boolean(checkingGame || (checkingPlayId && !checking));
+  return (
+    <button
+      type="button"
+      onClick={() => onCheckPlay(play)}
+      disabled={checking || otherCheckRunning}
+      className={`${compact ? 'primy-check-play-button primy-check-play-button--compact' : 'primy-check-play-button'} ${className}`.trim()}
+      aria-label={`Comprobar ahora la jugada de ${getGameConfig(play.gameId).name}`}
+    >
+      <RefreshIcon width={compact ? 16 : 18} height={compact ? 16 : 18} className={checking ? 'animate-spin' : ''}/>
+      <span>{checking ? 'Comprobando…' : 'Comprobar ahora'}</span>
+    </button>
+  );
+}
 
 function ResultSummary({ play }) {
   if (play.computedStatus !== 'checked') return null;
@@ -25,8 +43,8 @@ function ResultSummary({ play }) {
       <p className={`text-xs font-bold uppercase tracking-wide ${awarded > 0 ? 'text-emerald-800' : 'text-slate-600'}`}>Resultado comprobado</p>
       <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xl font-semibold text-primary">{awarded > 0 ? `${awarded} ${awarded === 1 ? 'apuesta premiada' : 'apuestas premiadas'}` : 'Esta jugada no tiene premio'}</p>
-          <p className="mt-1 text-sm text-secondary">Los números marcados corresponden al resultado oficial guardado.</p>
+          <p className="text-xl font-semibold text-primary">{awarded > 0 ? `${awarded} ${awarded === 1 ? 'columna con premio' : 'columnas con premio'}` : 'Esta jugada no tiene premio'}</p>
+          <p className="mt-1 text-sm text-secondary">Se muestra el total confirmado del resguardo según el resultado oficial guardado.</p>
         </div>
         {knownPrize > 0 && <p className="text-2xl font-bold tabular-nums text-emerald-800">{euro.format(knownPrize)}</p>}
       </div>
@@ -35,7 +53,80 @@ function ResultSummary({ play }) {
 }
 
 
-function NationalPlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat }) {
+
+function OfficialDrawComparison({ play, game }) {
+  if (play.computedStatus !== 'checked') return null;
+  const officialMain = (play.result?.winningNumbers || []).map(Number).filter(Number.isFinite);
+  const officialSecondary = (play.result?.secondaryNumbers || []).map(Number).filter(Number.isFinite);
+  const officialExtra = play.result?.extra;
+  const officialComplementary = play.result?.complementary;
+  if (!officialMain.length && !officialSecondary.length && officialExtra == null && officialComplementary == null) return null;
+
+  const playedMain = new Set((play.columns || []).flatMap(column => column.numbers || []).map(Number));
+  const playedSecondary = new Set((play.columns || []).flatMap(column => column.secondaryNumbers || []).map(Number));
+  const playedExtras = new Set([
+    play.receiptExtra,
+    ...(play.columns || []).map(column => column.extra),
+  ].filter(value => value !== null && value !== undefined && value !== '').map(Number));
+
+  const mainMatches = officialMain.filter(number => playedMain.has(number)).length;
+  const secondaryMatches = officialSecondary.filter(number => playedSecondary.has(number)).length;
+  const complementaryMatch = officialComplementary != null && playedMain.has(Number(officialComplementary)) ? 1 : 0;
+  const extraMatch = officialExtra != null && playedExtras.has(Number(officialExtra)) ? 1 : 0;
+  const visibleMatches = mainMatches + secondaryMatches + complementaryMatch + extraMatch;
+
+  return (
+    <section className="primy-official-result" aria-label="Comparación con el resultado oficial">
+      <div className="primy-official-result__header">
+        <div>
+          <p className="primy-official-result__eyebrow">Resultado oficial</p>
+          <h4>Números extraídos y coincidencias</h4>
+          <p>Los círculos iluminados con ✓ aparecen también en tu jugada.</p>
+        </div>
+        <span className="primy-official-result__count" data-zero={visibleMatches === 0 ? 'true' : 'false'}>
+          <strong>{visibleMatches}</strong>
+          <span>{visibleMatches === 1 ? 'coincidencia' : 'coincidencias'}</span>
+        </span>
+      </div>
+
+      {officialMain.length > 0 && (
+        <div className="primy-official-result__group">
+          <span className="primy-official-result__label">Combinación</span>
+          <div className="primy-official-result__balls">
+            {officialMain.map(number => <NumberBall key={`official-main-${number}`} compact winning hit={playedMain.has(number)}>{number}</NumberBall>)}
+          </div>
+        </div>
+      )}
+
+      <div className="primy-official-result__extras">
+        {officialSecondary.length > 0 && (
+          <div className="primy-official-result__group">
+            <span className="primy-official-result__label">{game.secondary?.label || 'Números adicionales'}</span>
+            <div className="primy-official-result__balls">
+              {officialSecondary.map(number => <NumberBall key={`official-secondary-${number}`} compact extra winning hit={playedSecondary.has(number)}>{number}</NumberBall>)}
+            </div>
+          </div>
+        )}
+        {officialComplementary != null && (
+          <div className="primy-official-result__group">
+            <span className="primy-official-result__label">Complementario</span>
+            <div className="primy-official-result__balls"><NumberBall compact extra winning hit={playedMain.has(Number(officialComplementary))}>{officialComplementary}</NumberBall></div>
+          </div>
+        )}
+        {officialExtra != null && (
+          <div className="primy-official-result__group">
+            <span className="primy-official-result__label">{game.extra?.label || 'Extra'}</span>
+            <div className="primy-official-result__balls"><NumberBall compact extra winning hit={playedExtras.has(Number(officialExtra))}>{officialExtra}</NumberBall></div>
+          </div>
+        )}
+      </div>
+
+      <div className="primy-official-result__legend"><span aria-hidden="true">✓</span> Coincide con uno de los números de tu boleto</div>
+    </section>
+  );
+}
+
+function NationalPlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onCheckPlay, checkingPlayId, checkingGame }) {
   const [series, setSeries] = useState('');
   const [fraction, setFraction] = useState('');
   const number = play.nationalNumber || play.columns?.[0]?.number || '00000';
@@ -89,40 +180,53 @@ function NationalPlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, on
 }
 
 
-function QuinielaPlayDetails({ play, onRequestRemove, onFavorite }) {
+function QuinielaPlayDetails({ play, onPurchase, onRequestRemove, onFavorite, onCheckPlay, checkingPlayId, checkingGame }) {
   const column = play.columns?.[0] || { signs: [], pleno: {} };
   const matches = play.matches || [];
+  const officialSigns = column.verificationDetails?.officialSigns || [];
+  const officialPleno = column.verificationDetails?.officialPleno || {};
   return (
     <div className="p-4 md:p-6">
       <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-wide text-sky-800">Quiniela preparada</p>
+          <p className="text-xs font-bold uppercase tracking-wide text-sky-800">La Quiniela</p>
           <h3 className="mt-1 text-xl font-semibold text-primary">{play.officialRoundNumber ? `Jornada ${play.officialRoundNumber}` : 'Jornada oficial'} · {formatDrawDate(play.drawDateISO)}</h3>
           <p className="mt-1 text-sm text-secondary">Una apuesta simple · Coste {euro.format(playCost(play))}</p>
         </div>
         <TicketStatus status={play.computedStatus}/>
       </div>
 
+      <ResultSummary play={play}/>
+
       <div className="grid gap-2 xl:grid-cols-2">
-        {matches.slice(0, 14).map((match, index) => (
-          <div key={match.matchId} className="grid grid-cols-[2rem_minmax(0,1fr)_3rem] items-center gap-3 rounded-xl border border-default bg-muted px-3 py-2.5">
-            <span className="text-xs font-bold text-secondary">{index + 1}</span>
-            <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{match.homeTeam}</p><p className="truncate text-xs text-secondary">{match.awayTeam}</p></div>
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-800 text-lg font-extrabold text-white">{column.signs?.[index]}</span>
-          </div>
-        ))}
+        {matches.slice(0, 14).map((match, index) => {
+          const checked = play.computedStatus === 'checked';
+          const hit = checked && column.signs?.[index] === officialSigns[index];
+          return (
+            <div key={match.matchId} className={`grid grid-cols-[2rem_minmax(0,1fr)_3rem] items-center gap-3 rounded-xl border px-3 py-2.5 ${hit ? 'border-emerald-300 bg-emerald-50' : 'border-default bg-muted'}`}>
+              <span className="text-xs font-bold text-secondary">{index + 1}</span>
+              <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{match.homeTeam}</p><p className="truncate text-xs text-secondary">{match.awayTeam}</p>{checked && <p className="mt-1 text-[11px] font-bold text-secondary">Resultado: {officialSigns[index] || '—'}</p>}</div>
+              <span className={`relative flex h-10 w-10 items-center justify-center rounded-xl text-lg font-extrabold text-white ${hit ? 'bg-emerald-700 ring-4 ring-amber-300' : 'bg-sky-800'}`}>{column.signs?.[index]}{hit && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-300 text-[9px] text-amber-950">✓</span>}</span>
+            </div>
+          );
+        })}
       </div>
 
-      <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+      <div className={`mt-4 rounded-2xl border p-4 ${column.extraMatch ? 'border-emerald-300 bg-emerald-50' : 'border-amber-200 bg-amber-50'}`}>
         <p className="text-xs font-bold uppercase tracking-wide text-amber-900">Pleno al 15</p>
         <p className="mt-2 font-semibold text-primary">{matches[14]?.homeTeam} {column.pleno?.home} – {column.pleno?.away} {matches[14]?.awayTeam}</p>
-        <p className="mt-1 text-xs text-secondary">M representa tres o más goles.</p>
+        {play.computedStatus === 'checked' && <p className="mt-1 text-xs font-bold text-secondary">Resultado oficial: {officialPleno.home || '—'} – {officialPleno.away || '—'} {column.extraMatch ? '· Coincide ✓' : ''}</p>}
       </div>
 
-      <div className="mt-5 rounded-2xl border border-sky-100 bg-sky-50 p-4 text-sm leading-6 text-sky-950">
-        <p className="font-semibold">Borrador deportivo: todavía no comprado</p>
-        <p className="mt-1">Esta versión conserva la jornada y el pronóstico. El registro de compra y la comprobación oficial se activarán en un milestone posterior.</p>
-      </div>
+      {!play.purchased ? (
+        <div className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 p-4">
+          <p className="font-semibold text-primary">Registrar boleto comprado</p>
+          <p className="mt-1 text-sm leading-6 text-secondary">Después del cierre de la jornada, Primy aplicará automáticamente la verificación unificada.</p>
+          <button type="button" onClick={() => onPurchase(play.id)} className="mt-4 min-h-11 w-full rounded-xl bg-sky-800 px-4 text-sm font-bold text-white">Registrar como comprado</button>
+        </div>
+      ) : (
+        <div className="mt-5"><CheckNowButton play={play} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/></div>
+      )}
 
       <div className="mt-6 grid gap-2 sm:grid-cols-2">
         <button type="button" onClick={() => onFavorite(play.id)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted"><StarIcon width="17" height="17" className={play.favorite ? 'fill-amber-400 text-amber-500' : ''}/>{play.favorite ? 'Quitar favorito' : 'Favorito'}</button>
@@ -132,16 +236,81 @@ function QuinielaPlayDetails({ play, onRequestRemove, onFavorite }) {
   );
 }
 
-function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
+function HorsePlayDetails({ play, onPurchase, onRequestRemove, onFavorite, onCheckPlay, checkingPlayId, checkingGame }) {
+  const [receiptExtra, setReceiptExtra] = useState('');
+  const isLototurf = play.gameId === 'lototurf';
+  const selection = play.selection || {};
+  const official = play.result?.result || {};
+  const winningNumbers = new Set(official.winningNumbers || []);
+  return (
+    <div className="p-4 md:p-6">
+      <div className={`mb-5 flex flex-col gap-3 rounded-2xl border p-4 sm:flex-row sm:items-center sm:justify-between ${isLototurf ? 'border-orange-200 bg-orange-50' : 'border-violet-200 bg-violet-50'}`}>
+        <div>
+          <p className={`text-xs font-bold uppercase tracking-wide ${isLototurf ? 'text-orange-800' : 'text-violet-800'}`}>{isLototurf ? 'Lototurf' : 'Quíntuple Plus'}</p>
+          <h3 className="mt-1 text-xl font-semibold text-primary">{play.officialRoundNumber ? `Jornada ${play.officialRoundNumber}` : 'Jornada oficial'} · {formatDrawDate(play.drawDateISO)}</h3>
+          <p className="mt-1 text-sm text-secondary">{play.equivalentBets} {play.equivalentBets === 1 ? 'apuesta equivalente' : 'apuestas equivalentes'} · Coste {euro.format(playCost(play))}</p>
+        </div>
+        <TicketStatus status={play.computedStatus}/>
+      </div>
+
+      <ResultSummary play={play}/>
+
+      {isLototurf ? (
+        <>
+          <section className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-emerald-800">Números</p>
+            <div className="mt-3 flex flex-wrap gap-2">{(selection.numbers || []).map(number => <NumberBall key={number} compact hit={play.computedStatus === 'checked' && winningNumbers.has(number)} dimmed={play.computedStatus === 'checked' && !winningNumbers.has(number)}>{number}</NumberBall>)}</div>
+          </section>
+          <section className="mt-4 rounded-2xl border border-orange-200 bg-orange-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-orange-800">Caballo ganador · 4.ª carrera</p>
+            <p className="mt-1 text-sm text-secondary">{play.races?.[0]?.name}</p>
+            <div className="mt-3 flex flex-wrap gap-2">{(selection.horses || []).map(number => {
+              const runner = play.races?.[0]?.runners?.find(item => item.number === number);
+              const hit = play.computedStatus === 'checked' && Number(number) === Number(official.winningHorse);
+              return <span key={number} className={`inline-flex min-h-10 items-center gap-2 rounded-xl border bg-white px-3 text-sm font-bold ${hit ? 'border-amber-400 text-emerald-900 ring-4 ring-amber-200' : 'border-orange-200 text-orange-950'}`}><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-orange-100">{number}</span>{runner?.name || `Dorsal ${number}`}{hit ? ' ✓' : ''}</span>;
+            })}</div>
+          </section>
+        </>
+      ) : (
+        <div className="space-y-3">
+          {(selection.rows || []).map((row, index) => {
+            const race = play.races?.[Math.min(index, 4)];
+            const officialHorse = index < 5 ? official.winners?.[index] : official.secondFifth;
+            return <section key={`${race?.raceId || index}-${index}`} className="rounded-2xl border border-violet-200 bg-violet-50/65 p-4"><p className="text-xs font-bold uppercase tracking-wide text-violet-800">{index < 5 ? `Ganador · carrera ${index + 1}` : 'Segundo · carrera 5'}</p><p className="mt-1 truncate text-sm text-secondary">{race?.name}</p><div className="mt-3 flex flex-wrap gap-2">{row.map(number => { const runner = race?.runners?.find(item => item.number === number); const hit = play.computedStatus === 'checked' && Number(number) === Number(officialHorse); return <span key={number} className={`inline-flex min-h-10 items-center gap-2 rounded-xl border bg-white px-3 text-sm font-bold ${hit ? 'border-amber-400 text-emerald-900 ring-4 ring-amber-200' : 'border-violet-200 text-violet-950'}`}><span className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-100">{number}</span>{runner?.name || `Dorsal ${number}`}{hit ? ' ✓' : ''}</span>; })}</div>{play.computedStatus === 'checked' && <p className="mt-2 text-xs font-bold text-secondary">Resultado oficial: dorsal {officialHorse ?? '—'}</p>}</section>;
+          })}
+        </div>
+      )}
+
+      {!play.purchased ? (
+        <div className={`mt-5 rounded-2xl border p-4 ${isLototurf ? 'border-orange-200 bg-orange-50' : 'border-violet-200 bg-violet-50'}`}>
+          <p className="font-semibold text-primary">Registrar boleto comprado</p>
+          {isLototurf && <label className="mt-3 block text-sm font-semibold text-primary">Reintegro del resguardo<input value={receiptExtra} onChange={event => setReceiptExtra(event.target.value.replace(/\D/g, '').slice(0, 1))} inputMode="numeric" placeholder="0–9" className="mt-2 min-h-11 w-full rounded-xl border border-orange-200 bg-white px-3 font-normal"/></label>}
+          <button type="button" disabled={isLototurf && !/^[0-9]$/.test(receiptExtra)} onClick={() => onPurchase(play.id, isLototurf ? { receiptExtra: Number(receiptExtra) } : {})} className={`mt-4 min-h-11 w-full rounded-xl px-4 text-sm font-bold text-white disabled:opacity-50 ${isLototurf ? 'bg-orange-700' : 'bg-violet-700'}`}>Registrar como comprado</button>
+        </div>
+      ) : (
+        <div className="mt-5"><CheckNowButton play={play} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/></div>
+      )}
+
+      <div className="mt-6 grid gap-2 sm:grid-cols-2">
+        <button type="button" onClick={() => onFavorite(play.id)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted"><StarIcon width="17" height="17" className={play.favorite ? 'fill-amber-400 text-amber-500' : ''}/>{play.favorite ? 'Quitar favorito' : 'Favorito'}</button>
+        <button type="button" onClick={() => onRequestRemove(play)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>
+      </div>
+    </div>
+  );
+}
+
+function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite, onRepeat, onVariant, onCheckPlay, checkingPlayId, checkingGame }) {
   const [purchaseExtra, setPurchaseExtra] = useState('');
-  if (play.gameId === 'loteria-nacional') return <NationalPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat}/>;
-  if (play.gameId === 'quiniela') return <QuinielaPlayDetails play={play} onRequestRemove={onRequestRemove} onFavorite={onFavorite}/>;
+  if (play.gameId === 'loteria-nacional') return <NationalPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/>;
+  if (play.gameId === 'quiniela') return <QuinielaPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onFavorite={onFavorite} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/>;
+  if (play.gameId === 'lototurf' || play.gameId === 'quintuple-plus') return <HorsePlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onFavorite={onFavorite} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/>;
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);
   const receiptScopedExtra = game.extra?.scope === 'receipt';
   const columnScopedExtra = game.extra?.scope === 'column';
   const hasSecondary = Boolean(game.secondary);
   const winningSecondary = new Set(play.result?.secondaryNumbers || []);
+  const resultExtra = play.result?.extra;
   const receiptExtra = play.receiptExtra ?? play.columns?.[0]?.extra;
   const receiptExtraPending = game.extra?.assignment === 'official-receipt' && (receiptExtra === null || receiptExtra === undefined || receiptExtra === '' || !Number.isInteger(Number(receiptExtra)));
   const isMultiple = play.betType === 'multiple';
@@ -159,6 +328,7 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
       </div>
 
       <ResultSummary play={play}/>
+      <OfficialDrawComparison play={play} game={game}/>
 
       {receiptScopedExtra && (
         <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4">
@@ -167,7 +337,7 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
               <p className="text-xs font-bold uppercase tracking-wide text-amber-800">Reintegro del resguardo</p>
               <p className="mt-1 text-sm text-amber-950">Único para todas las apuestas del resguardo</p>
             </div>
-            {receiptExtraPending ? <span className="rounded-full border border-amber-300 bg-surface px-3 py-2 text-sm font-bold text-amber-900">Pendiente</span> : <NumberBall compact extra>{receiptExtra}</NumberBall>}
+            {receiptExtraPending ? <span className="rounded-full border border-amber-300 bg-surface px-3 py-2 text-sm font-bold text-amber-900">Pendiente</span> : <NumberBall compact extra hit={play.computedStatus === 'checked' && Number(receiptExtra) === Number(resultExtra)} dimmed={play.computedStatus === 'checked' && Number(receiptExtra) !== Number(resultExtra)}>{receiptExtra}</NumberBall>}
           </div>
           {play.receiptPrize && (
             <div className="mt-3 border-t border-amber-200 pt-3 text-sm text-amber-950">
@@ -183,22 +353,25 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
         {play.columns.map((column, index) => {
           const hasPrize = column.status === 'checked' && Boolean(column.prizeCategory);
           return (
-            <div key={column.id} className={`primy-archive-column rounded-2xl border p-4 ${hasPrize ? 'border-emerald-200 bg-emerald-50/70' : 'border-default bg-muted'}`}>
+            <div key={column.id} className={`primy-archive-column rounded-2xl border p-4 ${hasPrize ? 'border-emerald-200 bg-emerald-50/70' : 'border-default bg-muted'}`} data-matches={column.status === 'checked' && (column.matches || column.secondaryMatches || column.extraMatch) ? 'true' : 'false'}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wide text-secondary">{isMultiple ? `Selección múltiple · ${betCount} apuestas` : `Columna ${index + 1}`}</p>
                   {column.status === 'checked' && <p className={`mt-1 text-sm font-semibold ${hasPrize ? 'text-emerald-800' : 'text-secondary'}`}>{column.prizeCategory || 'Sin premio'}</p>}
                 </div>
-                {column.status === 'checked' && <span className="rounded-full bg-surface px-2.5 py-1 text-xs font-bold text-secondary">{column.matches || 0} aciertos{hasSecondary ? ` + ${column.secondaryMatches || 0} estrellas` : ''}</span>}
+                {column.status === 'checked' && <span className="primy-match-count" data-zero={(column.matches || 0) + (column.secondaryMatches || 0) === 0 ? 'true' : 'false'}><strong>{column.matches || 0}</strong> aciertos{hasSecondary ? ` + ${column.secondaryMatches || 0} ${game.secondary.label.toLocaleLowerCase('es-ES')}` : ''}</span>}
               </div>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                {column.numbers.map(number => <NumberBall key={number} compact hit={column.status === 'checked' && winning.has(number)}>{number}</NumberBall>)}
+                {column.numbers.map(number => {
+                  const isHit = column.status === 'checked' && winning.has(number);
+                  return <NumberBall key={number} compact hit={isHit} dimmed={column.status === 'checked' && !isHit}>{number}</NumberBall>;
+                })}
                 {(hasSecondary || columnScopedExtra) && <span aria-hidden="true" className="mx-1 h-7 w-px bg-slate-300"/>}
                 {hasSecondary && (column.secondaryNumbers || []).map(value => (
-                  <NumberBall key={`secondary-${value}`} compact extra hit={column.status === 'checked' && winningSecondary.has(value)}>{value}</NumberBall>
+                  <NumberBall key={`secondary-${value}`} compact extra hit={column.status === 'checked' && winningSecondary.has(value)} dimmed={column.status === 'checked' && !winningSecondary.has(value)}>{value}</NumberBall>
                 ))}
                 {hasSecondary && <span className="text-sm font-bold text-secondary">{game.secondary.label}</span>}
-                {columnScopedExtra && <NumberBall compact extra>{column.extra}</NumberBall>}
+                {columnScopedExtra && <NumberBall compact extra hit={column.status === 'checked' && Number(column.extra) === Number(resultExtra)} dimmed={column.status === 'checked' && Number(column.extra) !== Number(resultExtra)}>{column.extra}</NumberBall>}
                 {columnScopedExtra && <span className="text-sm font-bold text-secondary">{game.extra.label}</span>}
               </div>
               {column.status === 'checked' && (
@@ -271,7 +444,7 @@ function ArchiveSummary({ plays }) {
   );
 }
 
-export default function TicketHistory({ plays, onCreate, onAddExternal, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
+export default function TicketHistory({ plays, checkingGame, checkingPlayId, onCheckPlay, onCreate, onAddExternal, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const [gameFilter, setGameFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sort, setSort] = useState('action');
@@ -382,12 +555,15 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                     <div className="flex items-start justify-between gap-4">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2"><GameIdentity gameId={play.gameId} size="sm" label={false}/><p className="truncate font-semibold text-primary">{game.name}</p>{play.favorite && <StarIcon width="16" height="16" className="shrink-0 fill-amber-400 text-amber-500"/>}</div>
-                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.gameId === 'loteria-nacional' ? `${play.nationalNumber} · ${play.ticketQuantity || 1} décimo(s)` : play.gameId === 'quiniela' ? '1 apuesta simple' : play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
+                        <p className="mt-1 text-sm capitalize text-secondary">{formatDrawDate(play.drawDateISO)} · {play.gameId === 'loteria-nacional' ? `${play.nationalNumber} · ${play.ticketQuantity || 1} décimo(s)` : play.gameId === 'quiniela' ? '1 apuesta simple' : ['lototurf', 'quintuple-plus'].includes(play.gameId) ? `${playBetCount(play)} apuestas hípicas` : play.betType === 'multiple' ? `${playBetCount(play)} apuestas` : `${play.columns.length} ${play.columns.length === 1 ? 'columna' : 'columnas'}`}</p>
                       </div>
                       <TicketStatus status={play.computedStatus}/>
                     </div>
+                    {play.computedStatus === 'awaiting_check' && (
+                      <CheckNowButton play={play} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame} className="mt-4 w-full"/>
+                    )}
                     <div className="mt-4 flex items-center gap-2 border-t border-default pt-3">
-                      <p className="min-w-0 flex-1 text-sm font-semibold text-primary">{play.status === 'checked' ? `${awarded} premiadas · ${euro.format(playKnownPrize(play))}` : euro.format(playCost(play))}</p>
+                      <p className="min-w-0 flex-1 text-sm font-semibold text-primary">{play.status === 'checked' ? `${awarded} con premio · ${euro.format(playKnownPrize(play))}` : euro.format(playCost(play))}</p>
                       <button type="button" onClick={() => requestRemove(play)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-rose-700 hover:bg-rose-50" aria-label={`Eliminar ${game.name} del ${formatDrawDate(play.drawDateISO)}`} title="Eliminar jugada">
                         <TrashIcon width="18" height="18"/>
                       </button>
@@ -396,7 +572,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                       </button>
                     </div>
                   </div>
-                  {isExpanded && <div id={`mobile-play-details-${play.id}`} className="border-t border-default"><PlayDetails play={play} onPurchase={onPurchase} onRequestRemove={requestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></div>}
+                  {isExpanded && <div id={`mobile-play-details-${play.id}`} className="border-t border-default"><PlayDetails play={play} onPurchase={onPurchase} onRequestRemove={requestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/></div>}
                 </article>
               );
             })}
@@ -419,6 +595,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                         <td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios: {euro.format(playKnownPrize(play))}</p>}</td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1">
+                            <CheckNowButton play={play} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame} compact/>
                             <button type="button" onClick={() => requestRemove(play)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-rose-700 hover:bg-rose-50" aria-label={`Eliminar ${game.name} del ${formatDrawDate(play.drawDateISO)}`} title="Eliminar jugada">
                               <TrashIcon width="17" height="17"/>
                             </button>
@@ -426,7 +603,7 @@ export default function TicketHistory({ plays, onCreate, onAddExternal, onPurcha
                           </div>
                         </td>
                       </tr>
-                      {isExpanded && <tr id={`desktop-play-details-${play.id}`}><td colSpan="6" className="border-t border-default bg-muted/40"><PlayDetails play={play} onPurchase={onPurchase} onRequestRemove={requestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant}/></td></tr>}
+                      {isExpanded && <tr id={`desktop-play-details-${play.id}`}><td colSpan="6" className="border-t border-default bg-muted/40"><PlayDetails play={play} onPurchase={onPurchase} onRequestRemove={requestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onVariant={onVariant} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/></td></tr>}
                     </React.Fragment>
                   );
                 })}

@@ -19,6 +19,13 @@ export function parseDateList(value, { max = 31 } = {}) {
   return dates;
 }
 
+
+export function parseRoundIdList(value, { max = 31 } = {}) {
+  const ids = [...new Set(String(value || '').split(',').map(item => item.trim()).filter(Boolean))];
+  if (ids.length > max || ids.some(id => id.length > 180 || !/^[a-z0-9:_./-]+$/i.test(id))) return null;
+  return ids;
+}
+
 export function isProviderDrawShape(draw) {
   return Boolean(
     draw && typeof draw === 'object' &&

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { calculatePlayPayout } from '../utils/payout.js';
+import { applyVerificationSettlement, settlePlayAgainstOfficialData, verificationLookupForPlay } from '../verification/verificationEngine.js';
 import { GAMES } from '../utils/gameConfig.js';
 import { isCheckable, toLocalDateKey } from '../utils/drawSchedule.js';
 import { playBetCount, playCost, playKnownPrize, playUnknownPrizeCount, sanitizePlay, sanitizePlays } from '../utils/playModel.js';
@@ -45,7 +45,7 @@ function loadLegacyPlays() {
 
 function writeUserCache(userId, plays, pending) {
   if (!userId) return;
-  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '16.4.1', plays, pending }));
+  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '16.9.0', plays, pending }));
 }
 
 function mergePlays(...collections) {
@@ -93,7 +93,7 @@ export function useGameHistory(user) {
   const historyRef = useRef([]);
   const pendingRef = useRef([]);
   const userRef = useRef(user);
-  const verificationControllerRef = useRef(null);
+  const verificationControllersRef = useRef(new Map());
 
   useEffect(() => { userRef.current = user; }, [user]);
 
@@ -248,7 +248,8 @@ export function useGameHistory(user) {
     return () => {
       cancelled = true;
       window.removeEventListener('online', onOnline);
-      verificationControllerRef.current?.abort();
+      for (const controller of verificationControllersRef.current.values()) controller.abort();
+      verificationControllersRef.current.clear();
     };
   }, [cacheCurrent, flushPending, user]);
 
@@ -363,19 +364,36 @@ export function useGameHistory(user) {
     }), () => updated ? ({ type: 'upsert', plays: [updated] }) : null);
   }, [applyUpdate]);
 
-  const checkResults = useCallback(async gameId => {
+  const checkResults = useCallback(async (gameId, { playIds = [] } = {}) => {
     setVerificationError('');
+    const selectedIds = new Set((playIds || []).map(String));
     const snapshot = historyRef.current;
-    const candidates = snapshot.filter(play => play.gameId === gameId && play.purchased && play.status !== 'checked' && isCheckable(play));
-    const dates = [...new Set(candidates.map(play => play.drawDateKey || toLocalDateKey(play.drawDateISO)).filter(Boolean))];
-    if (!dates.length) return { checked: 0, unavailable: 0 };
+    const candidates = snapshot.filter(play => (
+      play.gameId === gameId
+      && play.purchased
+      && play.status !== 'checked'
+      && isCheckable(play)
+      && (!selectedIds.size || selectedIds.has(String(play.id)))
+    ));
+    const candidateIds = new Set(candidates.map(play => String(play.id)));
+    const lookups = candidates.map(verificationLookupForPlay);
+    const dates = [...new Set(lookups.map(item => item.date).filter(Boolean))];
+    const roundIds = [...new Set(lookups.map(item => item.roundId).filter(Boolean))];
+    if (!dates.length && !roundIds.length) return { checked: 0, unavailable: 0 };
 
     try {
-      verificationControllerRef.current?.abort();
+      verificationControllersRef.current.get(gameId)?.abort();
       const controller = new AbortController();
-      verificationControllerRef.current = controller;
-      const response = await fetch(`/api/check-results?game=${encodeURIComponent(gameId)}&dates=${encodeURIComponent(dates.join(','))}`, {
-        headers: { Accept: 'application/json' },
+      verificationControllersRef.current.set(gameId, controller);
+      const params = new URLSearchParams({
+        game: gameId,
+        attempt: String(Date.now()),
+      });
+      if (dates.length) params.set('dates', dates.join(','));
+      if (roundIds.length) params.set('roundIds', roundIds.join(','));
+      const response = await fetch(`/api/check-results?${params}`, {
+        headers: { Accept: 'application/json', 'Cache-Control': 'no-cache' },
+        cache: 'no-store',
         signal: controller.signal,
       });
       const data = await readJson(response);
@@ -384,54 +402,65 @@ export function useGameHistory(user) {
         throw new Error(`${data.message || 'Error al recuperar los resultados.'}${suffix}`);
       }
 
-      const byDate = new Map((data.results || []).map(result => [result.date, result]));
+      const byDate = new Map();
+      const byRoundId = new Map();
+      for (const event of data.results || []) {
+        if (event?.date) byDate.set(event.date, event);
+        if (event?.roundId) byRoundId.set(event.roundId, event);
+      }
       let checked = 0;
+      let pending = 0;
       const changed = [];
       applyUpdate(current => current.map(play => {
-        if (play.gameId !== gameId || !play.purchased || play.status === 'checked' || !isCheckable(play)) return play;
-        const key = play.drawDateKey || toLocalDateKey(play.drawDateISO);
-        const draw = byDate.get(key);
-        if (!draw) {
+        if (
+          play.gameId !== gameId
+          || !play.purchased
+          || play.status === 'checked'
+          || !isCheckable(play)
+          || !candidateIds.has(String(play.id))
+        ) return play;
+        const lookup = verificationLookupForPlay(play);
+        const event = (lookup.roundId && byRoundId.get(lookup.roundId)) || (lookup.date && byDate.get(lookup.date));
+        if (!event?.payload) {
+          pending += 1;
+          if (play.status === 'awaiting_check') return play;
           const awaiting = { ...play, status: 'awaiting_check' };
           changed.push(awaiting);
           return awaiting;
         }
-        const settlement = calculatePlayPayout(play, draw);
-        const pendingOfficialList = settlement.columns.some(column => column?.payoutType === 'pending-official-list');
-        if (!pendingOfficialList) checked += 1;
-        const updated = {
-          ...play,
-          status: pendingOfficialList ? 'awaiting_check' : 'checked',
-          checkedAt: pendingOfficialList ? undefined : new Date().toISOString(),
-          result: draw,
-          columns: play.columns.map((column, index) => {
-            const payout = settlement.columns[index];
-            return {
-              ...column,
-              status: pendingOfficialList ? 'awaiting_check' : 'checked',
-              prizeCategory: payout.category,
-              matches: payout.matches,
-              secondaryMatches: payout.secondaryMatches ?? undefined,
-              payoutType: payout.payoutType,
-              prizeDisplay: payout.displayText,
-              officialPrize: payout.officialAmount,
-              extraMatch: payout.extraMatch || false,
-              complementaryMatch: payout.complementaryMatch || false,
-              nationalMatches: payout.nationalMatches || undefined,
-              specialVerificationPending: payout.specialVerificationPending || false,
-            };
-          }),
-          receiptPrize: settlement.receiptPrize || undefined,
-        };
+        const settlement = settlePlayAgainstOfficialData(play, event.payload);
+        if (!settlement.complete) {
+          pending += 1;
+          const awaiting = {
+            ...play,
+            status: 'awaiting_check',
+            result: event.payload,
+            metadata: {
+              ...(play.metadata || {}),
+              verificationPendingReason: settlement.reason || 'OFFICIAL_DATA_INCOMPLETE',
+            },
+          };
+          changed.push(awaiting);
+          return awaiting;
+        }
+        checked += 1;
+        const updated = applyVerificationSettlement(play, event.payload, settlement);
         changed.push(updated);
         return updated;
       }), () => changed.length ? ({ type: 'upsert', plays: changed }) : null);
-      return { checked, unavailable: data.unavailableDates?.length || 0 };
+      return {
+        checked,
+        pending,
+        unavailable: (data.unavailableDates?.length || 0) + (data.unavailableRoundIds?.length || 0),
+        liveFetched: data.liveFetched || 0,
+      };
     } catch (caught) {
-      if (caught?.name === 'AbortError') return { checked: 0, unavailable: dates.length, aborted: true };
+      if (caught?.name === 'AbortError') return { checked: 0, unavailable: dates.length + roundIds.length, aborted: true };
       const message = caught?.message || 'Error de conexión. Inténtalo de nuevo.';
       setVerificationError(message);
-      return { checked: 0, unavailable: dates.length, error: message };
+      return { checked: 0, unavailable: dates.length + roundIds.length, error: message };
+    } finally {
+      verificationControllersRef.current.delete(gameId);
     }
   }, [applyUpdate]);
 

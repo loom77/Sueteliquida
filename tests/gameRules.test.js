@@ -147,3 +147,52 @@ test('EuroDreams asigna el importe de la categoría exacta y no confunde el núm
   assert.match(settlement.category, /6\.ª categoría/);
   assert.equal(settlement.officialAmount, 2.5);
 });
+
+
+test('La Primitiva asigna 8 euros exactos a 3 aciertos y no confunde la categoría con premios superiores', () => {
+  const draw = {
+    winningNumbers: [3, 15, 22, 34, 42, 49],
+    complementary: 7,
+    extra: 4,
+    prizes: [
+      { category: '1.ª categoría', amount: 32000000 },
+      { category: '2.ª categoría', amount: 125000 },
+      { category: '3.ª categoría', amount: 1357.09 },
+      { category: '4.ª categoría', amount: 84.53 },
+      { category: '5.ª categoría', amount: 8 },
+      { category: 'Reintegro', amount: 1 },
+    ],
+  };
+  const settlement = calculatePlayPayout({
+    gameId: 'primitiva',
+    receiptExtra: 1,
+    columns: [{ numbers: [3, 15, 22, 23, 24, 50], extra: 1 }],
+  }, draw).columns[0];
+  assert.match(settlement.category, /5\.ª categoría/);
+  assert.equal(settlement.matches, 3);
+  assert.equal(settlement.officialAmount, 8);
+});
+
+test('Bonoloto asigna la categoría correcta sin mezclar 3 aciertos con categorías superiores', () => {
+  const draw = {
+    winningNumbers: [4, 11, 19, 27, 35, 46],
+    complementary: 8,
+    extra: 3,
+    prizes: [
+      { category: '1.ª categoría', amount: 980000 },
+      { category: '2.ª categoría', amount: 74000 },
+      { category: '3.ª categoría', amount: 1100 },
+      { category: '4.ª categoría', amount: 38.5 },
+      { category: '5.ª categoría', amount: 4 },
+      { category: 'Reintegro', amount: 0.5 },
+    ],
+  };
+  const settlement = calculatePlayPayout({
+    gameId: 'bonoloto',
+    receiptExtra: 1,
+    columns: [{ numbers: [4, 11, 19, 20, 21, 22], extra: 1 }],
+  }, draw).columns[0];
+  assert.match(settlement.category, /5\.ª categoría/);
+  assert.equal(settlement.matches, 3);
+  assert.equal(settlement.officialAmount, 4);
+});

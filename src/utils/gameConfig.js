@@ -126,6 +126,30 @@ export const GAMES = {
     payoff: 'Premios mutualistas según escrutinio oficial',
     model: 'sports-quiniela-simple',
   },
+  lototurf: {
+    id: 'lototurf',
+    name: 'Lototurf',
+    shortName: 'Lototurf',
+    price: 1,
+    maxSimpleBets: 6,
+    drawDays: [],
+    apiSlug: 'lototurf',
+    accent: 'orange',
+    payoff: 'Premios mutualistas según escrutinio oficial',
+    model: 'horse-lototurf',
+  },
+  'quintuple-plus': {
+    id: 'quintuple-plus',
+    name: 'Quíntuple Plus',
+    shortName: 'Quíntuple Plus',
+    price: 1,
+    maxSimpleBets: 1,
+    drawDays: [],
+    apiSlug: 'quintuple-plus',
+    accent: 'violet',
+    payoff: 'Premios mutualistas según escrutinio oficial',
+    model: 'horse-quintuple-plus',
+  },
   primitiva: {
     id: 'primitiva',
     name: 'La Primitiva',
@@ -156,6 +180,8 @@ export function getGameConfig(gameId) {
 
 export function gameRuleSummary(game) {
   if (game.model === 'sports-quiniela-simple') return '14 pronósticos 1-X-2 · Pleno al 15 · una apuesta simple';
+  if (game.model === 'horse-lototurf') return '6 números del 1 al 31 · caballo ganador de la 4.ª carrera';
+  if (game.model === 'horse-quintuple-plus') return 'Ganador de 5 carreras · segundo clasificado de la quinta';
   if (game.model === 'national-decimo') return 'Número de cinco cifras · de 1 a 10 décimos · precio según sorteo';
   if (game.secondary) {
     return `${game.numbersToPick} números del 1 al ${game.numberPoolMax} · ${game.secondary.count} ${game.secondary.label.toLocaleLowerCase('es-ES')} del ${game.secondary.min} al ${game.secondary.max}`;

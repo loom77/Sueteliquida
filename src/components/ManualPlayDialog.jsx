@@ -225,7 +225,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
           <button type="button" onClick={close} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl hover:bg-muted" aria-label="Cerrar"><XIcon/></button>
         </div>
         <form onSubmit={submit} className="mt-6 space-y-5">
-          <GameSwitch active={gameId} onChange={setGameId} label="Juego"/>
+          <GameSwitch active={gameId} onChange={setGameId} label="Juego" gameIds={['primitiva', 'bonoloto', 'euromillones', 'gordoprimitiva', 'eurodreams', 'loteria-nacional']}/>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-bold text-primary">Fecha del sorteo<input type="date" value={dateKey} onChange={event => { const value = event.target.value; setDateKey(value); const draw = getNationalDrawInfo(value); setNationalPrice(draw.pricePerDecimo); setNationalDrawName(draw.drawName); }} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
             <label className="text-sm font-bold text-primary">Nombre del sorteo<input value={nationalDrawName} onChange={event => setNationalDrawName(event.target.value)} maxLength={80} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
@@ -256,7 +256,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
       </div>
 
       <form onSubmit={submit} className="mt-6 space-y-5">
-        <GameSwitch active={gameId} onChange={setGameId} label="Juego"/>
+        <GameSwitch active={gameId} onChange={setGameId} label="Juego" gameIds={['primitiva', 'bonoloto', 'euromillones', 'gordoprimitiva', 'eurodreams', 'loteria-nacional']}/>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="text-sm font-bold text-primary">Fecha del sorteo<span className="mt-2 flex min-w-0 rounded-2xl border border-default bg-surface px-3 py-2"><input type="date" value={dateKey} onChange={event => setDateKey(event.target.value)} className="block w-full min-w-0 border-0 bg-transparent p-0 font-normal text-primary"/></span></label>
           <label className="text-sm font-bold text-primary">Referencia opcional<input value={reference} onChange={event => setReference(event.target.value)} maxLength={160} placeholder="Código o nota personal" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>

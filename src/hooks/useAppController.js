@@ -16,6 +16,7 @@ import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { getDueByGame, getDueTotal, getMonthlyStats, getPurchasedTotals } from '../utils/appMetrics.js';
 import { createNationalPlay } from '../utils/nationalLottery.js';
 import { createSimpleQuinielaPlay } from '../sports/quinielaPlay.js';
+import { createLototurfPlay, createQuintuplePlusPlay } from '../horse/plays.js';
 
 const VIEW_TITLES = {
   dashboard: 'Inicio',
@@ -116,6 +117,28 @@ export function useAppController(auth) {
     }
   }, [generation]);
 
+  const prepareLototurf = useCallback(config => {
+    try {
+      const play = createLototurfPlay(config || {});
+      generation.setLatest(play);
+      generation.setSaveState('unsaved');
+      generation.setGenerationError('');
+    } catch (error) {
+      generation.setGenerationError(error?.message || 'No se ha podido preparar Lototurf.');
+    }
+  }, [generation]);
+
+  const prepareQuintuplePlus = useCallback(config => {
+    try {
+      const play = createQuintuplePlusPlay(config || {});
+      generation.setLatest(play);
+      generation.setSaveState('unsaved');
+      generation.setGenerationError('');
+    } catch (error) {
+      generation.setGenerationError(error?.message || 'No se ha podido preparar Quíntuple Plus.');
+    }
+  }, [generation]);
+
   const playActions = usePlayActions({
     history,
     savePlay: historyStore.savePlay,
@@ -140,7 +163,7 @@ export function useAppController(auth) {
 
   useDueNotifications({ enabled: preferences.notifications, dueCount: dueTotal });
 
-  const { checkingGame, checkGame, checkAll } = useResultChecking({
+  const { checkingGame, checkingPlayId, checkGame, checkPlay, checkAll } = useResultChecking({
     dueByGame,
     checkResults: historyStore.checkResults,
     showToast,
@@ -192,6 +215,8 @@ export function useAppController(auth) {
       onGenerate: generate,
       onPrepareNational: prepareNational,
       onPrepareQuiniela: prepareQuiniela,
+      onPrepareLototurf: prepareLototurf,
+      onPrepareQuintuplePlus: prepareQuintuplePlus,
       onCancel: cancelGeneration,
       busy: generation.busy,
       progress: generation.progress,
@@ -213,7 +238,9 @@ export function useAppController(auth) {
       dueByGame,
       verificationError: historyStore.verificationError,
       checkingGame,
+      checkingPlayId,
       onCheck: checkGame,
+      onCheckPlay: checkPlay,
       onPurchase: playActions.purchaseExisting,
       onRemove: playActions.removeWithUndo,
       onSetPrize: historyStore.setOfficialPrize,
@@ -273,7 +300,7 @@ export function useAppController(auth) {
     overlays: {
       manual: {
         open: manualOpen,
-        initialGame: activeGame === 'quiniela' ? 'primitiva' : activeGame,
+        initialGame: ['quiniela', 'lototurf', 'quintuple-plus'].includes(activeGame) ? 'primitiva' : activeGame,
         onClose: () => setManualOpen(false),
         onSave: playActions.saveExternal,
       },
