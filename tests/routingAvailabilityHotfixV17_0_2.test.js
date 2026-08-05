@@ -34,8 +34,8 @@ test('i giochi ippici non restano in caricamento quando non esiste una giornata 
   }
 });
 
-test('la release hotfix è 17.1.1', () => {
-  assert.equal(JSON.parse(read('../package.json')).version, '17.1.1');
-  assert.match(read('../src/utils/release.js'), /17\.1\.1/);
-  assert.match(read('../public/offline.html'), /v17\.1\.1/);
+test('la release hotfix è 17.1.2', () => {
+  assert.equal(JSON.parse(read('../package.json')).version, '17.1.2');
+  assert.match(read('../src/utils/release.js'), /17\.1\.2/);
+  assert.match(read('../public/offline.html'), /v17\.1\.2/);
 });

@@ -38,5 +38,5 @@ export const QUINIGOL_MATCH_COUNT = 6;
 export const QUINIGOL_UNIT_PRICE = 1;
 export const QUINIGOL_MAX_DEVELOPED_BETS = 10_368;
 
-export const SPORTS_FOUNDATION_VERSION = '17.1.1';
+export const SPORTS_FOUNDATION_VERSION = '17.1.2';
 export const SPORTS_MODEL_VERSION = 'football-goals-dc-v1';

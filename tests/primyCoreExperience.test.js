@@ -9,24 +9,26 @@ const css = fs.readFileSync(new URL('../src/index.css', import.meta.url), 'utf8'
 
 test('Primy Core mantiene una explicación compartida y accesible en el contexto de creación', () => {
   assert.match(generator, /primy-core-spotlight/);
-  assert.match(generator, /Descubre más sobre Primy Core/);
+  assert.match(generator, /Descubre cómo funciona Primy Core/);
   assert.match(generator, /aria-haspopup="dialog"/);
   assert.match(generator, /<PrimyCoreDialog open=\{coreInfoOpen\}/);
   assert.match(dialog, /id="primy-core-dialog-title"/);
 });
 
-test('la home v16 elimina la repetición promocional de Primy Core y prioriza una sola acción', () => {
-  assert.doesNotMatch(home, /Cómo funciona Primy Core/);
-  assert.doesNotMatch(home, /primy-home-core-trigger/);
+test('la home presenta Primy Core como una función principal y responsable', () => {
+  assert.match(home, /primy-home-core-feature/);
+  assert.match(home, /Descubre Primy Core/);
+  assert.match(home, /IA, estadística y simulación/);
+  assert.match(home, /No predice resultados ni aumenta la probabilidad matemática de ganar/);
   assert.match(home, /Preparar una jugada/);
   assert.match(home, /PrimyMascot role="welcome"/);
 });
 
-test('el diálogo compartido explica con lenguaje simple qué hace y qué no hace Primy Core', () => {
-  assert.match(dialog, /Analiza y ordena/);
-  assert.match(dialog, /motor inteligente de análisis avanzado/);
-  assert.match(dialog, /Comprueba y acompaña/);
-  assert.match(dialog, /No asegura ninguna ganancia/);
+test('el diálogo compartido explica AI, Monte Carlo y sus límites', () => {
+  assert.match(dialog, /IA para organizar y explicar/);
+  assert.match(dialog, /Estadística y simulaciones Monte Carlo/);
+  assert.match(dialog, /Validación matemática y oficial/);
+  assert.match(dialog, /No conoce resultados futuros/);
   assert.match(dialog, /PrimyMascotGraphic variant="helper"/);
 });
 

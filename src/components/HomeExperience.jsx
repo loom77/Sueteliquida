@@ -1,23 +1,56 @@
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { formatDrawDate, formatDrawTime, formatSyncTime } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
-import { EditIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
+import { ArrowRightIcon, ChartIcon, EditIcon, RefreshIcon, ShieldIcon, SparklesIcon } from './Icons.jsx';
 import { ArchiveCreativeIcon, CalendarCreativeIcon, GamesCreativeIcon } from './CreativeUiIcon.jsx';
 import { ActionCard, Button, Card, Eyebrow, PrimaryButton, SecondaryButton, SectionHeader, StatusNotice } from './DesignSystem.jsx';
 import { PrimyMascot } from './PrimyMascot.jsx';
+import PrimyCoreDialog from './PrimyCoreDialog.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const shortDate = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' });
 
 export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, displayName = '', onGenerate, onAddExternal }) {
-  return (
-    <Card tone="feature" padding="none" className="primy-home-v16__hero primy-page-enter" aria-labelledby="home-hero-title">
-      <div className="primy-home-v16__hero-copy">
-        <Eyebrow>{displayName ? `Hola, ${displayName}` : 'Tu espacio Primy'}</Eyebrow>
-        <h1 id="home-hero-title" className="primy-home-v16__title">Prepara tu próxima jugada con claridad.</h1>
-        <p className="primy-home-v16__lead">{dailyLine}</p>
+  const [coreOpen, setCoreOpen] = useState(false);
 
-        {nextDraw && (
+  return (
+    <>
+      <Card tone="feature" padding="none" className="primy-home-v16__hero primy-page-enter" aria-labelledby="home-hero-title">
+        <div className="primy-home-v16__hero-copy">
+          <Eyebrow>{displayName ? `Hola, ${displayName}` : 'Tu espacio Primy'}</Eyebrow>
+          <h1 id="home-hero-title" className="primy-home-v16__title">Prepara tu próxima jugada con claridad.</h1>
+          <p className="primy-home-v16__lead">{dailyLine}</p>
+
+          <section className="primy-home-core-feature" aria-labelledby="home-core-title">
+            <div className="primy-home-core-feature__heading">
+              <span className="primy-home-core-feature__icon" aria-hidden="true"><SparklesIcon width="24" height="24"/></span>
+              <div>
+                <p className="primy-home-core-feature__eyebrow">Descubre Primy Core</p>
+                <h2 id="home-core-title">IA, estadística y simulación para entender mejor cada jugada.</h2>
+              </div>
+            </div>
+            <p className="primy-home-core-feature__copy">
+              Primy Core combina inteligencia artificial aplicada a la organización, análisis estadístico descriptivo, simulaciones Monte Carlo y validaciones matemáticas para preparar, revisar y comprobar tus jugadas con más claridad.
+            </p>
+            <div className="primy-home-core-feature__signals" aria-label="Tecnologías de Primy Core">
+              <span><SparklesIcon width="16" height="16"/>IA aplicada</span>
+              <span><ChartIcon width="16" height="16"/>Monte Carlo</span>
+              <span><ShieldIcon width="16" height="16"/>Validación de reglas</span>
+            </div>
+            <button
+              type="button"
+              className="primy-home-core-feature__cta"
+              onClick={() => setCoreOpen(true)}
+              aria-haspopup="dialog"
+              aria-controls="primy-core-info-dialog"
+            >
+              Descubre cómo funciona Primy Core
+              <ArrowRightIcon width="18" height="18"/>
+            </button>
+            <p className="primy-home-core-feature__disclaimer">No predice resultados ni aumenta la probabilidad matemática de ganar.</p>
+          </section>
+
+          {nextDraw && (
           <div className="primy-home-v16__next" aria-label="Próximo sorteo de La Primitiva">
             <span className="primy-home-v16__next-icon" aria-hidden="true"><CalendarCreativeIcon /></span>
             <div>
@@ -35,13 +68,15 @@ export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, displayNam
           <SecondaryButton onClick={onAddExternal} icon={EditIcon}>Registrar boleto</SecondaryButton>
         </div>
 
-        <p className="primy-home-v16__note">Primy prepara y organiza tus jugadas. No vende boletos ni garantiza premios.</p>
-      </div>
+          <p className="primy-home-v16__note">Primy prepara y organiza tus jugadas. No vende boletos ni garantiza premios.</p>
+        </div>
 
-      <div className="primy-home-v16__mascot">
-        <PrimyMascot role="welcome" size="hero" caption="¿Empezamos?" showCaption={false} />
-      </div>
-    </Card>
+        <div className="primy-home-v16__mascot">
+          <PrimyMascot role="welcome" size="hero" caption="¿Empezamos?" showCaption={false} />
+        </div>
+      </Card>
+      <PrimyCoreDialog open={coreOpen} onClose={() => setCoreOpen(false)} />
+    </>
   );
 });
 

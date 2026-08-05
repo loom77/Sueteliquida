@@ -60,11 +60,11 @@ export default function GeneratorPanel({
       data-game={activeGame}
       data-legacy-action={LEGACY_GAME_ACTIONS[activeGame] || theme.legacyActionClass}
     >
-      <div className="primy-core-spotlight primy-core-spotlight--compact">
+      <div className="primy-core-spotlight primy-core-spotlight--compact primy-core-spotlight--mobile-guide">
         <span className="primy-core-spotlight__icon" aria-hidden="true"><SparklesIcon width="20" height="20"/></span>
         <div className="min-w-0 flex-1">
-          <p className="primy-core-spotlight__title">Primy Core prepara y valida tu boleto</p>
-          <p className="primy-core-spotlight__copy">Reglas, coste y límites reunidos en un único proceso.</p>
+          <p className="primy-core-spotlight__title">IA, estadística y reglas para preparar tu boleto</p>
+          <p className="primy-core-spotlight__copy">Primy Core organiza la jugada, valida límites y explica cada paso sin prometer resultados.</p>
         </div>
         <button
           type="button"
@@ -74,7 +74,7 @@ export default function GeneratorPanel({
           aria-controls="primy-core-info-dialog"
         >
           <InfoIcon width="17" height="17"/>
-          <span>Descubre más sobre Primy Core</span>
+          <span>Descubre cómo funciona Primy Core</span>
         </button>
       </div>
 
