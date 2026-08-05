@@ -1,4 +1,10 @@
-import { SPORTS_GAME_IDS, SPORTS_MATCH_STATUSES, SPORTS_ROUND_STATUSES } from './constants.js';
+import {
+  QUINIELA_REGULAR_MATCH_COUNT,
+  SPORTS_GAME_IDS,
+  SPORTS_MATCH_STATUSES,
+  SPORTS_PREDICTION_TYPES,
+  SPORTS_ROUND_STATUSES,
+} from './constants.js';
 
 function cleanText(value, maxLength = 140) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
@@ -26,16 +32,28 @@ function validIso(value) {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-export function sanitizeSportsMatch(raw, fallbackPosition = 1) {
-  const position = Number(raw?.position ?? fallbackPosition);
+function inferredPredictionType(gameId, position) {
+  if (gameId === 'quinigol') return 'score-buckets';
+  if (gameId === 'quiniela') return position <= QUINIELA_REGULAR_MATCH_COUNT ? 'one-x-two' : 'pleno15';
+  return '';
+}
+
+export function sanitizeSportsMatch(raw, fallbackPosition = 1, gameId = '') {
+  const positionCandidate = Number(raw?.position ?? fallbackPosition);
+  const position = Number.isInteger(positionCandidate) && positionCandidate > 0 ? positionCandidate : fallbackPosition;
   const homeTeam = cleanText(raw?.homeTeam || raw?.home?.name);
   const awayTeam = cleanText(raw?.awayTeam || raw?.away?.name);
   const officialMatchId = cleanText(raw?.officialMatchId || raw?.matchId || raw?.id, 100);
   const status = SPORTS_MATCH_STATUSES.includes(raw?.status) ? raw.status : 'scheduled';
+  const explicitPredictionType = cleanText(raw?.predictionType || raw?.metadata?.predictionType, 40);
+  const predictionType = SPORTS_PREDICTION_TYPES.includes(explicitPredictionType)
+    ? explicitPredictionType
+    : inferredPredictionType(gameId, position);
   return {
     matchId: officialMatchId || `match-${position}`,
     officialMatchId: officialMatchId || null,
-    position: Number.isInteger(position) && position > 0 ? position : fallbackPosition,
+    position,
+    predictionType,
     homeTeam,
     awayTeam,
     competition: cleanText(raw?.competition, 100),
@@ -45,14 +63,17 @@ export function sanitizeSportsMatch(raw, fallbackPosition = 1) {
       ? { home: Number(raw.officialScore.home), away: Number(raw.officialScore.away) }
       : null,
     excludedReason: status === 'excluded' ? cleanText(raw?.excludedReason, 240) : '',
-    metadata: raw?.metadata && typeof raw.metadata === 'object' ? { ...raw.metadata } : {},
+    metadata: {
+      ...(raw?.metadata && typeof raw.metadata === 'object' ? raw.metadata : {}),
+      ...(predictionType ? { predictionType } : {}),
+    },
   };
 }
 
 export function sanitizeSportsRound(raw, { expectedMatches } = {}) {
   const gameId = SPORTS_GAME_IDS.includes(raw?.gameId) ? raw.gameId : '';
   const matches = Array.isArray(raw?.matches)
-    ? raw.matches.map((match, index) => sanitizeSportsMatch(match, index + 1)).sort((a, b) => a.position - b.position)
+    ? raw.matches.map((match, index) => sanitizeSportsMatch(match, index + 1, gameId)).sort((a, b) => a.position - b.position)
     : [];
   const status = SPORTS_ROUND_STATUSES.includes(raw?.status) ? raw.status : 'draft';
   const round = {
@@ -78,6 +99,10 @@ export function sanitizeSportsRound(raw, { expectedMatches } = {}) {
   return { ...round, validation };
 }
 
+function normalizedPair(match) {
+  return `${cleanText(match?.homeTeam).toLocaleLowerCase('es-ES')}::${cleanText(match?.awayTeam).toLocaleLowerCase('es-ES')}`;
+}
+
 export function validateSportsRound(round, { expectedMatches } = {}) {
   const errors = [];
   const warnings = [];
@@ -88,6 +113,7 @@ export function validateSportsRound(round, { expectedMatches } = {}) {
 
   const positions = new Set();
   const ids = new Set();
+  const pairs = new Map();
   for (const match of round?.matches || []) {
     if (!match.homeTeam || !match.awayTeam) errors.push(`El partido ${match.position || '?'} no tiene ambos equipos.`);
     if (isSuspiciousSportsTeamName(match.homeTeam) || isSuspiciousSportsTeamName(match.awayTeam)) {
@@ -100,9 +126,33 @@ export function validateSportsRound(round, { expectedMatches } = {}) {
     positions.add(match.position);
     if (ids.has(match.matchId)) errors.push(`El identificador ${match.matchId} está duplicado.`);
     ids.add(match.matchId);
+
+    const pair = normalizedPair(match);
+    if (pair !== '::' && pairs.has(pair)) {
+      errors.push(`La composición repite el encuentro de las posiciones ${pairs.get(pair)} y ${match.position}.`);
+    } else if (pair !== '::') {
+      pairs.set(pair, match.position);
+    }
+
+    if (round?.gameId === 'quiniela') {
+      const expectedType = match.position <= QUINIELA_REGULAR_MATCH_COUNT ? 'one-x-two' : match.position === 15 ? 'pleno15' : '';
+      if (expectedType && match.predictionType !== expectedType) {
+        errors.push(`El partido ${match.position} tiene un tipo de pronóstico incompatible; se esperaba ${expectedType}.`);
+      }
+    }
+    if (round?.gameId === 'quinigol' && match.predictionType !== 'score-buckets') {
+      errors.push(`El partido ${match.position} debe usar marcadores 0/1/2/M.`);
+    }
     if (!match.kickoffAt) warnings.push(`El partido ${match.position} todavía no tiene hora oficial válida.`);
   }
-  return { valid: errors.length === 0, errors, warnings };
+
+  const requiredCount = Number(expectedMatches || round?.matches?.length || 0);
+  if (requiredCount > 0) {
+    for (let position = 1; position <= requiredCount; position += 1) {
+      if (!positions.has(position)) errors.push(`Falta la posición ${position} de la composición oficial.`);
+    }
+  }
+  return { valid: errors.length === 0, errors: [...new Set(errors)], warnings: [...new Set(warnings)] };
 }
 
 export function sportsRoundAvailability(round, { now = new Date(), expectedMatches } = {}) {
@@ -118,7 +168,12 @@ export function sportsRoundAvailability(round, { now = new Date(), expectedMatch
   }
 
   const identityMissing = !round.officialRoundNumber || !round.roundDate || !round.salesCloseAt || !round.sourceHash;
-  const provisional = Boolean(round.metadata?.provisionalIdentity || round.metadata?.sourceType === 'checker-composition');
+  const provisional = Boolean(
+    round.metadata?.provisionalIdentity
+    || round.metadata?.identityVerified === false
+    || round.metadata?.compositionVerified === false
+    || round.metadata?.sourceType === 'checker-composition',
+  );
   if (identityMissing || provisional) {
     return {
       state: 'updating',
@@ -129,7 +184,7 @@ export function sportsRoundAvailability(round, { now = new Date(), expectedMatch
         ...(!round.officialRoundNumber ? ['Falta el número oficial de jornada.'] : []),
         ...(!round.roundDate ? ['Falta la fecha oficial.'] : []),
         ...(!round.salesCloseAt ? ['Falta el cierre oficial de ventas.'] : []),
-        ...(provisional ? ['La fuente todavía tiene identidad provisional.'] : []),
+        ...(provisional ? ['La fuente todavía no ha superado la verificación de identidad y composición.'] : []),
       ],
     };
   }
@@ -173,7 +228,15 @@ export function sportsRoundFingerprint(round) {
     gameId: round?.gameId || '',
     officialRoundNumber: round?.officialRoundNumber || '',
     roundDate: round?.roundDate || '',
-    matches: (round?.matches || []).map(match => [match.position, match.officialMatchId || match.matchId, match.homeTeam, match.awayTeam, match.kickoffAt, match.status]),
+    matches: (round?.matches || []).map(match => [
+      match.position,
+      match.predictionType,
+      match.officialMatchId || match.matchId,
+      match.homeTeam,
+      match.awayTeam,
+      match.kickoffAt,
+      match.status,
+    ]),
   });
   let hash = 2166136261;
   for (let index = 0; index < canonical.length; index += 1) {

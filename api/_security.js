@@ -11,6 +11,14 @@ export function safeQuery(value, max = 256) {
   return typeof value === 'string' && value.length <= max ? value : '';
 }
 
+export function requestSearchParams(req) {
+  try {
+    return new URL(String(req?.url || '/'), 'https://primy.local').searchParams;
+  } catch {
+    return new URL('https://primy.local/').searchParams;
+  }
+}
+
 export function clientKey(req) {
   return String(req.headers['x-forwarded-for'] || req.socket?.remoteAddress || 'unknown').split(',')[0].trim();
 }

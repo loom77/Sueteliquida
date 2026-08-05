@@ -69,6 +69,8 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
     setPleno({ home: '', away: '' });
   }, [round?.roundId, round?.sourceHash]);
 
+  const regularMatches = useMemo(() => (round?.matches || []).filter(match => match.predictionType === 'one-x-two'), [round]);
+  const plenoMatch = useMemo(() => (round?.matches || []).find(match => match.predictionType === 'pleno15') || null, [round]);
   const validation = useMemo(() => validateSimpleQuinielaSelection({ signs, pleno }), [signs, pleno]);
   const completed = signs.filter(Boolean).length + (pleno.home ? 1 : 0) + (pleno.away ? 1 : 0);
   const exceedsLimit = monthlyLimit != null && monthlyLimit > 0 && monthlySpent + QUINIELA_UNIT_PRICE > monthlyLimit;
@@ -104,18 +106,19 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
       ) : round && availability?.operational && (
         <>
           <div className="mt-6 space-y-3">
-            {round.matches.slice(0, 14).map((match, index) => (
-              <SignSelector key={match.matchId} position={index + 1} match={match} value={signs[index]} onChange={sign => setSigns(current => current.map((item, itemIndex) => itemIndex === index ? sign : item))}/>
-            ))}
+            {regularMatches.map(match => {
+              const signIndex = match.position - 1;
+              return <SignSelector key={match.matchId} position={match.position} match={match} value={signs[signIndex]} onChange={sign => setSigns(current => current.map((item, itemIndex) => itemIndex === signIndex ? sign : item))}/>;
+            })}
           </div>
 
           <section className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/70 p-5" aria-labelledby="pleno-title">
-            <p className="text-xs font-bold uppercase tracking-[.15em] text-amber-900">Partido 15</p>
+            <p className="text-xs font-bold uppercase tracking-[.15em] text-amber-900">Partido 15 · marcador 0/1/2/M</p>
             <h3 id="pleno-title" className="mt-2 text-xl font-semibold text-primary">Pleno al 15</h3>
-            <p className="mt-1 text-sm text-secondary">{round.matches[14]?.homeTeam} contra {round.matches[14]?.awayTeam}</p>
+            <p className="mt-1 text-sm text-secondary">{plenoMatch?.homeTeam} contra {plenoMatch?.awayTeam}</p>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
-              <GoalSelector label={round.matches[14]?.homeTeam || 'Equipo local'} value={pleno.home} onChange={home => setPleno(current => ({ ...current, home }))}/>
-              <GoalSelector label={round.matches[14]?.awayTeam || 'Equipo visitante'} value={pleno.away} onChange={away => setPleno(current => ({ ...current, away }))}/>
+              <GoalSelector label={plenoMatch?.homeTeam || 'Equipo local'} value={pleno.home} onChange={home => setPleno(current => ({ ...current, home }))}/>
+              <GoalSelector label={plenoMatch?.awayTeam || 'Equipo visitante'} value={pleno.away} onChange={away => setPleno(current => ({ ...current, away }))}/>
             </div>
           </section>
 

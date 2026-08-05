@@ -106,7 +106,9 @@ test('la sincronización hípica vive en Supabase y ya no depende del endpoint V
   const horse = fs.readFileSync(new URL('../supabase/functions/sync-horse-rounds/index.ts', import.meta.url), 'utf8');
   assert.match(scheduled, /SUPABASE_URL.*sync-horse-rounds/s);
   assert.doesNotMatch(scheduled, /sueteliquida\.vercel\.app\/api\/sync-horse-rounds/);
-  assert.match(sports, /official-checker-validated-snapshot/);
+  assert.match(sports, /sports-checker-v8/);
+  assert.match(sports, /published-composition-verified-snapshot/);
+  assert.match(sports, /verifiedFallback: null/);
   assert.match(horse, /no-active-round/);
 });
 

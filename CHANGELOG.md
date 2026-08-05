@@ -1,3 +1,14 @@
+# Primy v17.0.1 — Production Hardening
+
+- Introdotto `predictionType` per distinguere 1/X/2, Pleno al 15 e marcatori Quinigol.
+- Bloccate composizioni con posizioni mancanti, incontri duplicati o identità della giornata non coerente.
+- Corretto il flusso Quiniela: il Pleno al 15 è risolto per ruolo e non per indice implicito.
+- Rimossa la composizione Quinigol 87 usata impropriamente come fallback della giornata 88.
+- Aggiornata la sincronizzazione Supabase a `sports-checker-v8`.
+- Aggiunta migrazione di pulizia e validazione `20260805_sports_identity_hardening_v1701.sql`.
+- Sostituito l'accesso `req.query` con `URLSearchParams` nelle API.
+- Aggiornati SEO, documentazione e release applicativa a 17.0.1.
+
 # Primy v17.0.0 — Sports & Horse Recovery
 
 - Validazione rigorosa delle giornate sportive e rimozione dei dati provvisori contaminati.
