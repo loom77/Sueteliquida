@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import HorseRoundHeader from './HorseRoundHeader.jsx';
+import RoundAvailabilityNotice from './RoundAvailabilityNotice.jsx';
 import { AlertIcon, CheckIcon, HorseRacingIcon, TicketIcon } from './Icons.jsx';
 import { useHorseRound } from '../hooks/useHorseRound.js';
 import { sanitizeQuintuplePlusSelection } from '../horse/quintuplePlusRules.js';
@@ -35,7 +36,7 @@ function RunnerGrid({ race, row, rowIndex, multiple, label, onChange }) {
 }
 
 export default function QuintuplePlusPanel({ activeGame, onGameChange, onPrepareQuintuplePlus, onDiscard, latest, generationError = '', monthlySpent = 0, monthlyLimit = null }) {
-  const { round, loading, error, refresh } = useHorseRound('quintuple-plus');
+  const { round, availability, loading, error, refresh } = useHorseRound('quintuple-plus');
   const [multiple, setMultiple] = useState(false);
   const [rows, setRows] = useState(() => Array.from({ length: 6 }, () => []));
 
@@ -55,7 +56,7 @@ export default function QuintuplePlusPanel({ activeGame, onGameChange, onPrepare
   };
 
   const prepare = () => {
-    if (!round || !selection || exceedsLimit) return;
+    if (!round || !availability?.operational || !selection || exceedsLimit) return;
     onPrepareQuintuplePlus?.({ round, selection });
   };
 
@@ -73,6 +74,7 @@ export default function QuintuplePlusPanel({ activeGame, onGameChange, onPrepare
       <div className="mt-7"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego elegido"/></div>
       <div className="mt-6"><HorseRoundHeader gameName="Quíntuple Plus" round={round} loading={loading} error={error} onRefresh={refresh}/></div>
       {generationError && <div role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-900">{generationError}</div>}
+      <div className="mt-4"><RoundAvailabilityNotice availability={availability} loading={loading} onRefresh={refresh}/></div>
 
       {latest ? (
         <div className="mt-6 rounded-3xl border border-violet-200 bg-violet-50 p-5">
@@ -80,7 +82,7 @@ export default function QuintuplePlusPanel({ activeGame, onGameChange, onPrepare
           <p className="mt-2 text-lg font-semibold text-primary">Revisa las seis filas y guárdalas como borrador.</p>
           <button type="button" onClick={onDiscard} className="mt-4 min-h-11 rounded-xl border border-violet-200 bg-white px-4 text-sm font-semibold text-violet-900 hover:bg-violet-100">Editar pronóstico</button>
         </div>
-      ) : round && round.races.length === 5 && (
+      ) : round && round.races.length === 5 && availability?.operational && (
         <>
           <fieldset className="mt-6">
             <legend className="text-sm font-bold text-primary">Tipo de jugada</legend>

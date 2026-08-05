@@ -16,6 +16,7 @@ import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { getDueByGame, getDueTotal, getMonthlyStats, getPurchasedTotals } from '../utils/appMetrics.js';
 import { createNationalPlay } from '../utils/nationalLottery.js';
 import { createSimpleQuinielaPlay } from '../sports/quinielaPlay.js';
+import { createSimpleQuinigolPlay } from '../sports/quinigolPlay.js';
 import { createLototurfPlay, createQuintuplePlusPlay } from '../horse/plays.js';
 
 const VIEW_TITLES = {
@@ -117,6 +118,17 @@ export function useAppController(auth) {
     }
   }, [generation]);
 
+  const prepareQuinigol = useCallback(config => {
+    try {
+      const play = createSimpleQuinigolPlay(config || {});
+      generation.setLatest(play);
+      generation.setSaveState('unsaved');
+      generation.setGenerationError('');
+    } catch (error) {
+      generation.setGenerationError(error?.message || 'No se ha podido preparar El Quinigol.');
+    }
+  }, [generation]);
+
   const prepareLototurf = useCallback(config => {
     try {
       const play = createLototurfPlay(config || {});
@@ -215,6 +227,7 @@ export function useAppController(auth) {
       onGenerate: generate,
       onPrepareNational: prepareNational,
       onPrepareQuiniela: prepareQuiniela,
+      onPrepareQuinigol: prepareQuinigol,
       onPrepareLototurf: prepareLototurf,
       onPrepareQuintuplePlus: prepareQuintuplePlus,
       onCancel: cancelGeneration,
@@ -300,7 +313,7 @@ export function useAppController(auth) {
     overlays: {
       manual: {
         open: manualOpen,
-        initialGame: ['quiniela', 'lototurf', 'quintuple-plus'].includes(activeGame) ? 'primitiva' : activeGame,
+        initialGame: ['quiniela', 'quinigol', 'lototurf', 'quintuple-plus'].includes(activeGame) ? 'primitiva' : activeGame,
         onClose: () => setManualOpen(false),
         onSave: playActions.saveExternal,
       },

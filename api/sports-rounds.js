@@ -43,7 +43,22 @@ export default async function handler(req, res) {
         ? await readSportsRoundRange(gameId, from, to)
         : await readLatestSportsRound(gameId);
     if (!payload || (Array.isArray(payload) && payload.length === 0)) {
-      return res.status(404).json({ success: false, code: 'SPORTS_ARCHIVE_EMPTY', message: 'El archivo todavía no contiene esta jornada deportiva.', repository: sportsRoundRepositoryStatus() });
+      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      finishRequest(context, { endpoint: 'sports-rounds', status: 200, provider: 'SELAE', gameId, availability: 'updating' });
+      return res.status(200).json({
+        success: true,
+        provider: 'SELAE',
+        gameId,
+        data: null,
+        availability: {
+          state: 'updating',
+          operational: false,
+          title: 'Jornada en actualización',
+          message: 'Primy está esperando una composición oficial completa, identificada y abierta a la venta.',
+          reasons: [],
+        },
+        repository: sportsRoundRepositoryStatus(),
+      });
     }
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=1800');
     finishRequest(context, { endpoint: 'sports-rounds', status: 200, provider: 'SELAE', gameId });

@@ -43,10 +43,20 @@ export default async function handler(req, res) {
         ? await readHorseRoundRange(gameId, from, to)
         : await readLatestHorseRound(gameId);
     if (!payload || (Array.isArray(payload) && payload.length === 0)) {
-      return res.status(404).json({
-        success: false,
-        code: 'HORSE_ARCHIVE_EMPTY',
-        message: 'El archivo todavía no contiene esta jornada hípica.',
+      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      finishRequest(context, { endpoint: 'horse-rounds', status: 200, provider: 'SELAE', gameId, availability: 'no-active-round' });
+      return res.status(200).json({
+        success: true,
+        provider: 'SELAE',
+        gameId,
+        data: null,
+        availability: {
+          state: 'no-active-round',
+          operational: false,
+          title: 'Sin jornada hípica activa',
+          message: 'SELAE todavía no ha publicado un programa oficial descargable para la jornada en curso.',
+          reasons: [],
+        },
         repository: horseRoundRepositoryStatus(),
       });
     }

@@ -4,7 +4,7 @@ import { getGameVisualTheme, gameThemeStyle } from '../utils/gameVisualTheme.js'
 import GameIdentity from './GameIdentity.jsx';
 import { CheckIcon } from './Icons.jsx';
 
-const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'euromillones', 'gordoprimitiva', 'eurodreams', 'loteria-nacional', 'quiniela', 'lototurf', 'quintuple-plus'];
+const ACTIVE_GAME_ORDER = ['primitiva', 'bonoloto', 'euromillones', 'gordoprimitiva', 'eurodreams', 'loteria-nacional', 'quiniela', 'quinigol', 'lototurf', 'quintuple-plus'];
 const LEGACY_SELECTOR_ACTIONS = 'primy-bonoloto-action primy-euromillones-action';
 
 export default function GameSwitch({ active, onChange, label = 'Juego', disabled = false, gameIds = ACTIVE_GAME_ORDER }) {

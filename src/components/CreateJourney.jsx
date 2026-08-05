@@ -5,6 +5,8 @@ import NationalLotteryPanel from './NationalLotteryPanel.jsx';
 import NationalTicketPreview from './NationalTicketPreview.jsx';
 import QuinielaPanel from './QuinielaPanel.jsx';
 import QuinielaTicketPreview from './QuinielaTicketPreview.jsx';
+import QuinigolPanel from './QuinigolPanel.jsx';
+import QuinigolTicketPreview from './QuinigolTicketPreview.jsx';
 import LototurfPanel from './LototurfPanel.jsx';
 import QuintuplePlusPanel from './QuintuplePlusPanel.jsx';
 import HorseTicketPreview from './HorseTicketPreview.jsx';
@@ -40,7 +42,8 @@ export default function CreateJourney(props) {
     if (props.latest) return { icon: TicketIcon, eyebrow: 'Tu jugada', title: 'Lista para guardarla', description: 'Revisa el boleto y decide cómo quieres conservarlo.' };
     if (props.busy) return { icon: SparklesIcon, eyebrow: 'Primy Core', title: 'Estamos creando tu jugada', description: 'Solo tardará un momento. No necesitas hacer nada más.' };
     if (props.activeGame === 'loteria-nacional') return { icon: TicketIcon, eyebrow: 'Lotería Nacional', title: 'Prepara tu número de cinco cifras', description: 'Selecciona el sorteo, elige las cifras y guarda el décimo cuando lo hayas comprado.' };
-    if (props.activeGame === 'quiniela') return { icon: TicketIcon, eyebrow: 'La Quiniela', title: 'Prepara tu primera apuesta deportiva', description: 'Marca los 14 signos y el Pleno al 15 sobre la composición oficial de la jornada.' };
+    if (props.activeGame === 'quiniela') return { icon: TicketIcon, eyebrow: 'La Quiniela', title: 'Prepara tu primera apuesta deportiva', description: 'Marca los 14 signos y el Pleno al 15 sobre una composición oficial verificada.' };
+    if (props.activeGame === 'quinigol') return { icon: TicketIcon, eyebrow: 'El Quinigol', title: 'Pronostica los goles de seis partidos', description: 'Elige un resultado 0, 1, 2 o M para cada equipo de la jornada oficial.' };
     if (props.activeGame === 'lototurf') return { icon: TicketIcon, eyebrow: 'Lototurf', title: 'Combina números y carrera oficial', description: 'Elige los seis números y el dorsal ganador de la carrera vinculada a la jornada.' };
     if (props.activeGame === 'quintuple-plus') return { icon: TicketIcon, eyebrow: 'Quíntuple Plus', title: 'Prepara tus seis pronósticos hípicos', description: 'Selecciona los ganadores de cinco carreras y el segundo clasificado de la quinta.' };
     return { icon: SparklesIcon, eyebrow: 'Crear', title: 'Tu próxima jugada empieza aquí', description: 'Elige el juego, ajusta las columnas y crea tu boleto en pocos segundos.' };
@@ -77,6 +80,8 @@ export default function CreateJourney(props) {
             ? <NationalLotteryPanel {...props} onPrepareNational={props.onPrepareNational} layout={props.latest ? 'compact' : 'wide'}/>
             : props.activeGame === 'quiniela'
               ? <QuinielaPanel {...props} onPrepareQuiniela={props.onPrepareQuiniela}/>
+              : props.activeGame === 'quinigol'
+                ? <QuinigolPanel {...props} onPrepareQuinigol={props.onPrepareQuinigol}/>
               : props.activeGame === 'lototurf'
                 ? <LototurfPanel {...props} onPrepareLototurf={props.onPrepareLototurf}/>
                 : props.activeGame === 'quintuple-plus'
@@ -90,6 +95,8 @@ export default function CreateJourney(props) {
               ? <NationalTicketPreview play={props.latest} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={() => props.onPrepareNational?.({})} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>
               : props.activeGame === 'quiniela'
                 ? <QuinielaTicketPreview play={props.latest} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays}/>
+                : props.activeGame === 'quinigol'
+                  ? <QuinigolTicketPreview play={props.latest} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays}/>
                 : ['lototurf', 'quintuple-plus'].includes(props.activeGame)
                   ? <HorseTicketPreview play={props.latest} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays}/>
                   : <TicketPreview play={props.latest} game={props.game} saveState={props.saveState} onSaveDraft={props.onSaveDraft} onPurchase={props.onPurchase} onRegenerate={props.onGenerate} onDiscard={props.onDiscard} onOpenPlays={props.onOpenPlays} onToast={props.onToast}/>

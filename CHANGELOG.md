@@ -1,3 +1,14 @@
+# Primy v17.0.0 — Sports & Horse Recovery
+
+- Validazione rigorosa delle giornate sportive e rimozione dei dati provvisori contaminati.
+- La Quiniela torna collegata a una giornata ufficiale identificata e verificabile.
+- El Quinigol diventa operativo: selezione 0/1/2/M, anteprima, archivio, acquisto registrato e verifica unificata.
+- Nuovo sincronizzatore hípico Supabase, senza dipendenza dal vecchio endpoint Vercel.
+- Lototurf e Quíntuple Plus distinguono correttamente “nessuna giornata attiva” da un errore tecnico.
+- Trigger PostgreSQL impediscono la persistenza di composizioni incomplete o contaminate.
+- Release applicativa aggiornata a 17.0.0.
+
+
 # Primy v16.9.0 — Unified Fast Verification
 
 - Motore unico di verifica premi per lotterie numeriche, Lotería Nacional, giochi sportivi e giochi ippici.

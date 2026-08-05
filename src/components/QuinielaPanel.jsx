@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import { AlertIcon, CalendarIcon, CheckIcon, RefreshIcon, ShieldIcon, TicketIcon } from './Icons.jsx';
 import { useSportsRound } from '../hooks/useSportsRound.js';
+import RoundAvailabilityNotice from './RoundAvailabilityNotice.jsx';
 import { GOAL_BUCKETS, QUINIELA_SYMBOLS, QUINIELA_UNIT_PRICE } from '../sports/constants.js';
 import { validateSimpleQuinielaSelection } from '../sports/quinielaPlay.js';
 
@@ -59,7 +60,7 @@ function GoalSelector({ label, value, onChange }) {
 }
 
 export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuiniela, onDiscard, latest, generationError = '', monthlySpent = 0, monthlyLimit = null }) {
-  const { round, loading, error, refresh } = useSportsRound('quiniela');
+  const { round, availability, loading, error, refresh } = useSportsRound('quiniela');
   const [signs, setSigns] = useState(() => Array(14).fill(''));
   const [pleno, setPleno] = useState({ home: '', away: '' });
 
@@ -73,7 +74,7 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
   const exceedsLimit = monthlyLimit != null && monthlyLimit > 0 && monthlySpent + QUINIELA_UNIT_PRICE > monthlyLimit;
 
   const prepare = () => {
-    if (!round || !validation.valid || exceedsLimit) return;
+    if (!round || !availability?.operational || !validation.valid || exceedsLimit) return;
     onPrepareQuiniela?.({ round, selection: validation.selection });
   };
 
@@ -91,6 +92,7 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
       <div className="mt-7"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego elegido"/></div>
       <div className="mt-6"><RoundHeader round={round} loading={loading} error={error} onRefresh={refresh}/></div>
       {generationError && <div role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-900">{generationError}</div>}
+      <div className="mt-4"><RoundAvailabilityNotice availability={availability} loading={loading} onRefresh={refresh}/></div>
 
       {latest ? (
         <div className="mt-6 rounded-3xl border border-sky-200 bg-sky-50 p-5">
@@ -99,7 +101,7 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
           <p className="mt-2 text-sm leading-6 text-secondary">La selección sigue disponible en esta pantalla. Para corregir un signo antes de guardar, vuelve al modo de edición.</p>
           <button type="button" onClick={onDiscard} className="mt-4 min-h-11 rounded-xl border border-sky-200 bg-white px-4 text-sm font-semibold text-sky-900 hover:bg-sky-100">Editar pronóstico</button>
         </div>
-      ) : round && (
+      ) : round && availability?.operational && (
         <>
           <div className="mt-6 space-y-3">
             {round.matches.slice(0, 14).map((match, index) => (

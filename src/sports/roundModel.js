@@ -4,6 +4,17 @@ function cleanText(value, maxLength = 140) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, maxLength);
 }
 
+export function isSuspiciousSportsTeamName(value) {
+  const text = cleanText(value, 220);
+  if (!text) return true;
+  return /https?:|www\.|\[|\]|\]\(|\.com\b|añadir\s+a|elige\s*8|javascript:|data:/i.test(text);
+}
+
+function operationalDate(value) {
+  const parsed = value ? new Date(value) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed : null;
+}
+
 function validDateKey(value) {
   const text = String(value || '');
   return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
@@ -79,6 +90,9 @@ export function validateSportsRound(round, { expectedMatches } = {}) {
   const ids = new Set();
   for (const match of round?.matches || []) {
     if (!match.homeTeam || !match.awayTeam) errors.push(`El partido ${match.position || '?'} no tiene ambos equipos.`);
+    if (isSuspiciousSportsTeamName(match.homeTeam) || isSuspiciousSportsTeamName(match.awayTeam)) {
+      errors.push(`El partido ${match.position || '?'} contiene nombres de equipos no válidos.`);
+    }
     if (match.homeTeam && match.awayTeam && match.homeTeam.toLocaleLowerCase('es-ES') === match.awayTeam.toLocaleLowerCase('es-ES')) {
       errors.push(`El partido ${match.position || '?'} repite el mismo equipo.`);
     }
@@ -89,6 +103,68 @@ export function validateSportsRound(round, { expectedMatches } = {}) {
     if (!match.kickoffAt) warnings.push(`El partido ${match.position} todavía no tiene hora oficial válida.`);
   }
   return { valid: errors.length === 0, errors, warnings };
+}
+
+export function sportsRoundAvailability(round, { now = new Date(), expectedMatches } = {}) {
+  const validation = validateSportsRound(round, { expectedMatches });
+  if (!round || !validation.valid) {
+    return {
+      state: 'invalid',
+      operational: false,
+      title: 'Jornada no disponible',
+      message: 'Primy ha bloqueado una composición incompleta o no verificable.',
+      reasons: validation.errors,
+    };
+  }
+
+  const identityMissing = !round.officialRoundNumber || !round.roundDate || !round.salesCloseAt || !round.sourceHash;
+  const provisional = Boolean(round.metadata?.provisionalIdentity || round.metadata?.sourceType === 'checker-composition');
+  if (identityMissing || provisional) {
+    return {
+      state: 'updating',
+      operational: false,
+      title: 'Jornada en actualización',
+      message: 'Estamos verificando el número de jornada, la fecha y el cierre oficial de ventas.',
+      reasons: [
+        ...(!round.officialRoundNumber ? ['Falta el número oficial de jornada.'] : []),
+        ...(!round.roundDate ? ['Falta la fecha oficial.'] : []),
+        ...(!round.salesCloseAt ? ['Falta el cierre oficial de ventas.'] : []),
+        ...(provisional ? ['La fuente todavía tiene identidad provisional.'] : []),
+      ],
+    };
+  }
+
+  const nowDate = operationalDate(now) || new Date();
+  const closeDate = operationalDate(round.salesCloseAt);
+  if (round.status === 'cancelled') {
+    return { state: 'cancelled', operational: false, title: 'Jornada cancelada', message: 'La jornada oficial ha sido cancelada.', reasons: [] };
+  }
+  if (closeDate && closeDate.getTime() <= nowDate.getTime()) {
+    return {
+      state: 'closed',
+      operational: false,
+      title: 'Venta cerrada',
+      message: 'La composición sigue disponible para consulta, pero ya no se pueden preparar nuevas jugadas.',
+      reasons: [],
+    };
+  }
+  if (['sales-closed', 'in-progress', 'provisional', 'official'].includes(round.status)) {
+    return {
+      state: round.status === 'official' ? 'finished' : 'closed',
+      operational: false,
+      title: round.status === 'official' ? 'Jornada finalizada' : 'Venta cerrada',
+      message: 'La jornada ya no admite nuevas jugadas.',
+      reasons: [],
+    };
+  }
+
+  return {
+    state: 'available',
+    operational: true,
+    title: 'Jornada disponible',
+    message: 'Composición, fecha y cierre oficial verificados.',
+    reasons: [],
+  };
 }
 
 export function sportsRoundFingerprint(round) {

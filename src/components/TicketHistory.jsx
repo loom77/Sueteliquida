@@ -236,6 +236,56 @@ function QuinielaPlayDetails({ play, onPurchase, onRequestRemove, onFavorite, on
   );
 }
 
+
+function QuinigolPlayDetails({ play, onPurchase, onRequestRemove, onFavorite, onCheckPlay, checkingPlayId, checkingGame }) {
+  const column = play.columns?.[0] || { outcomes: [] };
+  const matches = play.matches || [];
+  const officialOutcomes = column.verificationDetails?.officialOutcomes || [];
+  return (
+    <div className="p-4 md:p-6">
+      <div className="mb-5 flex flex-col gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-wide text-orange-800">El Quinigol</p>
+          <h3 className="mt-1 text-xl font-semibold text-primary">{play.officialRoundNumber ? `Jornada ${play.officialRoundNumber}` : 'Jornada oficial'} · {formatDrawDate(play.drawDateISO)}</h3>
+          <p className="mt-1 text-sm text-secondary">Una apuesta simple · Coste {euro.format(playCost(play))}</p>
+        </div>
+        <TicketStatus status={play.computedStatus}/>
+      </div>
+
+      <ResultSummary play={play}/>
+
+      <div className="grid gap-2 xl:grid-cols-2">
+        {matches.map((match, index) => {
+          const checked = play.computedStatus === 'checked';
+          const hit = checked && column.outcomes?.[index] === officialOutcomes[index];
+          return (
+            <div key={match.matchId} className={`grid grid-cols-[2rem_minmax(0,1fr)_4rem] items-center gap-3 rounded-xl border px-3 py-2.5 ${hit ? 'border-emerald-300 bg-emerald-50' : 'border-default bg-muted'}`}>
+              <span className="text-xs font-bold text-secondary">{index + 1}</span>
+              <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{match.homeTeam}</p><p className="truncate text-xs text-secondary">{match.awayTeam}</p>{checked && <p className="mt-1 text-[11px] font-bold text-secondary">Resultado: {officialOutcomes[index] || '—'}</p>}</div>
+              <span className={`relative flex h-10 min-w-14 items-center justify-center rounded-xl px-2 text-sm font-extrabold text-white ${hit ? 'bg-emerald-700 ring-4 ring-amber-300' : 'bg-orange-600'}`}>{column.outcomes?.[index] || '—'}{hit && <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-300 text-[9px] text-amber-950">✓</span>}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {!play.purchased ? (
+        <div className="mt-5 rounded-2xl border border-orange-200 bg-orange-50 p-4">
+          <p className="font-semibold text-primary">Registrar boleto comprado</p>
+          <p className="mt-1 text-sm leading-6 text-secondary">Después de la jornada, Primy aplicará la verificación unificada a los seis marcadores.</p>
+          <button type="button" onClick={() => onPurchase(play.id)} className="mt-4 min-h-11 w-full rounded-xl bg-orange-600 px-4 text-sm font-bold text-white">Registrar como comprado</button>
+        </div>
+      ) : (
+        <div className="mt-5"><CheckNowButton play={play} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/></div>
+      )}
+
+      <div className="mt-6 grid gap-2 sm:grid-cols-2">
+        <button type="button" onClick={() => onFavorite(play.id)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-default px-4 text-sm font-bold text-primary hover:bg-muted"><StarIcon width="17" height="17" className={play.favorite ? 'fill-amber-400 text-amber-500' : ''}/>{play.favorite ? 'Quitar favorito' : 'Favorito'}</button>
+        <button type="button" onClick={() => onRequestRemove(play)} className="flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>
+      </div>
+    </div>
+  );
+}
+
 function HorsePlayDetails({ play, onPurchase, onRequestRemove, onFavorite, onCheckPlay, checkingPlayId, checkingGame }) {
   const [receiptExtra, setReceiptExtra] = useState('');
   const isLototurf = play.gameId === 'lototurf';
@@ -303,6 +353,7 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
   const [purchaseExtra, setPurchaseExtra] = useState('');
   if (play.gameId === 'loteria-nacional') return <NationalPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onSetPrize={onSetPrize} onFavorite={onFavorite} onRepeat={onRepeat} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/>;
   if (play.gameId === 'quiniela') return <QuinielaPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onFavorite={onFavorite} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/>;
+  if (play.gameId === 'quinigol') return <QuinigolPlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onFavorite={onFavorite} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/>;
   if (play.gameId === 'lototurf' || play.gameId === 'quintuple-plus') return <HorsePlayDetails play={play} onPurchase={onPurchase} onRequestRemove={onRequestRemove} onFavorite={onFavorite} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame}/>;
   const game = getGameConfig(play.gameId);
   const winning = new Set(play.result?.winningNumbers || []);

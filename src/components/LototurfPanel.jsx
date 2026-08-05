@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import HorseRoundHeader from './HorseRoundHeader.jsx';
+import RoundAvailabilityNotice from './RoundAvailabilityNotice.jsx';
 import { AlertIcon, CheckIcon, HorseRacingIcon, TicketIcon } from './Icons.jsx';
 import { useHorseRound } from '../hooks/useHorseRound.js';
 import { sanitizeLototurfSelection } from '../horse/lototurfRules.js';
@@ -14,7 +15,7 @@ function toggle(list, value, max) {
 }
 
 export default function LototurfPanel({ activeGame, onGameChange, onPrepareLototurf, onDiscard, latest, generationError = '', monthlySpent = 0, monthlyLimit = null }) {
-  const { round, loading, error, refresh } = useHorseRound('lototurf');
+  const { round, availability, loading, error, refresh } = useHorseRound('lototurf');
   const [mode, setMode] = useState('simple');
   const [numbers, setNumbers] = useState([]);
   const [horses, setHorses] = useState([]);
@@ -40,7 +41,7 @@ export default function LototurfPanel({ activeGame, onGameChange, onPrepareLotot
   };
 
   const prepare = () => {
-    if (!round || !selection || exceedsLimit) return;
+    if (!round || !availability?.operational || !selection || exceedsLimit) return;
     onPrepareLototurf?.({ round, selection });
   };
 
@@ -58,6 +59,7 @@ export default function LototurfPanel({ activeGame, onGameChange, onPrepareLotot
       <div className="mt-7"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego elegido"/></div>
       <div className="mt-6"><HorseRoundHeader gameName="Lototurf" round={round} loading={loading} error={error} onRefresh={refresh}/></div>
       {generationError && <div role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-900">{generationError}</div>}
+      <div className="mt-4"><RoundAvailabilityNotice availability={availability} loading={loading} onRefresh={refresh}/></div>
 
       {latest ? (
         <div className="mt-6 rounded-3xl border border-orange-200 bg-orange-50 p-5">
@@ -65,7 +67,7 @@ export default function LototurfPanel({ activeGame, onGameChange, onPrepareLotot
           <p className="mt-2 text-lg font-semibold text-primary">Revisa el boleto y guárdalo como borrador.</p>
           <button type="button" onClick={onDiscard} className="mt-4 min-h-11 rounded-xl border border-orange-200 bg-white px-4 text-sm font-semibold text-orange-900 hover:bg-orange-100">Editar selección</button>
         </div>
-      ) : round && race && (
+      ) : round && race && availability?.operational && (
         <>
           <fieldset className="mt-6">
             <legend className="text-sm font-bold text-primary">Tipo de jugada</legend>

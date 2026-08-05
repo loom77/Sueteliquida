@@ -46,9 +46,9 @@ test('la sección legal no promete premios y describe honestamente el almacenami
   assert.match(privacy, /no sería correcto afirmar que nunca se guarda ningún dato de jugada/);
 });
 
-test('todas las pantallas principales muestran la release 16.9.0', () => {
-  assert.match(read('../src/utils/release.js'), /16\.9\.0/);
+test('todas las pantallas principales muestran la release 17.0.0', () => {
+  assert.match(read('../src/utils/release.js'), /17\.0\.0/);
   assert.match(read('../src/components/AppShell.jsx'), /ReleaseStamp/);
   assert.match(read('../src/components/AuthScreen.jsx'), /ReleaseStamp/);
-  assert.equal(JSON.parse(read('../package.json')).version, '16.9.0');
+  assert.equal(JSON.parse(read('../package.json')).version, '17.0.0');
 });
