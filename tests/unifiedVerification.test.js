@@ -31,7 +31,7 @@ test('la comprobación unificada conserva 8 euros para tres aciertos de La Primi
   assert.equal(settlement.columns[0].officialAmount, 8);
   const updated = applyVerificationSettlement(play, draw, settlement, { checkedAt: '2026-08-01T22:00:00Z' });
   assert.equal(updated.status, 'checked');
-  assert.equal(updated.metadata.verificationEngine, 'unified-v2');
+  assert.equal(updated.metadata.verificationEngine, 'unified-v3');
 });
 
 test('La Quiniela confirma aciertos y deja el importe pendiente si falta el escrutinio', () => {
@@ -91,4 +91,71 @@ test('la búsqueda prioriza roundId y conserva la fecha', () => {
   assert.deepEqual(verificationLookupForPlay({ gameId: 'quiniela', roundId: 'q:1', drawDateKey: '2026-08-02' }), {
     gameId: 'quiniela', family: 'sports', date: '2026-08-02', roundId: 'q:1',
   });
+});
+
+test('La Quiniela suma el premio de 14 aciertos al Pleno al 15', () => {
+  const play = {
+    gameId: 'quiniela', roundId: 'quiniela:2026:2', purchased: true,
+    columns: [{ id: 'q2', signs: Array(14).fill('1'), pleno: { home: '1', away: '0' } }],
+  };
+  const round = {
+    gameId: 'quiniela', roundId: 'quiniela:2026:2', status: 'official',
+    matches: Array.from({ length: 15 }, (_, index) => ({
+      position: index + 1,
+      officialScore: index === 14 ? { home: 1, away: 0 } : { home: 2, away: 0 },
+    })),
+    metadata: {
+      prizeCategories: [
+        { category: '1.ª categoría · 14 aciertos', winners: 2, prize: 125000 },
+        { category: 'Pleno al 15', winners: 1, prize: 375000 },
+      ],
+    },
+  };
+  const settlement = settlePlayAgainstOfficialData(play, round);
+  assert.equal(settlement.complete, true);
+  assert.equal(settlement.columns[0].category, 'Pleno al 15');
+  assert.equal(settlement.columns[0].officialAmount, 500000);
+  assert.equal(settlement.columns[0].verificationDetails.accumulatedPrize, true);
+  assert.equal(settlement.columns[0].verificationDetails.prizeComponents.length, 2);
+});
+
+test('Quinigol usa la categoría oficial exacta de seis aciertos', () => {
+  const scores = [
+    { home: 0, away: 0 }, { home: 1, away: 2 }, { home: 3, away: 0 },
+    { home: 2, away: 4 }, { home: 5, away: 5 }, { home: 2, away: 1 },
+  ];
+  const play = {
+    gameId: 'quinigol', roundId: 'quinigol:2026:2', purchased: true,
+    columns: [{ id: 'g1', outcomes: ['0-0', '1-2', 'M-0', '2-M', 'M-M', '2-1'] }],
+  };
+  const round = {
+    gameId: 'quinigol', roundId: 'quinigol:2026:2', status: 'official',
+    matches: scores.map((officialScore, index) => ({ position: index + 1, officialScore })),
+    metadata: { prizeCategories: [{ category: '1.ª categoría · 6 aciertos', winners: 4, prize: 8400 }] },
+  };
+  const settlement = settlePlayAgainstOfficialData(play, round);
+  assert.equal(settlement.columns[0].category, '6 aciertos');
+  assert.equal(settlement.columns[0].officialAmount, 8400);
+  assert.equal(settlement.columns[0].verificationDetails.categoryNumber, 1);
+});
+
+test('Quíntuple Plus aplica el premio especial una sola vez al resguardo', () => {
+  const play = {
+    gameId: 'quintuple-plus', purchased: true, equivalentBets: 1,
+    selection: { rows: [[1], [2], [3], [4], [5], [6]] },
+    columns: [{ id: 'h2', rows: [[1], [2], [3], [4], [5], [6]] }],
+  };
+  const round = {
+    gameId: 'quintuple-plus', roundId: 'quintuple-plus:2', result: {
+      valid: true, winners: [1, 2, 3, 4, 5], secondFifth: 6,
+      prizeCategories: [
+        { category: '1.ª categoría', winners: 1, prize: 2500 },
+        { category: 'Especial', winners: 1, prize: 10000 },
+      ],
+    },
+  };
+  const settlement = settlePlayAgainstOfficialData(play, round);
+  assert.equal(settlement.columns[0].officialAmount, 2500);
+  assert.equal(settlement.receiptPrize.category, 'Premio Especial del resguardo');
+  assert.equal(settlement.receiptPrize.officialAmount, 10000);
 });

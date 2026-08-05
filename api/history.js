@@ -1,4 +1,4 @@
-import { applyApiSecurity, rateLimit } from './_security.js';
+import { applyApiSecurity, rateLimit, requestSearchParams } from './_security.js';
 import { parseGame, parseYears } from './_validation.js';
 import { finishRequest, logEvent, withRequestContext } from './_observability.js';
 import { coverageYears, getHistoryDraws, ProviderError } from './_drawService.js';
@@ -85,10 +85,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Método no permitido.' });
   }
 
-  const game = parseGame(req.query?.game);
+  const searchParams = requestSearchParams(req);
+  const game = parseGame(searchParams.get('game'));
   if (!game) return res.status(400).json({ success: false, code: 'INVALID_GAME', message: 'Juego no válido.' });
 
-  const requestedYears = parseYears(req.query?.years);
+  const requestedYears = parseYears(searchParams.get('years'));
   if (requestedYears == null) return res.status(400).json({ success: false, code: 'INVALID_YEARS', message: 'Intervalo histórico no válido.' });
 
   const fresh = readCached(game.id, requestedYears);

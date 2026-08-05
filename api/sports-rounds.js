@@ -1,4 +1,4 @@
-import { applyApiSecurity, rateLimit, safeQuery } from './_security.js';
+import { applyApiSecurity, rateLimit, requestSearchParams, safeQuery } from './_security.js';
 import { finishRequest, logEvent, withRequestContext } from './_observability.js';
 import {
   readLatestSportsRound,
@@ -28,12 +28,15 @@ export default async function handler(req, res) {
   if (!(await rateLimit(req, { limit: 30, windowMs: 60000, scope: 'sports-rounds' }))) {
     return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Demasiadas consultas seguidas.' });
   }
-  const gameId = parseGame(req.query?.game);
+  const searchParams = requestSearchParams(req);
+  const gameId = parseGame(searchParams.get('game'));
   if (!gameId) return res.status(400).json({ success: false, code: 'INVALID_SPORTS_GAME', message: 'Juego deportivo no válido.' });
-  const roundId = safeQuery(req.query?.roundId, 140).trim();
-  const from = dateKey(req.query?.from);
-  const to = dateKey(req.query?.to);
-  if ((req.query?.from && !from) || (req.query?.to && !to)) {
+  const roundId = safeQuery(searchParams.get('roundId'), 140).trim();
+  const fromRaw = searchParams.get('from');
+  const from = dateKey(fromRaw);
+  const toRaw = searchParams.get('to');
+  const to = dateKey(toRaw);
+  if ((fromRaw && !from) || (toRaw && !to)) {
     return res.status(400).json({ success: false, code: 'INVALID_DATE_RANGE', message: 'El intervalo de jornadas no es válido.' });
   }
   try {
@@ -43,7 +46,22 @@ export default async function handler(req, res) {
         ? await readSportsRoundRange(gameId, from, to)
         : await readLatestSportsRound(gameId);
     if (!payload || (Array.isArray(payload) && payload.length === 0)) {
-      return res.status(404).json({ success: false, code: 'SPORTS_ARCHIVE_EMPTY', message: 'El archivo todavía no contiene esta jornada deportiva.', repository: sportsRoundRepositoryStatus() });
+      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      finishRequest(context, { endpoint: 'sports-rounds', status: 200, provider: 'SELAE', gameId, availability: 'updating' });
+      return res.status(200).json({
+        success: true,
+        provider: 'SELAE',
+        gameId,
+        data: null,
+        availability: {
+          state: 'updating',
+          operational: false,
+          title: 'Jornada en actualización',
+          message: 'Primy está esperando una composición oficial completa, identificada y abierta a la venta.',
+          reasons: [],
+        },
+        repository: sportsRoundRepositoryStatus(),
+      });
     }
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=1800');
     finishRequest(context, { endpoint: 'sports-rounds', status: 200, provider: 'SELAE', gameId });

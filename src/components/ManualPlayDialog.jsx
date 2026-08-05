@@ -5,13 +5,82 @@ import { getNationalDrawInfo, normalizeNationalNumber } from '../utils/nationalL
 import GameSwitch from './GameSwitch.jsx';
 import AccessibleDialog from './AccessibleDialog.jsx';
 import { CameraIcon, PlusIcon, TrashIcon, XIcon } from './Icons.jsx';
+import { appendManualDigit, formatManualSelection, parseManualSelection, removeLastManualDigit, sanitizeManualSelectionText, toggleManualSelection } from '../utils/manualEntry.js';
 
 function emptyColumn() {
   return { id: crypto.randomUUID(), numbers: '', extra: '', secondary: '' };
 }
 
 function parseNumberList(value) {
-  return [...new Set(String(value || '').split(/[\s,;.-]+/).map(Number).filter(Number.isInteger))].sort((left, right) => left - right);
+  return parseManualSelection(value);
+}
+
+function ManualNumberPicker({ label, value, onChange, min = 1, max, count, helper = '', compact = false }) {
+  const selected = parseManualSelection(value, { min, max });
+  const numbers = Array.from({ length: max - min + 1 }, (_, index) => min + index);
+  const complete = selected.length === count;
+
+  return (
+    <fieldset className="rounded-2xl border border-default bg-surface p-3 sm:p-4">
+      <legend className="px-1 text-sm font-bold text-primary">{label}</legend>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className={`text-xs font-semibold ${complete ? 'text-primy-700' : 'text-secondary'}`}>{selected.length}/{count} seleccionados</p>
+        {selected.length > 0 && <button type="button" onClick={() => onChange('')} className="min-h-9 rounded-xl px-3 text-xs font-bold text-secondary hover:bg-muted">Limpiar</button>}
+      </div>
+      {helper && <p className="mt-1 text-xs leading-5 text-secondary">{helper}</p>}
+      <div className={`mt-3 grid gap-2 ${compact ? 'grid-cols-5 sm:grid-cols-10' : 'grid-cols-7 sm:grid-cols-10'}`}>
+        {numbers.map(number => {
+          const active = selected.includes(number);
+          const blocked = !active && selected.length >= count;
+          return (
+            <button
+              key={number}
+              type="button"
+              aria-pressed={active}
+              disabled={blocked}
+              onClick={() => onChange(toggleManualSelection(value, number, { min, max, limit: count }))}
+              className={`flex min-h-10 items-center justify-center rounded-xl border text-sm font-extrabold transition ${active ? 'border-primy-700 bg-primy-700 text-white shadow-sm' : 'border-default bg-surface text-primary hover:border-primy-400 hover:bg-primy-50'} disabled:cursor-not-allowed disabled:opacity-35`}
+            >
+              {number}
+            </button>
+          );
+        })}
+      </div>
+      <label className="mt-4 block text-xs font-semibold text-secondary">Pegar o escribir números separados
+        <input
+          type="text"
+          inputMode="text"
+          autoComplete="off"
+          value={value}
+          onChange={event => onChange(sanitizeManualSelectionText(event.target.value))}
+          placeholder={formatManualSelection(numbers.slice(0, count))}
+          className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 text-base font-normal text-primary"
+        />
+      </label>
+    </fieldset>
+  );
+}
+
+function ManualDigitPad({ value, onChange, maxLength = 5 }) {
+  const digits = String(value || '').replace(/\D/g, '').slice(0, maxLength);
+  return (
+    <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+      <div className="grid grid-cols-5 gap-2" aria-label="Número del décimo">
+        {Array.from({ length: maxLength }, (_, index) => (
+          <span key={index} className="flex min-h-14 items-center justify-center rounded-xl border border-blue-200 bg-surface font-display text-2xl font-semibold text-primary">{digits[index] || '–'}</span>
+        ))}
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2">
+        {[1,2,3,4,5,6,7,8,9].map(digit => <button key={digit} type="button" onClick={() => onChange(appendManualDigit(digits, digit, maxLength))} className="min-h-12 rounded-xl border border-blue-200 bg-surface text-lg font-extrabold text-primary hover:bg-blue-100">{digit}</button>)}
+        <button type="button" onClick={() => onChange('')} className="min-h-12 rounded-xl border border-blue-200 bg-surface text-sm font-bold text-secondary hover:bg-blue-100">Borrar</button>
+        <button type="button" onClick={() => onChange(appendManualDigit(digits, 0, maxLength))} className="min-h-12 rounded-xl border border-blue-200 bg-surface text-lg font-extrabold text-primary hover:bg-blue-100">0</button>
+        <button type="button" onClick={() => onChange(removeLastManualDigit(digits))} className="min-h-12 rounded-xl border border-blue-200 bg-surface text-sm font-bold text-secondary hover:bg-blue-100" aria-label="Eliminar última cifra">⌫</button>
+      </div>
+      <label className="mt-4 block text-xs font-semibold text-secondary">También puedes pegar las cinco cifras
+        <input type="text" inputMode="numeric" pattern="[0-9]*" value={digits} onChange={event => onChange(event.target.value.replace(/\D/g, '').slice(0, maxLength))} placeholder="00742" className="mt-2 min-h-11 w-full rounded-xl border border-blue-200 bg-surface px-3 text-base font-normal tracking-[.16em] text-primary"/>
+      </label>
+    </div>
+  );
 }
 
 export default function ManualPlayDialog({ open, initialGame = 'primitiva', onClose, onSave }) {
@@ -215,7 +284,6 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
     stopScanner();
   };
 
-  const hasColumnSupplement = Boolean(game.secondary || game.extra?.scope === 'column');
 
   if (gameId === 'loteria-nacional') {
     return (
@@ -230,7 +298,7 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
             <label className="text-sm font-bold text-primary">Fecha del sorteo<input type="date" value={dateKey} onChange={event => { const value = event.target.value; setDateKey(value); const draw = getNationalDrawInfo(value); setNationalPrice(draw.pricePerDecimo); setNationalDrawName(draw.drawName); }} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
             <label className="text-sm font-bold text-primary">Nombre del sorteo<input value={nationalDrawName} onChange={event => setNationalDrawName(event.target.value)} maxLength={80} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
           </div>
-          <label className="block text-sm font-bold text-primary">Número de cinco cifras<input value={nationalNumber} onChange={event => setNationalNumber(event.target.value.replace(/\D/g, '').slice(0, 5))} inputMode="numeric" placeholder="Ej. 00742" className="mt-2 min-h-14 w-full rounded-2xl border border-blue-200 bg-blue-50 px-4 font-display text-2xl font-semibold tracking-[.2em] text-primary"/><span className="mt-1 block text-xs font-normal text-secondary">Los ceros iniciales se conservan.</span></label>
+          <div><p className="text-sm font-bold text-primary">Número de cinco cifras</p><p className="mt-1 text-xs leading-5 text-secondary">Toca las cifras del décimo. Los ceros iniciales se conservan.</p><div className="mt-2"><ManualDigitPad value={nationalNumber} onChange={setNationalNumber}/></div></div>
           <div className="grid gap-4 sm:grid-cols-2">
             <label className="text-sm font-bold text-primary">Décimos (1–10)<input type="number" min="1" max="10" value={nationalQuantity} onChange={event => setNationalQuantity(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
             <label className="text-sm font-bold text-primary">Precio por décimo<input type="number" min="0" step="0.01" value={nationalPrice} onChange={event => setNationalPrice(event.target.value)} className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal"/></label>
@@ -269,21 +337,29 @@ export default function ManualPlayDialog({ open, initialGame = 'primitiva', onCl
         </div>
 
         {game.extra?.scope === 'receipt' && (
-          <label className="block rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-bold text-amber-950">
-            Reintegro único del resguardo
-            <span className="mt-1 block text-xs font-normal leading-5 text-amber-800">Se aplica a todas las columnas. Cópialo del resguardo de SELAE.</span>
-            <input value={receiptExtra} onChange={event => setReceiptExtra(event.target.value)} inputMode="numeric" className="mt-3 min-h-11 w-full rounded-xl border border-amber-300 bg-surface px-3 font-normal text-primary"/>
-          </label>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
+            <p className="font-bold">Reintegro único del resguardo</p>
+            <p className="mt-1 text-xs font-normal leading-5 text-amber-800">Se aplica a todas las columnas. Cópialo del resguardo de SELAE.</p>
+            <div className="mt-3"><ManualNumberPicker label={game.extra.label} value={receiptExtra} onChange={setReceiptExtra} min={game.extra.min} max={game.extra.max} count={1} compact helper="Toca el dígito impreso en el resguardo."/></div>
+          </div>
         )}
 
         <div className="space-y-3">
           {columns.map((column, index) => (
             <div key={column.id} className="rounded-2xl bg-muted p-4">
               <div className="flex items-center justify-between gap-3"><p className="font-semibold text-primary">Columna {index + 1}</p>{columns.length > (game.minSimpleBets || 1) && <button type="button" onClick={() => setColumns(current => current.filter(item => item.id !== column.id))} className="flex min-h-11 items-center gap-2 rounded-xl px-3 text-sm font-bold text-rose-700 hover:bg-rose-50"><TrashIcon width="17" height="17"/>Eliminar</button>}</div>
-              <div className={`mt-3 grid gap-3 ${hasColumnSupplement ? 'sm:grid-cols-[1fr_190px]' : ''}`}>
-                <label className="text-sm font-bold text-primary">Los {game.numbersToPick} números<input value={column.numbers} onChange={event => updateColumn(column.id, { numbers: event.target.value })} placeholder={`Ej. ${Array.from({ length: game.numbersToPick }, (_, item) => item + 1).join(', ')}`} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>
-                {game.extra?.scope === 'column' && <label className="text-sm font-bold text-primary">{game.extra.label}<input value={column.extra} onChange={event => updateColumn(column.id, { extra: event.target.value })} inputMode="numeric" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>}
-                {game.secondary && <label className="text-sm font-bold text-primary">{game.secondary.label}<span className="mt-1 block text-xs font-normal text-secondary">{game.secondary.count} valores del {game.secondary.min} al {game.secondary.max}</span><input value={column.secondary} onChange={event => updateColumn(column.id, { secondary: event.target.value })} placeholder="Ej. 3, 11" inputMode="numeric" className="mt-2 min-h-11 w-full rounded-2xl border border-default bg-surface px-3 font-normal text-primary"/></label>}
+              <div className="mt-3 space-y-3">
+                <ManualNumberPicker
+                  label={`Los ${game.numbersToPick} números`}
+                  value={column.numbers}
+                  onChange={value => updateColumn(column.id, { numbers: value })}
+                  min={1}
+                  max={game.numberPoolMax}
+                  count={game.numbersToPick}
+                  helper={`Toca exactamente ${game.numbersToPick} números del 1 al ${game.numberPoolMax}.`}
+                />
+                {game.extra?.scope === 'column' && <ManualNumberPicker label={game.extra.label} value={column.extra} onChange={value => updateColumn(column.id, { extra: value })} min={game.extra.min} max={game.extra.max} count={1} compact helper={`Selecciona un valor del ${game.extra.min} al ${game.extra.max}.`}/>} 
+                {game.secondary && <ManualNumberPicker label={game.secondary.label} value={column.secondary} onChange={value => updateColumn(column.id, { secondary: value })} min={game.secondary.min} max={game.secondary.max} count={game.secondary.count} compact helper={`Selecciona ${game.secondary.count} valores del ${game.secondary.min} al ${game.secondary.max}.`}/>} 
               </div>
             </div>
           ))}

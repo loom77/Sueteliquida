@@ -38,7 +38,7 @@ function categoryRows(payload) {
   return candidates.find(Array.isArray) || [];
 }
 
-function findCategoryPrize(payload, keys) {
+function findCategoryRow(payload, keys) {
   const normalizedKeys = keys.map(normalizeLabel).filter(Boolean);
   let best = null;
   for (const row of categoryRows(payload)) {
@@ -53,13 +53,26 @@ function findCategoryPrize(payload, keys) {
     }
     if (score > (best?.score ?? -1)) best = { row, score };
   }
-  if (!best || best.score < 0) return null;
-  const amount = Number(best.row?.prize ?? best.row?.amount ?? best.row?.prizeAmount);
+  return best && best.score >= 0 ? best.row : null;
+}
+
+function findCategoryPrize(payload, keys) {
+  const row = findCategoryRow(payload, keys);
+  const amount = Number(row?.prize ?? row?.amount ?? row?.prizeAmount);
   return Number.isFinite(amount) ? amount : null;
 }
 
 function categoryNumberKeys(number, label = '') {
   return [`${number}a categoria`, `${number} categoria`, label].filter(Boolean);
+}
+
+const QUINIELA_CATEGORY_BY_HITS = Object.freeze({ 14: 1, 13: 2, 12: 3, 11: 4, 10: 5 });
+const QUINIGOL_CATEGORY_BY_HITS = Object.freeze({ 6: 1, 5: 2, 4: 3, 3: 4, 2: 5 });
+
+function sumKnownAmounts(values) {
+  return values.every(value => typeof value === 'number' && Number.isFinite(value))
+    ? values.reduce((sum, value) => sum + value, 0)
+    : null;
 }
 
 function resultColumn({
@@ -123,16 +136,25 @@ function settleQuiniela(play, round) {
   const official = officialQuinielaResultFromScores(scores);
   const column = play.columns?.[0] || {};
   const score = scoreQuinielaColumn(column, official);
-  let category = null;
-  let keys = [];
-  if (score.hits14 === 14 && score.plenoCorrect) {
-    category = 'Pleno al 15';
-    keys = ['pleno al 15', 'especial'];
-  } else if (score.hits14 >= 10) {
-    category = `${score.hits14} aciertos`;
-    keys = [`${score.hits14} aciertos`, `${15 - score.hits14}a categoria`];
-  }
-  const amount = category ? findCategoryPrize(round, keys) : 0;
+  const categoryNumber = QUINIELA_CATEGORY_BY_HITS[score.hits14] || null;
+  const baseCategory = categoryNumber ? `${score.hits14} aciertos` : null;
+  const baseAmount = categoryNumber
+    ? findCategoryPrize(round, [`${categoryNumber}a categoria`, `${score.hits14} aciertos`])
+    : 0;
+  const plenoAmount = score.hits14 === 14 && score.plenoCorrect
+    ? findCategoryPrize(round, ['pleno al 15'])
+    : 0;
+  const category = score.hits14 === 14 && score.plenoCorrect
+    ? 'Pleno al 15'
+    : baseCategory;
+  const amount = category
+    ? score.hits14 === 14 && score.plenoCorrect
+      ? sumKnownAmounts([baseAmount, plenoAmount])
+      : baseAmount
+    : 0;
+  const prizeComponents = [];
+  if (categoryNumber) prizeComponents.push({ category: `${categoryNumber}.ª categoría · ${score.hits14} aciertos`, amount: baseAmount });
+  if (score.hits14 === 14 && score.plenoCorrect) prizeComponents.push({ category: 'Pleno al 15', amount: plenoAmount });
   return {
     complete: true,
     officialResult: official,
@@ -141,7 +163,19 @@ function settleQuiniela(play, round) {
       matches: score.hits14,
       extraMatch: score.plenoCorrect,
       amount,
-      details: { officialSigns: official.signs, officialPleno: official.pleno, totalLabel: score.totalLabel },
+      breakdown: categoryNumber ? {
+        [`${categoryNumber}`]: 1,
+        ...(score.hits14 === 14 && score.plenoCorrect ? { pleno15: 1 } : {}),
+      } : undefined,
+      details: {
+        officialSigns: official.signs,
+        officialPleno: official.pleno,
+        officialScores: scores,
+        totalLabel: score.totalLabel,
+        categoryNumber,
+        prizeComponents,
+        accumulatedPrize: score.hits14 === 14 && score.plenoCorrect,
+      },
     })],
     receiptPrize: null,
   };
@@ -153,12 +187,25 @@ function settleQuinigol(play, round) {
   const official = officialQuinigolResultFromScores(scores);
   const column = play.columns?.[0] || {};
   const score = scoreQuinigolColumn(column, official);
-  const category = score.hits >= 2 ? `${score.hits} aciertos` : null;
-  const amount = category ? findCategoryPrize(round, [category]) : 0;
+  const categoryNumber = QUINIGOL_CATEGORY_BY_HITS[score.hits] || null;
+  const category = categoryNumber ? `${score.hits} aciertos` : null;
+  const amount = categoryNumber
+    ? findCategoryPrize(round, [`${categoryNumber}a categoria`, category])
+    : 0;
   return {
     complete: true,
     officialResult: official,
-    columns: [resultColumn({ category, matches: score.hits, amount, details: { officialOutcomes: official } })],
+    columns: [resultColumn({
+      category,
+      matches: score.hits,
+      amount,
+      breakdown: categoryNumber ? { [`${categoryNumber}`]: 1 } : undefined,
+      details: {
+        officialOutcomes: official,
+        officialScores: scores,
+        categoryNumber,
+      },
+    })],
     receiptPrize: null,
   };
 }
@@ -282,6 +329,17 @@ function settleQuintuplePlus(play, round) {
   const awardedBets = Object.values(categoryCounts).reduce((sum, count) => sum + count, 0);
   const totals = aggregateCategories(categoryCounts, draw);
   const category = awardedBets ? `${awardedBets} ${awardedBets === 1 ? 'apuesta con premio' : 'apuestas con premio'}` : null;
+  const specialAmount = categoryCounts[1] > 0 ? findCategoryPrize(draw, ['especial']) : null;
+  const specialRow = categoryCounts[1] > 0 ? findCategoryRow(draw, ['especial']) : null;
+  const receiptPrize = specialAmount != null && specialAmount > 0 && Number(specialRow?.winners ?? 0) > 0
+    ? {
+        category: 'Premio Especial del resguardo',
+        officialAmount: specialAmount,
+        displayText: euro.format(specialAmount),
+        payoutType: 'cash',
+        extraMatch: true,
+      }
+    : null;
   return {
     complete: true,
     columns: [resultColumn({
@@ -292,9 +350,14 @@ function settleQuintuplePlus(play, round) {
       breakdown: categoryCounts,
       evaluatedBets,
       awardedBets,
-      details: { winners: draw.winners, secondFifth: draw.secondFifth },
+      details: {
+        winners: draw.winners,
+        secondFifth: draw.secondFifth,
+        specialEligible: categoryCounts[1] > 0,
+        specialConfirmed: Boolean(receiptPrize),
+      },
     })],
-    receiptPrize: null,
+    receiptPrize,
   };
 }
 
@@ -346,7 +409,7 @@ export function applyVerificationSettlement(play, officialData, settlement, { ch
     receiptPrize: settlement.receiptPrize || undefined,
     metadata: {
       ...(play.metadata || {}),
-      verificationEngine: 'unified-v2',
+      verificationEngine: 'unified-v3',
       verificationFamily: verificationFamilyForGame(play.gameId),
       verifiedAt: checkedAt,
       officialSourceHash: officialData?.sourceHash || officialData?.source_hash || null,

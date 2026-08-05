@@ -2,20 +2,21 @@ import React, { useEffect, useMemo, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
 import { AlertIcon, CalendarIcon, CheckIcon, RefreshIcon, ShieldIcon, TicketIcon } from './Icons.jsx';
 import { useSportsRound } from '../hooks/useSportsRound.js';
+import RoundAvailabilityNotice from './RoundAvailabilityNotice.jsx';
 import { GOAL_BUCKETS, QUINIELA_SYMBOLS, QUINIELA_UNIT_PRICE } from '../sports/constants.js';
 import { validateSimpleQuinielaSelection } from '../sports/quinielaPlay.js';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const date = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
-function RoundHeader({ round, loading, error, onRefresh }) {
+function RoundHeader({ round, availability, loading, error, onRefresh }) {
   return (
     <div className="rounded-3xl border border-sky-200 bg-gradient-to-br from-sky-50 via-white to-primy-50 p-5 sm:p-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-bold uppercase tracking-[.15em] text-sky-800">Jornada oficial SELAE</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-.035em] text-primary">
-            {round ? `Quiniela ${round.officialRoundNumber ? `· Jornada ${round.officialRoundNumber}` : ''}` : 'Cargando composición oficial'}
+            {round ? `Quiniela ${round.officialRoundNumber ? `· Jornada ${round.officialRoundNumber}` : ''}` : loading ? 'Cargando composición oficial' : availability?.title || 'Composición oficial no disponible'}
           </h2>
           {round?.roundDate && <p className="mt-2 flex items-center gap-2 text-sm text-secondary"><CalendarIcon width="17" height="17"/>{date.format(new Date(`${round.roundDate}T12:00:00Z`))}</p>}
         </div>
@@ -59,7 +60,7 @@ function GoalSelector({ label, value, onChange }) {
 }
 
 export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuiniela, onDiscard, latest, generationError = '', monthlySpent = 0, monthlyLimit = null }) {
-  const { round, loading, error, refresh } = useSportsRound('quiniela');
+  const { round, availability, loading, error, refresh } = useSportsRound('quiniela');
   const [signs, setSigns] = useState(() => Array(14).fill(''));
   const [pleno, setPleno] = useState({ home: '', away: '' });
 
@@ -68,12 +69,14 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
     setPleno({ home: '', away: '' });
   }, [round?.roundId, round?.sourceHash]);
 
+  const regularMatches = useMemo(() => (round?.matches || []).filter(match => match.predictionType === 'one-x-two'), [round]);
+  const plenoMatch = useMemo(() => (round?.matches || []).find(match => match.predictionType === 'pleno15') || null, [round]);
   const validation = useMemo(() => validateSimpleQuinielaSelection({ signs, pleno }), [signs, pleno]);
   const completed = signs.filter(Boolean).length + (pleno.home ? 1 : 0) + (pleno.away ? 1 : 0);
   const exceedsLimit = monthlyLimit != null && monthlyLimit > 0 && monthlySpent + QUINIELA_UNIT_PRICE > monthlyLimit;
 
   const prepare = () => {
-    if (!round || !validation.valid || exceedsLimit) return;
+    if (!round || !availability?.operational || !validation.valid || exceedsLimit) return;
     onPrepareQuiniela?.({ round, selection: validation.selection });
   };
 
@@ -89,8 +92,9 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
       </div>
 
       <div className="mt-7"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego elegido"/></div>
-      <div className="mt-6"><RoundHeader round={round} loading={loading} error={error} onRefresh={refresh}/></div>
+      <div className="mt-6"><RoundHeader round={round} availability={availability} loading={loading} error={error} onRefresh={refresh}/></div>
       {generationError && <div role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-900">{generationError}</div>}
+      <div className="mt-4"><RoundAvailabilityNotice availability={availability} loading={loading}/></div>
 
       {latest ? (
         <div className="mt-6 rounded-3xl border border-sky-200 bg-sky-50 p-5">
@@ -99,21 +103,22 @@ export default function QuinielaPanel({ activeGame, onGameChange, onPrepareQuini
           <p className="mt-2 text-sm leading-6 text-secondary">La selección sigue disponible en esta pantalla. Para corregir un signo antes de guardar, vuelve al modo de edición.</p>
           <button type="button" onClick={onDiscard} className="mt-4 min-h-11 rounded-xl border border-sky-200 bg-white px-4 text-sm font-semibold text-sky-900 hover:bg-sky-100">Editar pronóstico</button>
         </div>
-      ) : round && (
+      ) : round && availability?.operational && (
         <>
           <div className="mt-6 space-y-3">
-            {round.matches.slice(0, 14).map((match, index) => (
-              <SignSelector key={match.matchId} position={index + 1} match={match} value={signs[index]} onChange={sign => setSigns(current => current.map((item, itemIndex) => itemIndex === index ? sign : item))}/>
-            ))}
+            {regularMatches.map(match => {
+              const signIndex = match.position - 1;
+              return <SignSelector key={match.matchId} position={match.position} match={match} value={signs[signIndex]} onChange={sign => setSigns(current => current.map((item, itemIndex) => itemIndex === signIndex ? sign : item))}/>;
+            })}
           </div>
 
           <section className="mt-6 rounded-3xl border border-amber-200 bg-amber-50/70 p-5" aria-labelledby="pleno-title">
-            <p className="text-xs font-bold uppercase tracking-[.15em] text-amber-900">Partido 15</p>
+            <p className="text-xs font-bold uppercase tracking-[.15em] text-amber-900">Partido 15 · marcador 0/1/2/M</p>
             <h3 id="pleno-title" className="mt-2 text-xl font-semibold text-primary">Pleno al 15</h3>
-            <p className="mt-1 text-sm text-secondary">{round.matches[14]?.homeTeam} contra {round.matches[14]?.awayTeam}</p>
+            <p className="mt-1 text-sm text-secondary">{plenoMatch?.homeTeam} contra {plenoMatch?.awayTeam}</p>
             <div className="mt-5 grid gap-5 sm:grid-cols-2">
-              <GoalSelector label={round.matches[14]?.homeTeam || 'Equipo local'} value={pleno.home} onChange={home => setPleno(current => ({ ...current, home }))}/>
-              <GoalSelector label={round.matches[14]?.awayTeam || 'Equipo visitante'} value={pleno.away} onChange={away => setPleno(current => ({ ...current, away }))}/>
+              <GoalSelector label={plenoMatch?.homeTeam || 'Equipo local'} value={pleno.home} onChange={home => setPleno(current => ({ ...current, home }))}/>
+              <GoalSelector label={plenoMatch?.awayTeam || 'Equipo visitante'} value={pleno.away} onChange={away => setPleno(current => ({ ...current, away }))}/>
             </div>
           </section>
 

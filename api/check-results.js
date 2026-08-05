@@ -1,4 +1,4 @@
-import { applyApiSecurity, rateLimit } from './_security.js';
+import { applyApiSecurity, rateLimit, requestSearchParams } from './_security.js';
 import { parseDateList, parseGame, parseRoundIdList } from './_validation.js';
 import { finishRequest, logEvent, withRequestContext } from './_observability.js';
 import { ProviderError } from './_drawService.js';
@@ -15,11 +15,14 @@ export default async function handler(req, res) {
     return res.status(405).json({ success: false, code: 'METHOD_NOT_ALLOWED', message: 'Método no permitido.' });
   }
 
-  const game = parseGame(req.query?.game);
+  const searchParams = requestSearchParams(req);
+  const game = parseGame(searchParams.get('game'));
   if (!game) return res.status(400).json({ success: false, code: 'INVALID_GAME', message: 'Juego no válido.' });
 
-  const dates = req.query?.dates ? parseDateList(req.query.dates, { max: 31 }) : [];
-  const roundIds = req.query?.roundIds ? parseRoundIdList(req.query.roundIds, { max: 31 }) : [];
+  const datesRaw = searchParams.get('dates');
+  const dates = datesRaw ? parseDateList(datesRaw, { max: 31 }) : [];
+  const roundIdsRaw = searchParams.get('roundIds');
+  const roundIds = roundIdsRaw ? parseRoundIdList(roundIdsRaw, { max: 31 }) : [];
   if (dates == null) return res.status(400).json({ success: false, code: 'INVALID_DATES', message: 'Fechas no válidas.' });
   if (roundIds == null) return res.status(400).json({ success: false, code: 'INVALID_ROUND_IDS', message: 'Jornadas no válidas.' });
   if (!dates.length && !roundIds.length) return res.status(400).json({ success: false, code: 'MISSING_VERIFICATION_KEYS', message: 'Indica al menos una fecha o una jornada.' });

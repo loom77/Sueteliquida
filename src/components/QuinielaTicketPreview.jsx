@@ -8,6 +8,8 @@ export default function QuinielaTicketPreview({ play, saveState, onSaveDraft, on
   const [confirmDiscard, setConfirmDiscard] = useState(false);
   const column = play.columns?.[0];
   const matches = play.matches || [];
+  const regularMatches = matches.filter(match => match.predictionType === 'one-x-two');
+  const plenoMatch = matches.find(match => match.predictionType === 'pleno15') || matches.find(match => match.position === 15);
 
   return (
     <section className="primy-page-enter" aria-labelledby="quiniela-preview-title">
@@ -20,18 +22,21 @@ export default function QuinielaTicketPreview({ play, saveState, onSaveDraft, on
 
         <div className="p-5 sm:p-6">
           <div className="space-y-2">
-            {matches.slice(0, 14).map((match, index) => (
+            {regularMatches.map(match => {
+              const signIndex = match.position - 1;
+              return (
               <div key={match.matchId} className="grid grid-cols-[2rem_minmax(0,1fr)_3rem] items-center gap-3 rounded-xl border border-default bg-muted px-3 py-2.5">
-                <span className="text-xs font-bold text-secondary">{index + 1}</span>
+                <span className="text-xs font-bold text-secondary">{match.position}</span>
                 <div className="min-w-0"><p className="truncate text-sm font-semibold text-primary">{match.homeTeam}</p><p className="truncate text-xs text-secondary">{match.awayTeam}</p></div>
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-800 text-lg font-extrabold text-white">{column.signs[index]}</span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-800 text-lg font-extrabold text-white">{column.signs[signIndex]}</span>
               </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-amber-900">Pleno al 15</p>
-            <p className="mt-2 font-semibold text-primary">{matches[14]?.homeTeam} {column.pleno.home} – {column.pleno.away} {matches[14]?.awayTeam}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-amber-900">Pleno al 15 · marcador 0/1/2/M</p>
+            <p className="mt-2 font-semibold text-primary">{plenoMatch?.homeTeam} {column.pleno.home} – {column.pleno.away} {plenoMatch?.awayTeam}</p>
             <p className="mt-1 text-xs text-secondary">M representa tres o más goles.</p>
           </div>
 

@@ -1,3 +1,53 @@
+# Primy v17.1.1 — Manual Entry Input Hotfix
+
+- Replaces keyboard-dependent comma-separated number entry with an accessible visual number picker.
+- Adds touch-friendly selection grids for main numbers, stars, reintegro, clave and Sueño.
+- Adds an on-screen digit keypad for Lotería Nacional while retaining paste/manual text fallback.
+- Keeps a text fallback with a full keyboard for pasted or space/comma-separated values.
+- Fixes manual registration on iPad, iPhone, Android and desktop without changing stored play formats.
+
+# Primy v17.1.0 — Universal Sports & Horse Verification
+
+- Unificata la liquidazione di Quiniela, Quinigol, Lototurf e Quíntuple Plus nello stesso motore di verifica già usato dalle lotterie numeriche.
+- Aggiunta acquisizione Fast di marcatori, risultati ippici e categorie dello scrutinio ufficiale.
+- Il Pleno al 15 somma correttamente la quota dei 14 aciertos e la quota specifica del Pleno quando entrambe sono ufficialmente disponibili.
+- Quinigol assegna le categorie esatte da 6 a 2 aciertos senza dedurre importi non pubblicati.
+- Lototurf verifica separatamente numeri, cavallo vincente e reintegro; Quíntuple Plus gestisce anche il Premio Especial a livello di resguardo.
+- Nuovo reveal progressivo nell'Archivio con confronti partita per partita o corsa per corsa, stati accessibili e supporto a movimento ridotto.
+- Aggiunta migrazione `20260805_universal_sports_horse_verification_v171.sql` con protezioni per impedire risultati ufficiali incompleti.
+- Supabase Fast aggiornato: sport a ogni ciclo e ippica ogni 5 minuti; Edge Functions `sync-sports-rounds` v10, `sync-horse-rounds` v2 e orchestratore v5.
+- Le categorie possono essere confermate senza mostrare un importo; la dicitura “Premio confirmado” appare soltanto con una quota monetaria ufficiale positiva.
+
+# Primy v17.0.2 — Routing & Availability Hotfix
+
+- Corretto il routing di Quinigol e degli altri giochi: la preferenza predefinita non sovrascrive più la scelta dell'utente dopo il reset di una giocata.
+- Le schermate sportive mostrano lo stato reale della giornata invece di restare su “Cargando composición oficial”.
+- Lototurf e Quíntuple Plus mostrano “Sin jornada hípica activa” direttamente nell'intestazione quando SELAE non ha pubblicato un programma valido.
+- Eliminato il doppio pulsante di aggiornamento nelle schermate sportive e ippiche.
+- Aggiunti test di regressione per routing, stato disponibilità e release 17.0.2.
+
+# Primy v17.0.1 — Production Hardening
+
+- Introdotto `predictionType` per distinguere 1/X/2, Pleno al 15 e marcatori Quinigol.
+- Bloccate composizioni con posizioni mancanti, incontri duplicati o identità della giornata non coerente.
+- Corretto il flusso Quiniela: il Pleno al 15 è risolto per ruolo e non per indice implicito.
+- Rimossa la composizione Quinigol 87 usata impropriamente come fallback della giornata 88.
+- Aggiornata la sincronizzazione Supabase a `sports-checker-v8`.
+- Aggiunta migrazione di pulizia e validazione `20260805_sports_identity_hardening_v1701.sql`.
+- Sostituito l'accesso `req.query` con `URLSearchParams` nelle API.
+- Aggiornati SEO, documentazione e release applicativa a 17.0.1.
+
+# Primy v17.0.0 — Sports & Horse Recovery
+
+- Validazione rigorosa delle giornate sportive e rimozione dei dati provvisori contaminati.
+- La Quiniela torna collegata a una giornata ufficiale identificata e verificabile.
+- El Quinigol diventa operativo: selezione 0/1/2/M, anteprima, archivio, acquisto registrato e verifica unificata.
+- Nuovo sincronizzatore hípico Supabase, senza dipendenza dal vecchio endpoint Vercel.
+- Lototurf e Quíntuple Plus distinguono correttamente “nessuna giornata attiva” da un errore tecnico.
+- Trigger PostgreSQL impediscono la persistenza di composizioni incomplete o contaminate.
+- Release applicativa aggiornata a 17.0.0.
+
+
 # Primy v16.9.0 — Unified Fast Verification
 
 - Motore unico di verifica premi per lotterie numeriche, Lotería Nacional, giochi sportivi e giochi ippici.

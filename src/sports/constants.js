@@ -20,6 +20,12 @@ export const SPORTS_MATCH_STATUSES = Object.freeze([
   'excluded',
 ]);
 
+export const SPORTS_PREDICTION_TYPES = Object.freeze([
+  'one-x-two',
+  'pleno15',
+  'score-buckets',
+]);
+
 export const QUINIELA_SYMBOLS = Object.freeze(['1', 'X', '2']);
 export const GOAL_BUCKETS = Object.freeze(['0', '1', '2', 'M']);
 export const QUINIELA_MATCH_COUNT = 15;
@@ -32,5 +38,5 @@ export const QUINIGOL_MATCH_COUNT = 6;
 export const QUINIGOL_UNIT_PRICE = 1;
 export const QUINIGOL_MAX_DEVELOPED_BETS = 10_368;
 
-export const SPORTS_FOUNDATION_VERSION = '15.9.0';
+export const SPORTS_FOUNDATION_VERSION = '17.1.1';
 export const SPORTS_MODEL_VERSION = 'football-goals-dc-v1';

@@ -79,6 +79,7 @@ function rowToRound(row) {
     updatedAt: row.updated_at,
     revision: row.revision,
     matches: row.matches,
+    prizeCategories: row.metadata?.prizeCategories || [],
     metadata: row.metadata || {},
   });
 }
@@ -102,7 +103,10 @@ function roundToRow(raw) {
     fetched_at: value.fetchedAt,
     revision: value.revision,
     matches: value.matches,
-    metadata: value.metadata || {},
+    metadata: {
+      ...(value.metadata || {}),
+      prizeCategories: value.prizeCategories || value.metadata?.prizeCategories || [],
+    },
   };
 }
 

@@ -1,4 +1,4 @@
-import { applyApiSecurity, rateLimit, safeQuery } from './_security.js';
+import { applyApiSecurity, rateLimit, requestSearchParams, safeQuery } from './_security.js';
 import { finishRequest, logEvent, withRequestContext } from './_observability.js';
 import {
   horseRoundRepositoryStatus,
@@ -28,12 +28,15 @@ export default async function handler(req, res) {
   if (!(await rateLimit(req, { limit: 30, windowMs: 60000, scope: 'horse-rounds' }))) {
     return res.status(429).json({ success: false, code: 'LOCAL_RATE_LIMIT', message: 'Demasiadas consultas seguidas.' });
   }
-  const gameId = parseGame(req.query?.game);
+  const searchParams = requestSearchParams(req);
+  const gameId = parseGame(searchParams.get('game'));
   if (!gameId) return res.status(400).json({ success: false, code: 'INVALID_HORSE_GAME', message: 'Juego hípico no válido.' });
-  const roundId = safeQuery(req.query?.roundId, 160).trim();
-  const from = dateKey(req.query?.from);
-  const to = dateKey(req.query?.to);
-  if ((req.query?.from && !from) || (req.query?.to && !to)) {
+  const roundId = safeQuery(searchParams.get('roundId'), 160).trim();
+  const fromRaw = searchParams.get('from');
+  const from = dateKey(fromRaw);
+  const toRaw = searchParams.get('to');
+  const to = dateKey(toRaw);
+  if ((fromRaw && !from) || (toRaw && !to)) {
     return res.status(400).json({ success: false, code: 'INVALID_DATE_RANGE', message: 'El intervalo de jornadas no es válido.' });
   }
   try {
@@ -43,10 +46,20 @@ export default async function handler(req, res) {
         ? await readHorseRoundRange(gameId, from, to)
         : await readLatestHorseRound(gameId);
     if (!payload || (Array.isArray(payload) && payload.length === 0)) {
-      return res.status(404).json({
-        success: false,
-        code: 'HORSE_ARCHIVE_EMPTY',
-        message: 'El archivo todavía no contiene esta jornada hípica.',
+      res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
+      finishRequest(context, { endpoint: 'horse-rounds', status: 200, provider: 'SELAE', gameId, availability: 'no-active-round' });
+      return res.status(200).json({
+        success: true,
+        provider: 'SELAE',
+        gameId,
+        data: null,
+        availability: {
+          state: 'no-active-round',
+          operational: false,
+          title: 'Sin jornada hípica activa',
+          message: 'SELAE todavía no ha publicado un programa oficial descargable para la jornada en curso.',
+          reasons: [],
+        },
         repository: horseRoundRepositoryStatus(),
       });
     }

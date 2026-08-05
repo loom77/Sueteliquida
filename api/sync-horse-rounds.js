@@ -1,4 +1,4 @@
-import { applyApiSecurity, rateLimit, safeQuery } from './_security.js';
+import { applyApiSecurity, rateLimit, requestSearchParams, safeQuery } from './_security.js';
 import { finishRequest, logEvent, withRequestContext } from './_observability.js';
 import { fetchOfficialHorseRound } from './_horseOfficialProvider.js';
 import { upsertHorseRounds } from './_horseRoundRepository.js';
@@ -13,7 +13,7 @@ function isAuthorized(req) {
 }
 
 function requestedGames(req) {
-  const candidate = safeQuery(req.query?.game, 40).trim();
+  const candidate = safeQuery(requestSearchParams(req).get('game'), 40).trim();
   return candidate && HORSE_GAME_IDS.includes(candidate) ? [candidate] : [...HORSE_GAME_IDS];
 }
 

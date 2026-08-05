@@ -37,7 +37,7 @@ const ACTIVE_CAPABILITIES = {
 const HORSE_OPERATIONAL_CAPABILITIES = {
   createCombination: true,
   manualEntry: false,
-  resultChecking: false,
+  resultChecking: true,
   history: true,
   statisticalLab: false,
   officialData: true,
@@ -121,11 +121,11 @@ export const GAME_CATALOG = {
     description: 'Primera experiencia operativa: una apuesta simple con 14 pronósticos 1-X-2 y Pleno al 15.',
     betModel: 'Pronóstico deportivo simple',
     availability: 'quiniela-simple-beta',
-    capabilities: { ...REVIEW_CAPABILITIES, createCombination: true, history: true, officialData: true },
+    capabilities: { ...REVIEW_CAPABILITIES, createCombination: true, history: true, resultChecking: true, officialData: true },
     foundation: {
       phase: 'Quiniela simple operativa',
-      completed: ['Modelo matemático', 'Proveedor oficial SELAE', 'Archivo versionado', 'Boleto 1-X-2', 'Pleno al 15', 'Borradores persistentes'],
-      pending: ['Compra y registro', 'Comprobación y escrutinio', 'Dobles y triples', 'Elige8', 'Reducidas y condicionadas'],
+      completed: ['Modelo matemático', 'Proveedor oficial SELAE', 'Archivo versionado', 'Boleto 1-X-2', 'Pleno al 15', 'Borradores persistentes', 'Registro de compra', 'Comprobación unificada'],
+      pending: ['Escrutinio monetario completo', 'Dobles y triples', 'Elige8', 'Reducidas y condicionadas'],
     },
   },
   quinigol: {
@@ -133,14 +133,14 @@ export const GAME_CATALOG = {
     name: 'El Quinigol',
     shortName: 'Quinigol',
     familyId: 'sports',
-    description: 'Pronóstico de resultados mediante rangos de goles.',
-    betModel: 'Pronóstico de marcador',
-    availability: 'sports-data-foundation',
-    capabilities: REVIEW_CAPABILITIES,
+    description: 'Seis pronósticos de goles con los valores 0, 1, 2 o M, vinculados a una jornada oficial verificada.',
+    betModel: 'Pronóstico de marcador por rangos',
+    availability: 'quinigol-simple-beta',
+    capabilities: { ...REVIEW_CAPABILITIES, createCombination: true, history: true, resultChecking: true, officialData: true },
     foundation: {
-      phase: 'Datos oficiales y archivo versionado',
-      completed: ['Modelo matemático', 'Matriz 4×4', 'Proveedor oficial SELAE', 'Archivo versionado', 'Revisiones de composición'],
-      pending: ['UX de marcador', 'Persistencia de pronósticos', 'Comprobación y escrutinio'],
+      phase: 'Quinigol simple operativo',
+      completed: ['Modelo matemático', 'Matriz 4×4', 'Composición oficial', 'UX de marcador', 'Persistencia', 'Archivo', 'Verificación unificada'],
+      pending: ['Apuestas múltiples avanzadas', 'Optimización probabilística opcional'],
     },
   },
   lototurf: {
@@ -155,7 +155,7 @@ export const GAME_CATALOG = {
     foundation: {
       phase: 'Datos oficiales hípicos en validación',
       completed: ['Selección 6/31', 'Caballo 1–12', 'Apuestas simples y múltiples', 'Programa oficial', 'Caballos retirados', 'UX del boleto', 'Persistencia de jugadas', 'Archivo versionado', 'Resultados oficiales'],
-      pending: ['Validación en jornadas reales', 'Registro de compra', 'Comprobación y escrutinio monetario'],
+      pending: ['Próximo programa oficial activo', 'Validación continua de retirados', 'Escrutinio monetario completo'],
     },
   },
   'quintuple-plus': {
@@ -170,7 +170,7 @@ export const GAME_CATALOG = {
     foundation: {
       phase: 'Datos oficiales hípicos en validación',
       completed: ['Cinco ganadores', 'Segundo de la quinta carrera', 'Apuestas simples y múltiples', 'Programa oficial de cinco carreras', 'Caballos retirados', 'UX por dorsales', 'Persistencia de jugadas', 'Archivo versionado', 'Resultados oficiales'],
-      pending: ['Validación en jornadas reales', 'Registro de compra', 'Comprobación y escrutinio monetario'],
+      pending: ['Próximo programa oficial activo', 'Validación continua de retirados', 'Escrutinio monetario completo'],
     },
   },
 };
@@ -194,6 +194,7 @@ export const AVAILABILITY_LABELS = {
   'sports-foundation': 'Base matemática en validación',
   'sports-data-foundation': 'Datos oficiales en validación',
   'quiniela-simple-beta': 'Quiniela simple disponible',
+  'quinigol-simple-beta': 'Quinigol simple disponible',
   'hipicas-foundation': 'Base hípica en validación',
   'hipicas-data-foundation': 'Datos hípicos oficiales en validación',
   'hipicas-operational-beta': 'Jugada hípica disponible',

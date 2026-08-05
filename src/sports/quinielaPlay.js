@@ -49,6 +49,7 @@ function roundSnapshot(round) {
       matchId: match.matchId,
       officialMatchId: match.officialMatchId,
       position: match.position,
+      predictionType: match.predictionType,
       homeTeam: match.homeTeam,
       awayTeam: match.awayTeam,
       competition: match.competition,

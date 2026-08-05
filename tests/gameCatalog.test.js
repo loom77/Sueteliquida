@@ -33,7 +33,7 @@ test('el catálogo se organiza en cuatro familias sin juegos huérfanos', () => 
 });
 
 test('los juegos validados y los módulos hípicos beta exponen solo sus capacidades reales', () => {
-  assert.deepEqual(ACTIVE_GAME_IDS.sort(), ['bonoloto', 'eurodreams', 'euromillones', 'gordoprimitiva', 'loteria-nacional', 'lototurf', 'primitiva', 'quiniela', 'quintuple-plus']);
+  assert.deepEqual(ACTIVE_GAME_IDS.sort(), ['bonoloto', 'eurodreams', 'euromillones', 'gordoprimitiva', 'loteria-nacional', 'lototurf', 'primitiva', 'quiniela', 'quinigol', 'quintuple-plus']);
   assert.equal(isGameCapabilityAvailable('primitiva', 'createCombination'), true);
   assert.equal(isGameCapabilityAvailable('eurodreams', 'resultChecking'), true);
   assert.equal(isGameCapabilityAvailable('euromillones', 'createCombination'), true);
@@ -43,10 +43,12 @@ test('los juegos validados y los módulos hípicos beta exponen solo sus capacid
   assert.equal(isGameCapabilityAvailable('quiniela', 'createCombination'), true);
   assert.equal(isGameCapabilityAvailable('quiniela', 'history'), true);
   assert.equal(isGameCapabilityAvailable('quiniela', 'manualEntry'), false);
-  assert.equal(isGameCapabilityAvailable('quiniela', 'resultChecking'), false);
+  assert.equal(isGameCapabilityAvailable('quiniela', 'resultChecking'), true);
+  assert.equal(isGameCapabilityAvailable('quinigol', 'createCombination'), true);
+  assert.equal(isGameCapabilityAvailable('quinigol', 'resultChecking'), true);
   assert.equal(isGameCapabilityAvailable('lototurf', 'createCombination'), true);
   assert.equal(isGameCapabilityAvailable('lototurf', 'history'), true);
-  assert.equal(isGameCapabilityAvailable('lototurf', 'resultChecking'), false);
+  assert.equal(isGameCapabilityAvailable('lototurf', 'resultChecking'), true);
   assert.equal(isGameCapabilityAvailable('quintuple-plus', 'createCombination'), true);
   assert.equal(isGameCapabilityAvailable('quintuple-plus', 'manualEntry'), false);
 });

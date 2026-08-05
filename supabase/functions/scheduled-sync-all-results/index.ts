@@ -2,13 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") || "";
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-const APP_URL = (Deno.env.get("PRIMY_APP_URL") || "https://sueteliquida.vercel.app").replace(/\/$/, "");
-
 const targets = [
   { id: "numbers", url: `${SUPABASE_URL}/functions/v1/scheduled-sync-selae`, auth: false, everyMinutes: 1 },
   { id: "loteria-nacional", url: `${SUPABASE_URL}/functions/v1/sync-loteria-nacional`, auth: true, everyMinutes: 1 },
-  { id: "sports", url: `${SUPABASE_URL}/functions/v1/sync-sports-rounds`, auth: true, everyMinutes: 5 },
-  { id: "horse", url: `${APP_URL}/api/sync-horse-rounds`, auth: false, everyMinutes: 15 },
+  { id: "sports", url: `${SUPABASE_URL}/functions/v1/sync-sports-rounds`, auth: true, everyMinutes: 1 },
+  { id: "horse", url: `${SUPABASE_URL}/functions/v1/sync-horse-rounds`, auth: true, everyMinutes: 5 },
 ];
 
 function json(body: unknown, status = 200) {

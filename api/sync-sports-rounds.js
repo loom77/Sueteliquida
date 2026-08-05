@@ -1,4 +1,4 @@
-import { applyApiSecurity, rateLimit } from './_security.js';
+import { applyApiSecurity, rateLimit, requestSearchParams } from './_security.js';
 import { finishRequest, logEvent, withRequestContext } from './_observability.js';
 
 const SYNC_ENDPOINT = 'https://vmzkhelxehgedorsvchl.supabase.co/functions/v1/sync-sports-rounds';
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         ...(serviceRoleKey ? { Authorization: `Bearer ${serviceRoleKey}` } : {}),
       },
-      body: JSON.stringify({ gameId: req.query?.game || null, trigger: 'vercel-manual' }),
+      body: JSON.stringify({ gameId: requestSearchParams(req).get('game') || null, trigger: 'vercel-manual' }),
       signal: AbortSignal.timeout(65000),
     });
     const payload = await response.json().catch(() => ({}));

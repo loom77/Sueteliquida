@@ -214,6 +214,57 @@ export function validateHorseRound(round) {
   return { valid: errors.length === 0, errors, warnings };
 }
 
+export function horseRoundAvailability(round, { now = new Date() } = {}) {
+  const validation = validateHorseRound(round);
+  if (!round || !validation.valid) {
+    return {
+      state: 'unavailable',
+      operational: false,
+      title: 'Datos de la jornada no disponibles',
+      message: 'Primy todavía no dispone de un programa oficial completo y verificable.',
+      reasons: validation.errors,
+    };
+  }
+  const missingIdentity = !round.officialRoundNumber || !round.roundDate || !round.sourceHash;
+  const hasProgram = Array.isArray(round.races) && round.races.length > 0;
+  if (missingIdentity || !hasProgram) {
+    return {
+      state: 'updating',
+      operational: false,
+      title: 'Jornada hípica en actualización',
+      message: 'Estamos verificando la fecha, el número de jornada y los participantes oficiales.',
+      reasons: [
+        ...(!round.officialRoundNumber ? ['Falta el número oficial de jornada.'] : []),
+        ...(!round.roundDate ? ['Falta la fecha oficial.'] : []),
+        ...(!round.sourceHash ? ['Falta la huella del documento oficial.'] : []),
+        ...(!hasProgram ? ['Falta el programa completo de carreras.'] : []),
+      ],
+    };
+  }
+  if (round.status === 'cancelled') {
+    return { state: 'cancelled', operational: false, title: 'Jornada cancelada', message: 'La jornada oficial ha sido cancelada.', reasons: [] };
+  }
+  const nowDate = now instanceof Date ? now : new Date(now);
+  const closeDate = round.salesCloseAt ? new Date(round.salesCloseAt) : null;
+  const roundDate = round.roundDate ? new Date(`${round.roundDate}T23:59:59+02:00`) : null;
+  if (closeDate && !Number.isNaN(closeDate.getTime()) && closeDate <= nowDate) {
+    return { state: 'closed', operational: false, title: 'Venta cerrada', message: 'La jornada ya no admite nuevas jugadas.', reasons: [] };
+  }
+  if (!closeDate && roundDate && !Number.isNaN(roundDate.getTime()) && roundDate < nowDate) {
+    return { state: 'closed', operational: false, title: 'Jornada finalizada', message: 'El programa se conserva para consulta y comprobación.', reasons: [] };
+  }
+  if (['sales-closed', 'in-progress', 'provisional', 'official'].includes(round.status)) {
+    return { state: round.status === 'official' ? 'finished' : 'closed', operational: false, title: round.status === 'official' ? 'Jornada finalizada' : 'Venta cerrada', message: 'La jornada ya no admite nuevas jugadas.', reasons: [] };
+  }
+  return {
+    state: 'available',
+    operational: true,
+    title: 'Jornada hípica disponible',
+    message: 'Programa, participantes y documento oficial verificados.',
+    reasons: [],
+  };
+}
+
 export function horseRoundFingerprint(round) {
   const canonical = JSON.stringify({
     roundId: round?.roundId || '',

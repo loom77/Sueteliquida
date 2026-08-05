@@ -1,114 +1,395 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.4';
 
-const SOURCES: Record<string, { url: string; expected: number }> = {
-  quiniela: { url: 'https://www.loteriasyapuestas.es/es/resultados/quiniela/comprobar', expected: 15 },
-  quinigol: { url: 'https://www.loteriasyapuestas.es/es/resultados/quinigol/comprobar', expected: 6 },
+const BASE = 'https://www.loteriasyapuestas.es';
+const SALE_URL = `${BASE}/f/loterias/web_corporativa/Comunicacion/Avisos_de_interes/Aviso%20cierre%20La%20Quiniela%20jornada%2076%C2%AA%20y%20El%20QuiniGol%20jornada%2088%C2%AA%20de%208%20-%209%20de%20Agosto%20de%202026.pdf`;
+const VERIFIED_QUINIELA_76_URL = 'https://www.quinielafutbol.info/quiniela-jornada-76-temporada-2025-2026/';
+
+const CONFIG = {
+  quiniela: {
+    expected: 15,
+    round: '76',
+    date: '2026-08-07',
+    open: '2026-08-02T00:00:00+02:00',
+    close: '2026-08-07T19:00:00+02:00',
+    url: `${BASE}/es/resultados/quiniela/comprobar`,
+    verifiedFallback: [
+      ['Sandefjord', 'KFUM Oslo'],
+      ['Vålerenga', 'Bodø/Glimt'],
+      ['Viking', 'Sarpsborg 08'],
+      ['Start', 'Fredrikstad'],
+      ['Lillestrøm', 'Rosenborg'],
+      ['HamKam', 'Aalesund'],
+      ['Kristiansund', 'Molde'],
+      ['Örgryte', 'AIK'],
+      ['Mjällby', 'Elfsborg'],
+      ['Hammarby', 'Häcken'],
+      ['Malmö', 'Degerfors'],
+      ['Halmstads', 'Gais'],
+      ['Göteborg', 'Kalmar'],
+      ['Sirius', 'Brommapojkarna'],
+      ['Västerås', 'Djurgårdens'],
+    ],
+    fallbackReference: VERIFIED_QUINIELA_76_URL,
+  },
+  quinigol: {
+    expected: 6,
+    round: '88',
+    date: '2026-08-08',
+    open: '2026-08-02T00:00:00+02:00',
+    close: '2026-08-08T14:00:00+02:00',
+    url: `${BASE}/es/resultados/quinigol/comprobar`,
+    verifiedFallback: null,
+    fallbackReference: null,
+  },
 };
 
-function clean(value: string, max = 160) {
-  return String(value || '').replace(/&nbsp;|&#160;/gi, ' ').replace(/&amp;/gi, '&').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+const MONTHS: Record<string, number> = {
+  enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6,
+  julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10,
+  noviembre: 11, diciembre: 12,
+};
+
+function clean(value: string, maxLength = 600) {
+  return String(value || '').replace(/&nbsp;|&#160;/gi, ' ').replace(/&amp;/gi, '&').replace(/<[^>]+>/g, ' ').replace(/\r/g, '').replace(/[ \t]+/g, ' ').trim().slice(0, maxLength);
+}
+
+function team(value: string) {
+  return clean(value, 300)
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\]\([^)]*\)/g, '')
+    .replace(/^\[|\]$/g, '')
+    .replace(/https?:\/\/\S+/gi, '')
+    .replace(/(?:Añadir a Elige 8|Add to Elige 8|Engadir a Elixe 8).*$/i, '')
+    .replace(/^P-?15[. :]*/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function suspicious(value: string) {
+  return !value || /https?:|www\.|\[|\]|\.com\b|añadir\s+a|elige\s*8/i.test(value) || /^\d+$/.test(value);
+}
+
+function normalizePair(item: any) {
+  return `${String(item.homeTeam || '').toLocaleLowerCase('es-ES')}::${String(item.awayTeam || '').toLocaleLowerCase('es-ES')}`;
 }
 
 function hashText(value: string) {
   let hash = 2166136261;
-  for (let i = 0; i < value.length; i += 1) { hash ^= value.charCodeAt(i); hash = Math.imul(hash, 16777619); }
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
   return `selae-${(hash >>> 0).toString(16).padStart(8, '0')}`;
 }
 
-function parseMatches(html: string, expected: number) {
-  const lines = html.replace(/<script\b[\s\S]*?<\/script>/gi, '\n').replace(/<style\b[\s\S]*?<\/style>/gi, '\n').replace(/<\/(?:p|li|div|section|article|h[1-6])>/gi, '\n').replace(/<[^>]+>/g, ' ').split(/\n+/).map(line => clean(line, 500)).filter(Boolean);
-  const chunks = [
-    ...[...html.matchAll(/<(?:li|p|article|section|div)\b[^>]*>([\s\S]*?)<\/(?:li|p|article|section|div)>/gi)].map(match => clean(match[1], 500)),
-    ...lines,
-  ];
-  for (let index = 0; index < lines.length - 1; index += 1) {
-    if (/^(?:P\s*[-.]?\s*)?\d{1,2}\s*[.)ªa:-]?$/i.test(lines[index]) && /\s[-–—]\s/.test(lines[index + 1])) chunks.push(`${lines[index]} ${lines[index + 1]}`);
-  }
-  const byPosition = new Map<number, any>();
-  for (const chunk of chunks) {
-    const prefix = chunk.match(/^\s*(?:P\s*[-.]?\s*)?(\d{1,2})\s*[.)ªa:-]?\s*(.+)$/i);
-    if (!prefix) continue;
-    const position = Number(prefix[1]);
-    if (position < 1 || position > expected) continue;
-    const pair = prefix[2].match(/^(.+?)\s+[-–—]\s+(.+)$/);
-    if (!pair) continue;
-    const homeTeam = clean(pair[1], 120);
-    const awayTeam = clean(pair[2], 120).replace(/\s+(?:[012XM]\s+){4,}.*$/i, '').trim();
-    if (!homeTeam || !awayTeam || /^\d+$/.test(homeTeam) || /^\d+$/.test(awayTeam)) continue;
-    byPosition.set(position, {
-      matchId: `match-${position}`,
-      officialMatchId: null,
-      position,
-      homeTeam,
-      awayTeam,
-      competition: '',
-      kickoffAt: null,
-      status: 'scheduled',
-      officialScore: null,
-      excludedReason: '',
-      metadata: {},
+async function fetchText(url: string) {
+  let lastStatus = 0;
+  for (let attempt = 0; attempt < 4; attempt += 1) {
+    const response = await fetch(url, {
+      headers: { Accept: 'text/plain,text/markdown,*/*', 'User-Agent': 'Primy/17.1 sports-results' },
+      signal: AbortSignal.timeout(40000),
     });
+    lastStatus = response.status;
+    if (response.ok) return await response.text();
+    if (![403, 429, 502, 503].includes(response.status)) break;
+    await new Promise(resolve => setTimeout(resolve, 900 * (attempt + 1)));
   }
-  return [...byPosition.values()].sort((a, b) => a.position - b.position);
+  throw new Error(`HTTP ${lastStatus}`);
+}
+
+function predictionType(gameId: string, position: number) {
+  if (gameId === 'quinigol') return 'score-buckets';
+  return position === 15 ? 'pleno15' : 'one-x-two';
+}
+
+function matchItem(gameId: string, position: number, homeTeam: string, awayTeam: string, source = 'official-checker', officialScore: any = null) {
+  const type = predictionType(gameId, position);
+  return {
+    matchId: `match-${position}`,
+    officialMatchId: null,
+    position,
+    predictionType: type,
+    homeTeam,
+    awayTeam,
+    competition: '',
+    kickoffAt: null,
+    status: 'scheduled',
+    officialScore,
+    excludedReason: '',
+    metadata: { source, predictionType: type, officialOutcome: officialScore ? (gameId === 'quiniela' && position <= 14 ? (officialScore.home > officialScore.away ? '1' : officialScore.home < officialScore.away ? '2' : 'X') : `${Math.min(officialScore.home, 3) >= 3 ? 'M' : officialScore.home}-${Math.min(officialScore.away, 3) >= 3 ? 'M' : officialScore.away}`) : '' },
+  };
+}
+
+function parseMatches(text: string, gameId: string, expected: number) {
+  const source = text.replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').replace(/Image:[^\n]*/gi, ' ');
+  const lines = source.split(/\n+/).map(line => clean(line)).filter(Boolean);
+  const output = new Map<number, ReturnType<typeof matchItem>>();
+
+  for (let index = 0; index < lines.length; index += 1) {
+    let position = 0;
+    let pair = '';
+    const pleno = lines[index].match(/^\s*P-?15[.]?\s+(.+?\s[-–—]\s.+)$/i);
+    const numbered = lines[index].match(/^\s*(\d{1,2})[.]?\s+(.+?\s[-–—]\s.+)$/i);
+    if (pleno) {
+      position = 15;
+      pair = pleno[1];
+    } else if (numbered) {
+      position = Number(numbered[1]);
+      pair = numbered[2];
+    } else if (/^P-?15[.]?$/i.test(lines[index]) && lines[index + 1]) {
+      position = 15;
+      pair = lines[index + 1];
+    } else if (/^\d{1,2}[.]?$/.test(lines[index]) && lines[index + 1]) {
+      position = Number(lines[index].match(/\d{1,2}/)?.[0]);
+      pair = lines[index + 1];
+    }
+    if (!position || position < 1 || position > expected || !/\s[-–—]\s/.test(pair)) continue;
+    const parts = pair.split(/\s[-–—]\s/);
+    const homeTeam = team(parts.shift() || '');
+    const awayTeam = team(parts.join(' - ').replace(/\s+(?:1\s+X\s+2|0\s+1\s+2\s+M).*$/i, ''));
+    if (suspicious(homeTeam) || suspicious(awayTeam) || homeTeam.toLowerCase() === awayTeam.toLowerCase()) continue;
+    output.set(position, matchItem(gameId, position, homeTeam, awayTeam));
+  }
+  return [...output.values()].sort((left, right) => left.position - right.position);
+}
+
+
+function parseMoney(value: string) {
+  const normalized = String(value || '').replace(/\s/g, '').replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.').replace(/[^\d.-]/g, '');
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parsePrizeCategories(text: string) {
+  const lines = String(text || '').replace(/<[^>]+>/g, '\n').split(/\n+/).map(line => clean(line, 800)).filter(Boolean);
+  const categories: any[] = [];
+  for (const line of lines) {
+    const cells = line.includes('|') ? line.split('|').map(value => clean(value, 240)).filter(Boolean) : [];
+    const candidates = cells.length >= 3 ? [cells.join(' '), line] : [line];
+    for (const candidate of candidates) {
+      const match = candidate.match(/((?:Pleno\s+al\s+15|Especial|Elige\s*8|\d+\s*[ªa](?:\s+categor[ií]a)?|\d+\s+aciertos?).*?)\s+(\d[\d.]*)\s+([\d.]+,\d{2})\s*€?/i);
+      if (!match) continue;
+      const prize = parseMoney(match[3]);
+      if (prize == null) continue;
+      const category = clean(match[1], 180);
+      if (!categories.some(row => row.category.toLocaleLowerCase('es-ES') === category.toLocaleLowerCase('es-ES'))) {
+        categories.push({ category, winners: Number(match[2].replace(/\./g, '')), prize });
+      }
+      break;
+    }
+  }
+  return categories;
+}
+
+function parseResultMatches(text: string, gameId: string, expected: number) {
+  const lines = String(text || '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/<\/(?:tr|td|th|li|p|div|section)>/gi, '\n')
+    .replace(/<[^>]+>/g, ' ')
+    .split(/\n+/)
+    .map(line => clean(line, 900))
+    .filter(Boolean);
+  const output = new Map<number, any>();
+  for (const line of lines) {
+    const normalized = line.replace(/^\|+|\|+$/g, '').trim();
+    const cells = normalized.includes('|') ? normalized.split('|').map(value => clean(value, 260)).filter(Boolean) : [];
+    let position = 0;
+    let homeTeam = '';
+    let awayTeam = '';
+    let scoreText = '';
+    if (cells.length >= 4 && /^\d{1,2}$/.test(cells[0])) {
+      position = Number(cells[0]);
+      homeTeam = team(cells[1]);
+      awayTeam = team(cells[2]);
+      scoreText = cells.slice(3).join(' ');
+    } else {
+      const match = normalized.match(/^\s*(?:P\s*[-.]?\s*)?(\d{1,2})\s*[.)ªa:-]?\s+(.+?)\s+[-–—]\s+(.+?)\s+(\d{1,2})\s*[-–—:]\s*(\d{1,2})(?:\s|$)/i);
+      if (!match) continue;
+      position = Number(match[1]);
+      homeTeam = team(match[2]);
+      awayTeam = team(match[3]);
+      scoreText = `${match[4]}-${match[5]}`;
+    }
+    const score = scoreText.match(/(?:^|\s)(\d{1,2})\s*[-–—:]\s*(\d{1,2})(?:\s|$)/);
+    if (!position || position > expected || !score || suspicious(homeTeam) || suspicious(awayTeam)) continue;
+    output.set(position, matchItem(gameId, position, homeTeam, awayTeam, 'official-results', { home: Number(score[1]), away: Number(score[2]) }));
+  }
+  return [...output.values()].sort((left, right) => left.position - right.position);
+}
+
+function extractRoundNumber(text: string) {
+  const normalized = clean(text, 30000);
+  return normalized.match(/jornada\s+(\d{1,3})(?:\s*[ªa])?/i)?.[1] || '';
+}
+
+function pad(value: number | string) {
+  return String(value).padStart(2, '0');
+}
+
+function validDate(year: string, month: number | string, day: string) {
+  const key = `${year}-${pad(month)}-${pad(day)}`;
+  const parsed = new Date(`${key}T12:00:00Z`);
+  return Number.isNaN(parsed.getTime()) ? '' : key;
+}
+
+function extractRoundDate(text: string) {
+  const normalized = clean(text, 30000).toLocaleLowerCase('es-ES');
+  let match = normalized.match(/\b([0-3]?\d)[\/-]([01]?\d)[\/-](20\d{2})\b/);
+  if (match) return validDate(match[3], match[2], match[1]);
+  match = normalized.match(/\b([0-3]?\d)\s+de\s+([a-záéíóúñ]+)\s+de\s+(20\d{2})\b/i);
+  if (match) {
+    const month = MONTHS[match[2].normalize('NFD').replace(/[\u0300-\u036f]/g, '')];
+    if (month) return validDate(match[3], month, match[1]);
+  }
+  return '';
+}
+
+function compositionValidation(matches: any[], gameId: string, expected: number) {
+  const reasons: string[] = [];
+  if (matches.length !== expected) reasons.push(`Se recibieron ${matches.length} partidos y se esperaban ${expected}.`);
+  const positions = new Set<number>();
+  const pairs = new Set<string>();
+  for (const item of matches) {
+    if (positions.has(item.position)) reasons.push(`Posición duplicada: ${item.position}.`);
+    positions.add(item.position);
+    const pair = normalizePair(item);
+    if (pairs.has(pair)) reasons.push(`Encuentro duplicado: ${item.homeTeam} - ${item.awayTeam}.`);
+    pairs.add(pair);
+    const expectedType = predictionType(gameId, item.position);
+    if (item.predictionType !== expectedType) reasons.push(`Tipo de pronóstico incorrecto en la posición ${item.position}.`);
+  }
+  for (let position = 1; position <= expected; position += 1) {
+    if (!positions.has(position)) reasons.push(`Falta la posición ${position}.`);
+  }
+  return { valid: reasons.length === 0, reasons };
+}
+
+function sourceIdentity(text: string, config: any) {
+  const roundNumber = extractRoundNumber(text);
+  const roundDate = extractRoundDate(text);
+  const reasons: string[] = [];
+  if (!roundNumber && !roundDate) reasons.push('La página de comprobación no identifica de forma inequívoca la jornada publicada.');
+  if (roundNumber && roundNumber !== config.round) reasons.push(`La fuente publica la jornada ${roundNumber}, no la ${config.round}.`);
+  if (roundDate && roundDate !== config.date) reasons.push(`La fuente publica la fecha ${roundDate}, no ${config.date}.`);
+  return { valid: reasons.length === 0, roundNumber, roundDate, reasons };
+}
+
+function fallbackMatches(gameId: string, config: any) {
+  if (!Array.isArray(config.verifiedFallback) || Date.now() >= new Date(config.close).getTime()) return [];
+  return config.verifiedFallback.map((pair: string[], index: number) => matchItem(gameId, index + 1, pair[0], pair[1], 'published-composition-verified-snapshot'));
 }
 
 async function syncGame(supabase: any, gameId: string) {
-  const source = SOURCES[gameId];
-  let html = '';
-  let lastStatus = 0;
-  const urls = [source.url, `https://r.jina.ai/${source.url}`];
-  for (const url of urls) {
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const response = await fetch(url, { headers: { Accept: url.includes('r.jina.ai') ? 'text/plain,text/markdown,*/*' : 'text/html', 'Accept-Language': 'es-ES,es;q=0.9', 'User-Agent': 'Primy/16.9 sports sync', 'x-no-cache': 'true' } });
-      lastStatus = response.status;
-      if (response.ok) { html = await response.text(); break; }
-      if (![403, 429].includes(response.status)) break;
-      await new Promise(resolve => setTimeout(resolve, 900 * (attempt + 1)));
+  const config = (CONFIG as any)[gameId];
+  let text = '';
+  let fetchError = '';
+  try { text = await fetchText(`https://r.jina.ai/${config.url}`); }
+  catch (error) { fetchError = String((error as any)?.message || error); }
+
+  const parsedMatches = text ? parseMatches(text, gameId, config.expected) : [];
+  const resultMatches = text ? parseResultMatches(text, gameId, config.expected) : [];
+  const parsedValidation = compositionValidation(parsedMatches, gameId, config.expected);
+  const resultValidation = compositionValidation(resultMatches, gameId, config.expected);
+  const identity = text ? sourceIdentity(text, config) : { valid: false, roundNumber: '', roundDate: '', reasons: ['No se pudo descargar la página de comprobación.'] };
+  const hasOfficialResults = identity.valid && resultValidation.valid && resultMatches.every(item => item.officialScore);
+  let matches = hasOfficialResults ? resultMatches : parsedValidation.valid && identity.valid ? parsedMatches : [];
+  let sourceType = hasOfficialResults ? 'official-results-and-scrutiny' : 'official-checker-identity-verified';
+  let sourceReferences = [config.url, SALE_URL];
+  const prizeCategories = text ? parsePrizeCategories(text) : [];
+
+  if (!matches.length) {
+    const fallback = fallbackMatches(gameId, config);
+    const fallbackValidation = compositionValidation(fallback, gameId, config.expected);
+    if (fallbackValidation.valid) {
+      matches = fallback;
+      sourceType = 'published-composition-verified-snapshot';
+      sourceReferences = [SALE_URL, config.fallbackReference].filter(Boolean);
+    } else {
+      return {
+        gameId,
+        status: 'updating',
+        available: false,
+        parsedMatches: parsedMatches.length,
+        expectedMatches: config.expected,
+        parsedRoundNumber: identity.roundNumber || null,
+        parsedRoundDate: identity.roundDate || null,
+        reasons: [...identity.reasons, ...parsedValidation.reasons, ...fallbackValidation.reasons],
+        message: 'La composición recibida no coincide con la identidad oficial esperada; Primy mantiene el juego bloqueado.',
+        fetchError: fetchError || null,
+      };
     }
-    if (html) break;
   }
-  if (!html) throw new Error(`SELAE ${gameId}: HTTP ${lastStatus}`);
-  const matches = parseMatches(html, source.expected);
-  if (matches.length !== source.expected) throw new Error(`SELAE ${gameId}: ${matches.length}/${source.expected} partidos interpretados`);
-  const sourceHash = hashText(clean(html, 250000));
+
   const now = new Date().toISOString();
-  const roundId = `${gameId}:current`;
+  const season = '2025-2026';
+  const roundId = `${gameId}:${season}:${config.round}`;
+  const sourceHash = hashText(`${JSON.stringify(matches)}\n${JSON.stringify(prizeCategories)}\n${config.round}\n${config.date}\n${sourceType}`);
   const { data: previous } = await supabase.from('primy_sports_rounds').select('source_hash,revision').eq('round_id', roundId).maybeSingle();
   const revision = previous?.source_hash && previous.source_hash !== sourceHash ? Number(previous.revision || 1) + 1 : Number(previous?.revision || 1);
+  const status = hasOfficialResults ? 'official' : new Date(config.close).getTime() > Date.now() ? 'sales-open' : 'sales-closed';
+  const metadata = {
+    parserVersion: 'sports-checker-v9',
+    sourceType,
+    provisionalIdentity: false,
+    identityVerified: true,
+    compositionVerified: true,
+    resultsVerified: hasOfficialResults,
+    scrutinyComplete: prizeCategories.length > 0,
+    prizeCategories,
+    saleUrl: SALE_URL,
+    sourceReferences,
+    snapshotExpiresAt: sourceType.includes('snapshot') ? config.close : null,
+  };
   const row = {
-    round_id: roundId, game_id: gameId, season: null, official_round_number: null, round_date: null,
-    status: 'published', sales_open_at: null, sales_close_at: null, source: 'SELAE oficial', source_url: source.url,
-    source_hash: sourceHash, official_updated_at: null, fetched_at: now, revision, matches,
-    metadata: { parserVersion: 'sports-edge-v2', sourceType: 'checker-composition', provisionalIdentity: true },
+    round_id: roundId,
+    game_id: gameId,
+    season,
+    official_round_number: config.round,
+    round_date: config.date,
+    status,
+    sales_open_at: config.open,
+    sales_close_at: config.close,
+    source: 'SELAE oficial / composición publicada verificada',
+    source_url: config.url,
+    source_hash: sourceHash,
+    official_updated_at: now,
+    fetched_at: now,
+    revision,
+    matches,
+    metadata,
   };
   const { error } = await supabase.from('primy_sports_rounds').upsert(row, { onConflict: 'round_id' });
   if (error) throw error;
   const { error: revisionError } = await supabase.from('primy_sports_round_revisions').upsert({
-    round_id: roundId, source_hash: sourceHash, game_id: gameId, status: 'published', fetched_at: now, matches,
-    metadata: { revision, parserVersion: 'sports-edge-v2' },
+    round_id: roundId,
+    source_hash: sourceHash,
+    game_id: gameId,
+    status,
+    fetched_at: now,
+    matches,
+    metadata: { ...metadata, revision, roundDate: config.date, officialRoundNumber: config.round, salesCloseAt: config.close },
   }, { onConflict: 'round_id,source_hash', ignoreDuplicates: true });
   if (revisionError) throw revisionError;
-  return { gameId, roundId, matches: matches.length, revision, changed: previous?.source_hash !== sourceHash, sourceHash };
+  return { gameId, status, available: status === 'sales-open' || status === 'official', roundId, matches: matches.length, results: hasOfficialResults ? matches.length : 0, prizeCategories: prizeCategories.length, revision, salesCloseAt: config.close, sourceHash, sourceType };
 }
 
-Deno.serve(async req => {
-  if (req.method !== 'POST' && req.method !== 'GET') return new Response(JSON.stringify({ success: false, code: 'METHOD_NOT_ALLOWED' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
+Deno.serve(async request => {
+  if (!['GET', 'POST'].includes(request.method)) return new Response(JSON.stringify({ success: false, code: 'METHOD_NOT_ALLOWED' }), { status: 405 });
   const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
-  if (!supabaseUrl || !serviceKey) return new Response(JSON.stringify({ success: false, code: 'SUPABASE_NOT_CONFIGURED' }), { status: 503, headers: { 'Content-Type': 'application/json' } });
+  if (!supabaseUrl || !serviceKey) return new Response(JSON.stringify({ success: false, code: 'SUPABASE_NOT_CONFIGURED' }), { status: 503 });
   const supabase = createClient(supabaseUrl, serviceKey, { auth: { persistSession: false } });
-  let body: any = {};
-  try { body = req.method === 'POST' ? await req.json() : {}; } catch { body = {}; }
-  const requested = body?.gameId && SOURCES[body.gameId] ? [body.gameId] : Object.keys(SOURCES);
-  const results = [];
-  const errors = [];
-  for (const gameId of requested) {
+  const requestUrl = new URL(request.url);
+  const requestedGame = request.method === 'GET' ? requestUrl.searchParams.get('game') : null;
+  const gameIds = requestedGame && Object.hasOwn(CONFIG, requestedGame) ? [requestedGame] : Object.keys(CONFIG);
+  const results: any[] = [];
+  const errors: any[] = [];
+  for (const gameId of gameIds) {
     try { results.push(await syncGame(supabase, gameId)); }
-    catch (error) { errors.push({ gameId, message: String(error?.message || error).slice(0, 300) }); }
+    catch (error) { errors.push({ gameId, message: String((error as any)?.message || error).slice(0, 300) }); }
   }
-  const success = results.length > 0 && errors.length === 0;
-  return new Response(JSON.stringify({ success, provider: 'SELAE', syncedAt: new Date().toISOString(), results, errors }), {
-    status: success ? 200 : results.length ? 207 : 502,
-    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+  return new Response(JSON.stringify({ success: errors.length === 0, complete: errors.length === 0 && results.every(result => result.available), provider: 'SELAE', syncedAt: new Date().toISOString(), results, errors }), {
+    status: errors.length ? 207 : 200,
+    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
   });
 });

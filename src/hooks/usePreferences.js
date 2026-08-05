@@ -29,7 +29,7 @@ function normalizePreferences(parsed = {}) {
     monthlyLimit,
     appearance: normalizeAppearance(parsed.appearance),
     notifications: Boolean(parsed.notifications),
-    defaultGame: ['primitiva', 'bonoloto', 'gordoprimitiva', 'euromillones', 'eurodreams', 'loteria-nacional', 'quiniela', 'lototurf', 'quintuple-plus'].includes(parsed.defaultGame) ? parsed.defaultGame : 'primitiva',
+    defaultGame: ['primitiva', 'bonoloto', 'gordoprimitiva', 'euromillones', 'eurodreams', 'loteria-nacional', 'quiniela', 'quinigol', 'lototurf', 'quintuple-plus'].includes(parsed.defaultGame) ? parsed.defaultGame : 'primitiva',
     onboardingSeen: Boolean(parsed.onboardingSeen),
     ageConfirmed: Boolean(parsed.ageConfirmed),
     ageConfirmedAt: parsed.ageConfirmed && typeof parsed.ageConfirmedAt === 'string' ? parsed.ageConfirmedAt : null,

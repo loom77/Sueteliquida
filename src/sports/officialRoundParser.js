@@ -205,6 +205,43 @@ function textHash(value) {
   return `selae-${(hash >>> 0).toString(16).padStart(8, '0')}`;
 }
 
+function parseMoney(value) {
+  const normalized = String(value || '')
+    .replace(/\s/g, '')
+    .replace(/\.(?=\d{3}(?:\D|$))/g, '')
+    .replace(',', '.')
+    .replace(/[^\d.-]/g, '');
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizePrizeLabel(value) {
+  return cleanText(value, 200)
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase('es-ES')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+}
+
+export function parseOfficialSportsPrizeCategories(value) {
+  const lines = Array.isArray(value) ? value : htmlToLines(value);
+  const categories = [];
+  for (const line of lines) {
+    const cleaned = cleanText(line, 600);
+    const match = cleaned.match(/^((?:Pleno\s+al\s+15|Especial|Elige\s*8|\d+\s*[ªa](?:\s*\([^)]*\))?).*?)\s+(\d[\d.]*)\s+([\d.]+,\d{2})\s*€?$/i);
+    if (!match) continue;
+    const prize = parseMoney(match[3]);
+    if (prize == null) continue;
+    categories.push({
+      category: cleanText(match[1], 180),
+      winners: Number(match[2].replace(/\./g, '')),
+      prize,
+    });
+  }
+  return categories.filter((category, index, all) => all.findIndex(item => normalizePrizeLabel(item.category) === normalizePrizeLabel(category.category)) === index);
+}
+
 function inferRoundStatus(matches) {
   if (matches.length && matches.every(match => ['finished', 'excluded'].includes(match.status))) return 'official';
   if (matches.some(match => ['finished', 'excluded', 'live'].includes(match.status))) return 'provisional';
@@ -250,6 +287,7 @@ export function parseOfficialSportsRoundHtml(html, gameId, options = {}) {
   const officialRoundNumber = String(options.officialRoundNumber || parsedMeta.officialRoundNumber || '');
   const season = String(options.season || parsedMeta.season || '');
   const sourceHash = textHash(cleanText(html, 250000));
+  const prizeCategories = parseOfficialSportsPrizeCategories(html);
   const provisionalIdentity = !roundDate && !officialRoundNumber;
   const roundId = String(options.roundId || [gameId, season || null, officialRoundNumber || roundDate || 'current'].filter(Boolean).join(':'));
   const status = options.status || inferRoundStatus(matches);
@@ -270,11 +308,14 @@ export function parseOfficialSportsRoundHtml(html, gameId, options = {}) {
     fetchedAt: options.fetchedAt || new Date().toISOString(),
     updatedAt: options.updatedAt || new Date().toISOString(),
     matches,
+    prizeCategories,
     metadata: {
-      parserVersion: 'sports-official-round-v1',
+      parserVersion: 'sports-official-round-v2',
       sourceType: status === 'official' ? 'results-page' : 'checker-composition',
       dateInferred: Boolean(options.roundDate && !extractOfficialSportsDate(`${options.sourceUrl || ''} ${allText}`)),
       provisionalIdentity,
+      prizeCategories,
+      scrutinyComplete: prizeCategories.length > 0,
       ...options.metadata,
     },
   }, { expectedMatches });

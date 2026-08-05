@@ -4,6 +4,7 @@ import { bonolotoEquivalentBets, isBonolotoSystemSize } from './bonoloto.js';
 import { gordoEquivalentBets, isGordoSystemSize } from './gordoPrimitiva.js';
 import { sanitizeNationalPlay } from './nationalLottery.js';
 import { sanitizeQuinielaPlay } from '../sports/quinielaPlay.js';
+import { sanitizeQuinigolPlay } from '../sports/quinigolPlay.js';
 import { sanitizeHorsePlay } from '../horse/plays.js';
 
 function sanitizeSecondaryNumbers(game, column) {
@@ -145,6 +146,7 @@ export function sanitizePlay(play) {
   if (!play || typeof play !== 'object' || !GAMES[play.gameId]) return null;
   if (play.gameId === 'loteria-nacional') return sanitizeNationalPlay(play);
   if (play.gameId === 'quiniela') return sanitizeQuinielaPlay(play);
+  if (play.gameId === 'quinigol') return sanitizeQuinigolPlay(play);
   if (play.gameId === 'lototurf' || play.gameId === 'quintuple-plus') return sanitizeHorsePlay(play);
   if (!Array.isArray(play.columns)) return migrateLegacyTicket(play);
   const game = GAMES[play.gameId];

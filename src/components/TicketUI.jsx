@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function NumberBall({ children, extra = false, hit = false, compact = false, winning = false, dimmed = false }) {
+export function NumberBall({ children, extra = false, hit = false, compact = false, winning = false, dimmed = false, style }) {
   const size = compact ? 'number-ball--compact' : 'number-ball--regular';
   const classes = [
     'number-ball-ui',
@@ -17,7 +17,7 @@ export function NumberBall({ children, extra = false, hit = false, compact = fal
     : `Número ${numberType} ${children}, ${context}`;
 
   return (
-    <span aria-label={label} className={classes} data-hit={hit ? 'true' : 'false'} data-extra={extra ? 'true' : 'false'}>
+    <span aria-label={label} className={classes} style={style} data-hit={hit ? 'true' : 'false'} data-extra={extra ? 'true' : 'false'}>
       <span className="number-ball-ui__value">{children}</span>
       {hit && <span className="number-ball-ui__match" aria-hidden="true">✓</span>}
     </span>
