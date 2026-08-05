@@ -57,9 +57,9 @@ export default function LototurfPanel({ activeGame, onGameChange, onPrepareLotot
       </div>
 
       <div className="mt-7"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego elegido"/></div>
-      <div className="mt-6"><HorseRoundHeader gameName="Lototurf" round={round} loading={loading} error={error} onRefresh={refresh}/></div>
+      <div className="mt-6"><HorseRoundHeader gameName="Lototurf" round={round} availability={availability} loading={loading} error={error} onRefresh={refresh}/></div>
       {generationError && <div role="alert" className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm font-semibold text-rose-900">{generationError}</div>}
-      <div className="mt-4"><RoundAvailabilityNotice availability={availability} loading={loading} onRefresh={refresh}/></div>
+      <div className="mt-4"><RoundAvailabilityNotice availability={availability} loading={loading}/></div>
 
       {latest ? (
         <div className="mt-6 rounded-3xl border border-orange-200 bg-orange-50 p-5">

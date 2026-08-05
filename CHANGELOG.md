@@ -1,3 +1,11 @@
+# Primy v17.0.2 — Routing & Availability Hotfix
+
+- Corretto il routing di Quinigol e degli altri giochi: la preferenza predefinita non sovrascrive più la scelta dell'utente dopo il reset di una giocata.
+- Le schermate sportive mostrano lo stato reale della giornata invece di restare su “Cargando composición oficial”.
+- Lototurf e Quíntuple Plus mostrano “Sin jornada hípica activa” direttamente nell'intestazione quando SELAE non ha pubblicato un programma valido.
+- Eliminato il doppio pulsante di aggiornamento nelle schermate sportive e ippiche.
+- Aggiunti test di regressione per routing, stato disponibilità e release 17.0.2.
+
 # Primy v17.0.1 — Production Hardening
 
 - Introdotto `predictionType` per distinguere 1/X/2, Pleno al 15 e marcatori Quinigol.

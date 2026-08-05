@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useGameHistory } from './useStorage.js';
 import { useHistoryData } from './useHistoryData.js';
 import { useInstallPrompt } from './useInstallPrompt.js';
@@ -36,6 +36,7 @@ export function useAppController(auth) {
   const [manualOpen, setManualOpen] = useState(false);
   const [variantContext, setVariantContext] = useState(null);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
+  const defaultGameAppliedRef = useRef(false);
   const now = useNow(30_000);
   const { toast, showToast, clearToast } = useToast();
   const generation = useGenerationController({ view });
@@ -68,10 +69,10 @@ export function useAppController(auth) {
   }, [auth.notice, auth.clearNotice, showToast]);
 
   useEffect(() => {
-    if (preferences.defaultGame && !generation.latest && !generation.busy) {
-      setActiveGame(preferences.defaultGame);
-    }
-  }, [preferences.defaultGame, generation.latest, generation.busy]);
+    if (defaultGameAppliedRef.current || !preferences.defaultGame) return;
+    defaultGameAppliedRef.current = true;
+    setActiveGame(preferences.defaultGame);
+  }, [preferences.defaultGame]);
 
   const selectGame = useCallback(gameId => {
     if (!GAMES[gameId]) return;

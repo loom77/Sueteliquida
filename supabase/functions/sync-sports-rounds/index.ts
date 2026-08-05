@@ -86,7 +86,7 @@ async function fetchText(url: string) {
   let lastStatus = 0;
   for (let attempt = 0; attempt < 4; attempt += 1) {
     const response = await fetch(url, {
-      headers: { Accept: 'text/plain,text/markdown,*/*', 'User-Agent': 'Primy/17.0.1 sports' },
+      headers: { Accept: 'text/plain,text/markdown,*/*', 'User-Agent': 'Primy/17.0.2 sports' },
       signal: AbortSignal.timeout(40000),
     });
     lastStatus = response.status;

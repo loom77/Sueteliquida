@@ -3,7 +3,7 @@ import { AlertIcon, CalendarIcon, RefreshIcon } from './Icons.jsx';
 
 const date = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'long', year: 'numeric' });
 
-export default function HorseRoundHeader({ gameName, round, loading, error, onRefresh }) {
+export default function HorseRoundHeader({ gameName, round, availability, loading, error, onRefresh }) {
   const roundDate = round?.roundDate ? new Date(`${round.roundDate}T12:00:00Z`) : null;
   return (
     <div className="rounded-3xl border border-orange-200 bg-gradient-to-br from-orange-50 via-white to-amber-50 p-5 sm:p-6">
@@ -11,7 +11,7 @@ export default function HorseRoundHeader({ gameName, round, loading, error, onRe
         <div>
           <p className="text-xs font-bold uppercase tracking-[.15em] text-orange-800">Programa oficial SELAE</p>
           <h2 className="mt-2 text-2xl font-semibold tracking-[-.035em] text-primary">
-            {round ? `${gameName}${round.officialRoundNumber ? ` · Jornada ${round.officialRoundNumber}` : ''}` : 'Cargando programa oficial'}
+            {round ? `${gameName}${round.officialRoundNumber ? ` · Jornada ${round.officialRoundNumber}` : ''}` : loading ? 'Cargando programa oficial' : availability?.title || 'Programa oficial no disponible'}
           </h2>
           {roundDate && <p className="mt-2 flex items-center gap-2 text-sm text-secondary"><CalendarIcon width="17" height="17"/>{date.format(roundDate)}{round.venue ? ` · ${round.venue}` : ''}</p>}
           {round && <p className="mt-2 text-xs text-secondary">Revisión {round.revision} · composición vinculada a la fuente oficial</p>}
