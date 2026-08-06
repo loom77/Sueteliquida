@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test --test-reporter=spec",
-    "check": "npm test && npm run build"
+    "check": "npm test && npm run build",
+    "release:guard": "node scripts-release-guard.mjs",
+    "release:check": "npm run release:guard && npm test && npm run build"
   },
   "dependencies": {
     "react": "18.3.1",

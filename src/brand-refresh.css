@@ -1,0 +1,58 @@
+/* Primy final brand identity — approved direction 1.
+   Loaded after the main design system so it can refresh legacy inline marks
+   without replacing the large BrandVisuals component. */
+
+:root {
+  --primy-brand-deep: #075438;
+  --primy-brand-green: #0b7a49;
+  --primy-brand-fresh: #2e9d6c;
+  --primy-brand-mint: #eaf7f1;
+  --primy-brand-warm: #ffd052;
+}
+
+/* Replace legacy inline Primy mark with the approved asset while preserving
+   component dimensions and accessibility. */
+svg[aria-label="Primy"][viewBox="0 0 64 64"] {
+  background: url('/primy-mark.svg') center / contain no-repeat;
+  overflow: visible;
+}
+svg[aria-label="Primy"][viewBox="0 0 64 64"] > * {
+  display: none !important;
+}
+
+/* Approved green wordmark wherever the existing PrimyWordmark component is used. */
+div:has(> svg[aria-label="Primy"][viewBox="0 0 64 64"]) > div > p:first-child {
+  position: relative;
+  color: var(--primy-brand-green) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.045em !important;
+}
+
+div:has(> svg[aria-label="Primy"][viewBox="0 0 64 64"]) > div > p:first-child::after {
+  content: '';
+  position: absolute;
+  width: .46em;
+  height: .46em;
+  right: -.42em;
+  top: -.30em;
+  background: var(--primy-brand-warm);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+}
+
+/* On deep green authentication surfaces the white wordmark remains the
+   accessible brand variant, while the approved symbol keeps its full palette. */
+section[class*="from-primy-800"] div:has(> svg[aria-label="Primy"][viewBox="0 0 64 64"]) > div > p:first-child {
+  color: #fffdf8 !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  div:has(> svg[aria-label="Primy"][viewBox="0 0 64 64"]) > div > p:first-child::after {
+    animation: primy-brand-spark 4.8s ease-in-out infinite;
+  }
+}
+
+@keyframes primy-brand-spark {
+  0%, 75%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  82% { transform: scale(1.22) rotate(10deg); opacity: .82; }
+  90% { transform: scale(.96) rotate(-5deg); opacity: 1; }
+}

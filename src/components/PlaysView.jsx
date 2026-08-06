@@ -3,67 +3,48 @@ import { formatDrawDate } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
 import TicketHistory from './TicketHistory.jsx';
 import GameIdentity from './GameIdentity.jsx';
-import { TicketStatus } from './TicketUI.jsx';
 import { EditIcon, RefreshIcon, TicketIcon } from './Icons.jsx';
+import { TicketStatus } from './TicketUI.jsx';
 
-function playTimestamp(play) {
-  const value = play?.createdAt || play?.updatedAt || play?.drawDateISO || '';
-  const timestamp = new Date(value).getTime();
-  return Number.isFinite(timestamp) ? timestamp : 0;
-}
+function PendingPlays({ plays, checkingGame, checkingPlayId, onCheckPlay }) {
+  const pending = useMemo(() => plays
+    .filter(play => ['scheduled', 'awaiting_check'].includes(play.computedStatus))
+    .sort((a, b) => String(b.createdAt || b.drawDateISO || '').localeCompare(String(a.createdAt || a.drawDateISO || ''))), [plays]);
 
-function PendingRecentPlays({ plays, checkingGame, checkingPlayId, onCheckPlay }) {
-  const pendingPlays = useMemo(() => (
-    (Array.isArray(plays) ? plays : [])
-      .filter(play => play?.computedStatus === 'scheduled' || play?.computedStatus === 'awaiting_check')
-      .sort((a, b) => playTimestamp(b) - playTimestamp(a))
-  ), [plays]);
-
-  if (pendingPlays.length === 0) return null;
+  if (!pending.length) return null;
 
   return (
-    <section className="primy-pending-recent" aria-labelledby="pending-recent-title">
-      <div className="primy-pending-recent__header">
+    <section className="primy-pending-plays" aria-labelledby="pending-plays-title">
+      <div className="primy-pending-plays__heading">
         <div>
-          <p>Seguimiento</p>
-          <h2 id="pending-recent-title">Jugadas pendientes recientes</h2>
+          <p>Atención</p>
+          <h2 id="pending-plays-title">Jugadas pendientes recientes</h2>
+          <span>Aquí aparecen todas tus jugadas pendientes, no solo la última.</span>
         </div>
-        <span className="primy-pending-recent__count" aria-label={`${pendingPlays.length} jugadas pendientes`}>
-          {pendingPlays.length}
-        </span>
+        <strong>{pending.length}</strong>
       </div>
-
-      <div className="primy-pending-recent__list">
-        {pendingPlays.map(play => {
+      <div className="primy-pending-plays__list">
+        {pending.map(play => {
           const game = getGameConfig(play.gameId);
           const checking = String(checkingPlayId || '') === String(play.id);
-          const otherCheckRunning = Boolean(checkingGame || (checkingPlayId && !checking));
-          const canCheck = play.computedStatus === 'awaiting_check' && typeof onCheckPlay === 'function';
-
           return (
-            <article className="primy-pending-recent__item" key={play.id}>
-              <div className="primy-pending-recent__identity">
+            <article key={play.id} className="primy-pending-play-card">
+              <div className="primy-pending-play-card__identity">
                 <GameIdentity gameId={play.gameId} size="sm" label={false}/>
-                <div>
-                  <strong>{game.shortName || game.name}</strong>
-                  <span>{play.drawName || 'Próximo sorteo'} · {formatDrawDate(play.drawDateISO)}</span>
+                <div className="min-w-0">
+                  <h3>{game.name}</h3>
+                  <p>{formatDrawDate(play.drawDateISO)} · {play.columns?.length || 1} {(play.columns?.length || 1) === 1 ? 'columna' : 'columnas'}</p>
                 </div>
               </div>
-
-              <TicketStatus status={play.computedStatus}/>
-
-              {canCheck && (
-                <button
-                  type="button"
-                  className="primy-pending-recent__check"
-                  onClick={() => onCheckPlay(play)}
-                  disabled={checking || otherCheckRunning}
-                  aria-label={`Comprobar ahora la jugada de ${game.name}`}
-                >
-                  <RefreshIcon width="16" height="16" className={checking ? 'animate-spin' : ''}/>
-                  {checking ? 'Comprobando…' : 'Comprobar ahora'}
-                </button>
-              )}
+              <div className="primy-pending-play-card__actions">
+                <TicketStatus status={play.computedStatus}/>
+                {play.computedStatus === 'awaiting_check' && typeof onCheckPlay === 'function' && (
+                  <button type="button" onClick={() => onCheckPlay(play)} disabled={Boolean(checkingGame || checkingPlayId)} className="primy-check-play-button primy-check-play-button--compact">
+                    <RefreshIcon className={checking ? 'animate-spin' : ''} width="16" height="16"/>
+                    {checking ? 'Comprobando…' : 'Comprobar ahora'}
+                  </button>
+                )}
+              </div>
             </article>
           );
         })}
@@ -82,12 +63,7 @@ export default function PlaysView({ plays, dueByGame, verificationError, checkin
         <button type="button" onClick={onAddExternal} className="ds-button ds-button--primary ds-button--md"><EditIcon width="18" height="18"/>Añadir boleto</button>
       </header>
 
-      <PendingRecentPlays
-        plays={plays}
-        checkingGame={checkingGame}
-        checkingPlayId={checkingPlayId}
-        onCheckPlay={onCheckPlay}
-      />
+      <PendingPlays plays={plays} checkingGame={checkingGame} checkingPlayId={checkingPlayId} onCheckPlay={onCheckPlay}/>
 
       {dueEntries.length > 0 && (
         <section className="primy-archive-due">
