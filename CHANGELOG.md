@@ -1,3 +1,11 @@
+# Primy v18.0.3 — Release Export Hotfix
+
+## Correzione build
+- Ripristinato l'export `APP_RELEASE_LABEL` in `src/utils/release.js`.
+- Allineati `APP_VERSION`, `package.json` e fallback offline alla release `18.0.3`.
+- Aggiunto un test di regressione che verifica il contratto tra `ReleaseStamp.jsx` e `release.js`.
+- Nessuna modifica alla logica finanziaria o allo schema `18.0.2`.
+
 # Primy v18.0.2 — Monthly Finance Integrity
 
 - Separa la fecha contable del gasto (compra/registro) de la fecha contable del premio (sorteo).

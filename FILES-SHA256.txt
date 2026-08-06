@@ -7,7 +7,8 @@ d016bd16d1d8798ba605d21960c0b73db1d1fcf87f95dabea2aaab6be756e11f  ./BRAND-UPLOAD
 e0743c1360153616a2c3c2195c4db8f61f004d0dd459c4215f395465cc5c0a1d  ./CHANGED-FILES-V18.0.0.txt
 e9e655d3cd100652aa69ee806475f061739894f3f216aaffcf470785de04f521  ./CHANGED-FILES-V18.0.1.txt
 3b2aceb719188ba281b4bf294aaa3cbb66a6eed2b10ec2151ad1f227623c4a2f  ./CHANGED-FILES-V18.0.2.txt
-898e13585efd703348ab2966ddd01e96c5dca2d0968b8ad0e3efa2e47ae04559  ./CHANGELOG.md
+f80a4afe5b87fd6f90c2af019a64c4e896e2c6b794727f3c33ea88540dde528d  ./CHANGED-FILES-V18.0.3.txt
+ddbbd663c7af9c3b9c86b9f89a4c7e4b06bb2ea5d82191662f372f7f89feeb2c  ./CHANGELOG.md
 cfda70f2ca6a283f1b01ad8bf7381ab7956c22944966b2e496f0e3fc4fd78e4b  ./COMPETITOR-GUI-RESEARCH.md
 5c9c92a6054793bf0cab5f6fcb3139244613100cfe040f2e372e2ae19a0d29b0  ./CORRECTIONS-V14.0.1.md
 3aa3eef5bfa0481de1c0148b45c872d56f965b68a2a7745647b1bce739bdd71e  ./DEPLOY-HANDOFF-V17.0.1.md
@@ -17,6 +18,7 @@ cfda70f2ca6a283f1b01ad8bf7381ab7956c22944966b2e496f0e3fc4fd78e4b  ./COMPETITOR-G
 ce43235f753c88925eee76907385c6566d4b829e52b14dbe3fd3dcd779d05165  ./DEPLOY-HANDOFF-V18.0.0.md
 3462aafa96c1ded88d0f9569dec2690524e24fa993879e8c63a7cc3dedcd623a  ./DEPLOY-HANDOFF-V18.0.1.md
 4e65ce84f086ef6526e32dc140aa0af1ea3f2ee90ff1abdd721ad41e862ec83a  ./DEPLOY-HANDOFF-V18.0.2.md
+d2aa55741913858a822d5e2be2ec3fd0c12eb9b3c01ee207b99f4f12c2cddf6f  ./DEPLOY-HANDOFF-V18.0.3.md
 71769618000eecdc572b29cd3e9e8b12717744a43c9b58708a8cfa316c50eefd  ./FINAL-VALIDATION-V15.2.md
 b28102b09620139ef769594ba5921f10599eca76166cda2abb5333d2af263849  ./FINAL-VALIDATION-V15.3.1.md
 006570ab90a129e2b83750fca401a7de6759077a33e958a761d1112519c970fb  ./FINAL-VALIDATION-V15.3.md
@@ -46,6 +48,7 @@ a5a62d0e063a6f1018cf06cdf4648d688c0abbb93f85d1d6450482b1093631b3  ./FINAL-VALIDA
 f8c7159cd21d58929e56701c1b6861af4c9ce597797878e49b6ab5d7c44a7344  ./FINAL-VALIDATION-V18.0.0.md
 d85a10eef0945d7c3edb6483b97c705494e074fb33e4224945299f438c9995ac  ./FINAL-VALIDATION-V18.0.1.md
 637217589d93e98979ffbc4e9df0adfb7937a2485706356109d2af53a170d7aa  ./FINAL-VALIDATION-V18.0.2.md
+7662b9be681c275bc2696bf536542f3701a21b3a2f1d3105aaf436c0e065652b  ./FINAL-VALIDATION-V18.0.3.md
 80667e14657479e2f799cefa1348b64aa57e387cc2504868f28449052a407e1d  ./FINAL-VALIDATION.md
 3136a73aa3736bd92bc3f61a88f6fbe8060317626061b6cdaa2cd9016a8db637  ./PRODUCT-BENCHMARK-V11.md
 06d994c6691130fa327f4f40e494e03cea5927a919ffb66eb6b84f669a62076a  ./README.md
@@ -142,7 +145,7 @@ fd8d22cff70e12d4f64a97114c45693fcb76300328ab03a2940c4531507aac32  ./docs/alvaro-
 cf8b247b009e48126192b117d68033e9325fdeb92813f178e717770eb0c70baa  ./docs/yuma-ux-ui/REVIEW-CHECKLIST.md
 a06fffc44b90da5f3079c07573c8c2e6fa79935a1ecd8f9900601ff7e457c52c  ./docs/yuma-ux-ui/ROLE.md
 67347bb82ba18b85769cecba0a82413cc40b8a55f07bab3b42230c1a068af57d  ./index.html
-75435542daa9ff563eb89500c6de76dde1623368c89d6867324f396ec63baea8  ./package.json
+8bc206506df0be7748691b35356789701dfd51e692885e27864e37865b454308  ./package.json
 190c877db466995bf1482f4a16abd06e04a89ede3119341e2a86ff96e1737b27  ./postcss.config.js
 fc9e9d1af472e656e50c523dde11a351f716b9847c9d9425f97a0f1fee5c01e7  ./public/apple-touch-icon-v14-1.png
 dba82253e0c848f5aef734bd6a4cc350f6f265220a5a6c7851d8bc1fdf70f798  ./public/apple-touch-icon-v15.png
@@ -176,7 +179,7 @@ e145a313c40e59f6dcf714ba1c29579e8f0d0081326aa98da7c6b2b2e8085ea4  ./public/masco
 f5b2043c1c2fe2b436424e14acac5330d06fb98f60df6fb901afec0eb23d0ed2  ./public/mascot/primy-responsible.webp
 0d7f23f0d6a757c924ad5903773575980f2acdb42e4fdae4fe63f9adff336a3d  ./public/mascot/primy-thinking.webp
 c68d7ae0881f28386715515e27f8e21d2c5203f3d668b60714138b3716da70c9  ./public/mascot/primy-welcome.webp
-4a5fa5ca61aa6c75d63f47c3f36fff55726a0291ec2badd0278ad1215052d8ee  ./public/offline.html
+904acbd36951db5e16745fca1fb6321774b4251620e23fe63092a3469ddff8fe  ./public/offline.html
 e35f149eabc670d7bf548fc96998d0057ca055a0ff3359f1bcdb559a63586f07  ./public/primy-app-icon.svg
 d6862dacea0c2a788cd8075616557caf8ec233aae7469d4ca91c1fb60cb594a3  ./public/primy-logo-preview.png
 b12bfe35bf895cee71ccd36d1283c2be1738c7e390f8e6001ab32aff114db02f  ./public/primy-logo.svg
@@ -310,7 +313,7 @@ e0a8ff5186da41e18b6640c0a4a48c675de33d35ac9b7381a8fa72a51250ef58  ./src/utils/ga
 38e279b101794876b5d66075dbb84d826c43fe9ddd8c7625870076406d9da1bc  ./src/utils/playModel.js
 ba1653859e4f3138a9b36458d013d39bf6e5609c0beae6466659e3af9b1f8174  ./src/utils/portfolioOptimizer.js
 53b69a63a2d44dc80a3fca9a6aac5488853a99a5a486f16d0147cf3ed2faa840  ./src/utils/predictiveModels.js
-5dab5561d38706239eaba43e001bfc9bc63379df1b9119816eedaf8da0950ba6  ./src/utils/release.js
+5a374a1dad1c0f22abddb3c6706ee8591d10fcf00a6696f44ee1e644c76ec72d  ./src/utils/release.js
 c7720c883cd767bf76850efb7ee91c858d06613be7732d24716889db151db188  ./src/verification/verificationEngine.js
 e35836dc17ad5f661fee8c1a07c17bd45030c928fc29833409911cc1281fab28  ./src/workers/fusion.worker.js
 5de15acde84db15f9d53b3d859f852472ac69bfb6bc708a63e87995f45bda601  ./src/workers/monteCarlo.worker.js
@@ -350,7 +353,7 @@ a1a124a46d3f40040d54c9fed321038437ed8323b63900d4e8d05f7f6bb21525  ./supabase/tem
 f5dc881811a321c4656ffc0ca3c144b51bf64a5b5f9b786ffdfcceb7615ff3b7  ./tailwind.config.js
 2e7c3508d230e88cb8c41d4a4df2b6d784908d4fb2c04d01ef849f12849bc81b  ./test/core.test.js
 1a25ea7f9f6406532f8fcbe3e9da8c6c035a85a7828685ed51f136a30ceb7dc7  ./tests/ageVerification.test.js
-09c7dc432db06a924bb839c2659f716e4022187b8076536a827f12b58adc58cc  ./tests/androidHomeV18.test.js
+701448cfe482dc3a56882b1a1850ff351648e12d83bb6075c50ba4c0d41019e0  ./tests/androidHomeV18.test.js
 aa1260b278e6481a61334b586b4c81a69ac78b07b124a6f2b15dd18424015259  ./tests/appMetrics.test.js
 3f2153efb16ed4ce426a2b65b24f91ee0eeb5151dc43d4be9432c88521a0bd86  ./tests/bonoloto.test.js
 ea329aea8b83e436fa5b056acdff314d6658a132a4a029cc549fa1a78b16ca50  ./tests/brandEvolution.test.js
@@ -372,7 +375,7 @@ da91c0cb63a808dccba4e12ee552f0c57f0b39ff0285fcecde1e83a924cd6765  ./tests/horseO
 14b822b374edfb0ddf5700e5e88bbface2b1f7c68969c9d710e64ba726de642e  ./tests/horsePlayOperational.test.js
 40b73b5417d221d0d8de38d43f8fb295dc29144901c6b11429a6c499df1bd078  ./tests/horseRoundRepository.test.js
 15397c84279951aeeb22fd001696aa327a92d01a40080d1032249323342e32fe  ./tests/lototurf.test.js
-f35dde096c006568b1b1ed57a013e72bd59c642b0fbc811c9e196d51d5fe2958  ./tests/manualEntryHotfixV17_1_1.test.js
+c36a52814fe4cd01d247ed3ad6331178f541266af72a6b67bb07432687892581  ./tests/manualEntryHotfixV17_1_1.test.js
 99865c16fde94d3232ac51302b4bba02fc1c036fd5ec38be5112114590d5e2ec  ./tests/mobileTabletUx.test.js
 4fc112732bbe697cc4394d50eb30958b927570c0628f950702e8d35c94232808  ./tests/modelAudit.test.js
 a0792a4e77f37158f243f6783d649e947c906b8114caa025365b1e0e313f479e  ./tests/monthlyFinanceIntegrityV18_0_2.test.js
@@ -382,15 +385,16 @@ e3ab059a4a67fc3b9d1896f9177bf12990767f8c61c9b48ba4340d797732f5f3  ./tests/nation
 dae35783b0c61826612e6780df51e2d5a34ffe6a0cde6392f1238eda3093178c  ./tests/playDeletion.test.js
 51558987b5e07047b0d032fe16b9c100bb06049dcf28fe74fb87026af1e6d7a2  ./tests/primyCoreExperience.test.js
 aaf94860acd4790561c04ce219a2c4fd0735635bdcba3d6e3bde9f52b38d7c6c  ./tests/prizeIntegrityV18_0_1.test.js
-8596b35ce92b59311bc2dad04fa40d6a19216e48c7a2645261e8264db0a1cffc  ./tests/productionHardeningV17_0_1.test.js
-217fd1e5d9b7a3b4c920f3d4ce9f6b0edec2da596ab2671e6ec55f190a1adb1b  ./tests/profileLegalMotion.test.js
+a5baac797d85db2ac79f0bca2e746e335a692ecaba5a18a223eb5a1a82b6e52f  ./tests/productionHardeningV17_0_1.test.js
+967d6c8381855a128741fa3be0122da22f1e5e7ac225a2b3d8548696dfa1f69e  ./tests/profileLegalMotion.test.js
 8dcbc060bb3da3455a0247c371a8aec3f45a47fafa47daf4ee001eafeea2c4b3  ./tests/quinielaFoundation.test.js
 16242742a386551f2545cf2dd0513031a5ab1ef4a271e2b37aad7b92c41d297a  ./tests/quinielaSimplePlay.test.js
 42523c50eebf54f795abfd69eb3d20e43f4a7c83534ccc8e151c3ef1a9617b24  ./tests/quinielaSimpleUi.test.js
 fa09a3380c6fb40a40b82a98ec7283e75225a4f64e790e61f03c24ce30baf319  ./tests/quinigolFoundation.test.js
 47df3b55797adfecf7ef2057ffa0f89d1dfac7a31e795852fb92cc2835b0a673  ./tests/quintuplePlus.test.js
+5a5e0fbe2e33f8eb114abc3703227372247d719e9216855096e4c7f8d0e72d5e  ./tests/releaseExportHotfixV18_0_3.test.js
 d8bc0f59684830679d38af7533b4a93e32e6e2366cc024fdffdd1565cb4c81d8  ./tests/resultVerificationV16_8.test.js
-d6698f0146fe04dd4d926388756d20342860999346030e06da0b3dd11f9bedba  ./tests/routingAvailabilityHotfixV17_0_2.test.js
+62d25c93d22caf9a7c8da4b1750d597e82f026680d5771d3086455db0e77f132  ./tests/routingAvailabilityHotfixV17_0_2.test.js
 22502bf1db91f57486ec6d46df269b0b8900583cea3fd842cba435864217cdb1  ./tests/selaeProvider.test.js
 29c290111dce4921ca968b96e659c9f703e0a3b9ff7a757a4d1a562241e554a1  ./tests/sportsGoalModel.test.js
 e3f2a293149792ec55dbda7c5c55583b53d671f2472bd82b935d5c7157410df7  ./tests/sportsHorseRecoveryV17.test.js
@@ -402,7 +406,7 @@ d53c9550abafdc1974aaa35b85591d1b1e51929effcaac6711f608dbcd592641  ./tests/sports
 88b94542c027d1bf151d2ced8deed1d6a7ece10b303dab92d0bcd784fec0a50f  ./tests/sportsScenarioEngine.test.js
 24772930936a8c5f0997f0de8374eeff0b40d44d324777912afe219fd3a6e445  ./tests/themeConfig.test.js
 848dad8e9096e4f956fc59f0bc25ed8f39e4567481f53fc32b182483ce065183  ./tests/unifiedVerification.test.js
-e1d70911997db03431568833a946ee188266e51a586fbbd73bdf023bf5fe70ba  ./tests/universalSportsHorseVerificationV17_1.test.js
+f6f0afc53c5443ea06d40799c6db929de581026b447f602b0d74dc0fef0b297c  ./tests/universalSportsHorseVerificationV17_1.test.js
 a7bd72069736aa31158ddf39371f2c55500c1347861fc26edb23bd4c15b376c0  ./tests/validation.test.js
 23561496a419652930399a03f0b9c6cd7b24c4c3117815021dbc4d35be0cfd0e  ./tests/visualFoundationV16.test.js
 67ee99df32104194d4d445c31ec8b47ed9f916b315659e62b7ae101ef32d7a2f  ./tests/winningMatchVisualV16_8_1.test.js
