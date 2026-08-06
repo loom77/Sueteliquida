@@ -124,9 +124,9 @@ test('Quiniela risolve il Pleno per ruolo e Quinigol resta usabile su mobile e i
   assert.match(quinigol, /min-h-12/);
 });
 
-test('release e SEO sono aggiornati a v17.1.4', () => {
-  assert.equal(JSON.parse(read('../package.json')).version, '17.1.4');
-  assert.match(read('../src/utils/release.js'), /17\.1\.4/);
+test('release e SEO sono aggiornati a v18.0.0', () => {
+  assert.equal(JSON.parse(read('../package.json')).version, '18.0.0');
+  assert.match(read('../src/utils/release.js'), /18\.0\.0/);
   assert.match(read('../index.html'), /Quiniela, Quinigol y juegos hípicos/);
-  assert.match(read('../public/offline.html'), /v17\.1\.4/);
+  assert.match(read('../public/offline.html'), /v18\.0\.0/);
 });

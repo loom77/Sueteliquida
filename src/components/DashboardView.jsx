@@ -17,8 +17,8 @@ export default function DashboardView({ now, history, dueByGame, drawOverview, o
   const [coreOpen, setCoreOpen] = useState(false);
 
   return (
-    <div className="primy-home-v16 mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
-      <HomeHero nextDraw={nextDraw} dailyLine={dailyLine} displayName={displayName} onGenerate={onGenerate} onAddExternal={onAddExternal} onOpenCore={() => setCoreOpen(true)} />
+    <div className="primy-home-v16 primy-home-page-v18 mx-auto max-w-6xl px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+      <HomeHero nextDraw={nextDraw} dailyLine={dailyLine} displayName={displayName} onGenerate={onGenerate} onAddExternal={onAddExternal} onOpenCore={() => setCoreOpen(true)} onExplore={onExplore} />
       <PendingDraws dueTotal={dueTotal} checking={checking} onCheckAll={onCheckAll} />
       <RecentPlays plays={history} onOpenPlays={onOpenPlays} />
       <HomeQuickActions historyCount={history.length} dueTotal={dueTotal} onExplore={onExplore} onOpenPlays={onOpenPlays} />

@@ -1,0 +1,582 @@
+/* Primy v18.0.0 — Android-first home and mobile visibility architecture */
+
+:root {
+  --primy-v18-nav-height: 4.85rem;
+  --primy-v18-floating-gap: .7rem;
+}
+
+.primy-home-page-v18 {
+  max-width: 76rem;
+}
+
+.primy-home-v18 {
+  display: grid;
+  gap: 1rem;
+}
+
+.primy-home-v18__hero {
+  min-height: 25rem;
+  border-color: rgb(18 160 92 / .16);
+  background:
+    radial-gradient(circle at 92% 8%, rgb(250 210 98 / .32), transparent 17rem),
+    radial-gradient(circle at 4% 100%, rgb(61 194 134 / .18), transparent 19rem),
+    linear-gradient(145deg, #fffdf7 0%, #f2fbf6 58%, #fff8df 100%);
+  box-shadow: 0 22px 54px rgb(19 34 56 / .09);
+}
+
+.primy-home-v18__hero-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.primy-home-v18__title {
+  max-width: 13ch;
+  margin-top: .85rem;
+  font-size: clamp(2.15rem, 5vw, 4.2rem);
+  font-weight: 760;
+  letter-spacing: -.062em;
+  line-height: .98;
+}
+
+.primy-home-v18__lead {
+  max-width: 38rem;
+  margin-top: 1rem;
+  font-size: clamp(.98rem, 1.4vw, 1.12rem);
+  line-height: 1.65;
+}
+
+.primy-home-v18__next {
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 1.15rem;
+  background: rgb(255 255 255 / .82);
+  box-shadow: 0 10px 24px rgb(19 34 56 / .06);
+}
+
+.primy-home-v18__hero-actions {
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.primy-home-v18__hero-actions .ds-button {
+  min-height: 3.25rem;
+}
+
+.primy-home-v18__mascot {
+  align-items: flex-end;
+  justify-content: center;
+  padding: 1.25rem 1.25rem 0;
+}
+
+.primy-home-v18__mascot .primy-mascot-role {
+  width: min(100%, 23rem);
+}
+
+.primy-home-v18__mascot [role='img'] {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.primy-home-v18__mascot img {
+  max-height: 23rem;
+  object-fit: contain;
+  filter: drop-shadow(0 22px 26px rgb(11 122 73 / .16));
+}
+
+.primy-home-v18__core {
+  grid-template-columns: auto minmax(0,1fr) auto;
+  margin-top: 0;
+  border: 0;
+  background:
+    radial-gradient(circle at 95% 0%, rgb(255 214 92 / .27), transparent 17rem),
+    linear-gradient(135deg, #063f2d 0%, #08734b 54%, #0a8a58 100%);
+  padding: clamp(1rem, 2vw, 1.35rem);
+  color: white;
+  box-shadow: 0 20px 46px rgb(7 84 56 / .26);
+}
+
+.primy-home-v18__core:hover {
+  box-shadow: 0 24px 52px rgb(7 84 56 / .32);
+}
+
+.primy-home-v18__core-icon {
+  width: 3.65rem;
+  height: 3.65rem;
+  border: 1px solid rgb(255 255 255 / .4);
+  background: rgb(255 255 255 / .14);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .25);
+}
+
+.primy-home-v18__core-copy {
+  gap: .28rem;
+}
+
+.primy-home-v18__core-kicker {
+  color: #ffe6a0;
+  font-size: .68rem;
+  font-weight: 850;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.primy-home-v18__core-copy strong {
+  color: white;
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+}
+
+.primy-home-v18__core-copy small {
+  max-width: 52rem;
+  color: rgb(240 255 247 / .86);
+  font-size: .82rem;
+}
+
+.primy-home-v18__core-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .38rem;
+  margin-top: .35rem;
+}
+
+.primy-home-v18__core-signals span {
+  border: 1px solid rgb(255 255 255 / .24);
+  border-radius: 999px;
+  background: rgb(255 255 255 / .09);
+  padding: .3rem .55rem;
+  color: #f7fff9;
+  font-size: .65rem;
+  font-weight: 780;
+}
+
+.primy-home-v18__core-action {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  background: white;
+  color: #075438;
+}
+
+.primy-home-v18__process,
+.primy-home-v18__games {
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 1.5rem;
+  background: rgb(var(--c-surface));
+  padding: clamp(1rem, 2.4vw, 1.5rem);
+  box-shadow: 0 16px 38px rgb(19 34 56 / .06);
+}
+
+.primy-home-v18__section-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.primy-home-v18__section-heading h2 {
+  margin-top: .35rem;
+  color: rgb(var(--c-text-primary));
+  font-size: clamp(1.2rem, 2.4vw, 1.65rem);
+  font-weight: 760;
+  letter-spacing: -.035em;
+}
+
+.primy-home-v18__section-badge,
+.primy-home-v18__all-games {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem;
+  border-radius: 999px;
+  background: var(--ds-brand-50);
+  padding: .5rem .75rem;
+  color: var(--ds-brand-800);
+  font-size: .72rem;
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+.primy-home-v18__steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: .8rem;
+  margin-top: 1.15rem;
+}
+
+.primy-home-v18__step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2.45rem minmax(0,1fr);
+  gap: .7rem;
+  min-width: 0;
+  border: 1px solid rgb(18 160 92 / .14);
+  border-radius: 1.1rem;
+  background: linear-gradient(145deg, rgb(247 253 249), rgb(255 252 240));
+  padding: .85rem;
+}
+
+.primy-home-v18__step-number {
+  display: grid;
+  width: 2.45rem;
+  height: 2.45rem;
+  place-items: center;
+  border-radius: .85rem;
+  background: linear-gradient(145deg, #08784b, #12a05c);
+  color: white;
+  font-size: .85rem;
+  font-weight: 850;
+  box-shadow: 0 8px 18px rgb(11 122 73 / .18);
+}
+
+.primy-home-v18__step-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: .25rem;
+}
+
+.primy-home-v18__step-copy strong {
+  color: rgb(var(--c-text-primary));
+  font-size: .82rem;
+  line-height: 1.25;
+}
+
+.primy-home-v18__step-copy small {
+  color: rgb(var(--c-text-secondary));
+  font-size: .69rem;
+  line-height: 1.45;
+}
+
+.primy-home-v18__game-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0,1fr));
+  gap: .75rem;
+  margin-top: 1.1rem;
+}
+
+.primy-home-v18__game-card {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) auto;
+  align-items: center;
+  gap: .65rem;
+  min-width: 0;
+  min-height: 5.4rem;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 1.15rem;
+  background: linear-gradient(145deg, rgb(var(--c-surface)), rgb(var(--c-muted) / .55));
+  padding: .8rem;
+  text-align: left;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.primy-home-v18__game-card:hover {
+  transform: translateY(-2px);
+  border-color: rgb(18 160 92 / .32);
+  box-shadow: 0 14px 30px rgb(19 34 56 / .08);
+}
+
+.primy-home-v18__game-card .primy-game-identity__mark {
+  width: 3.25rem;
+  height: 3.25rem;
+}
+
+.primy-home-v18__game-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: .2rem;
+}
+
+.primy-home-v18__game-copy strong {
+  overflow: hidden;
+  color: rgb(var(--c-text-primary));
+  font-size: .82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.primy-home-v18__game-copy small {
+  color: rgb(var(--c-text-secondary));
+  font-size: .67rem;
+}
+
+.primy-home-v18__game-arrow {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--ds-brand-50);
+  color: var(--ds-brand-800);
+}
+
+/* Android-first creation layout: Core remains in document flow and one sticky CTA owns the bottom area. */
+@media (max-width: 1199px) {
+  html {
+    scroll-padding-bottom: calc(var(--primy-v18-nav-height) + 1.25rem + env(safe-area-inset-bottom));
+  }
+
+  .primy-main-content[data-view='generate'] {
+    padding-bottom: calc(var(--primy-v18-nav-height) + 1.5rem + env(safe-area-inset-bottom)) !important;
+  }
+
+  .primy-create-journey {
+    min-height: calc(100dvh - 4.5rem);
+    padding-bottom: 1.25rem;
+  }
+
+  .primy-core-spotlight--android-flow,
+  .primy-core-spotlight--mobile-guide {
+    position: relative !important;
+    inset: auto !important;
+    overflow: visible;
+  }
+
+  .primy-core-spotlight--android-flow .primy-core-learn--compact,
+  .primy-core-spotlight--mobile-guide .primy-core-learn--compact {
+    position: static !important;
+    inset: auto !important;
+    z-index: auto;
+    width: auto !important;
+    max-width: 100% !important;
+    min-height: 2.75rem;
+    border: 1px solid rgb(18 160 92 / .25);
+    border-radius: .85rem;
+    background: rgb(var(--c-surface));
+    padding: .6rem .75rem;
+    color: var(--ds-brand-800);
+    box-shadow: none;
+    font-size: .7rem;
+    font-weight: 800;
+  }
+
+  .primy-core-spotlight--android-flow .primy-core-learn--compact span,
+  .primy-core-spotlight--mobile-guide .primy-core-learn--compact span {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    clip: auto !important;
+    white-space: normal;
+  }
+
+  .primy-generator {
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .primy-generator__action-bar[data-android-sticky-action='true'] {
+    bottom: calc(var(--primy-v18-nav-height) + var(--primy-v18-floating-gap) + env(safe-area-inset-bottom)) !important;
+    z-index: 26;
+    margin-bottom: 0;
+  }
+
+  .primy-generator__error {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@media (max-width: 899px) {
+  .primy-home-page-v18 {
+    padding-top: .8rem;
+  }
+
+  .primy-home-v18__hero {
+    min-height: 0;
+    grid-template-columns: minmax(0,1fr) !important;
+  }
+
+  .primy-home-v18__hero-copy {
+    padding: 1.15rem;
+  }
+
+  .primy-home-v18__title {
+    max-width: 14ch;
+    font-size: clamp(2rem, 10vw, 3.15rem);
+  }
+
+  .primy-home-v18__mascot {
+    display: flex !important;
+    padding: 0 1rem .35rem;
+  }
+
+  .primy-home-v18__mascot .primy-mascot-role {
+    width: min(100%, 15rem);
+  }
+
+  .primy-home-v18__mascot [role='img'] {
+    padding: 0;
+  }
+
+  .primy-home-v18__mascot img {
+    max-height: 11rem;
+  }
+
+  .primy-home-v18__core {
+    grid-template-columns: auto minmax(0,1fr);
+    align-items: start;
+  }
+
+  .primy-home-v18__core-action {
+    grid-column: 1 / -1;
+    width: 100%;
+    justify-content: center;
+    min-height: 2.8rem;
+  }
+
+  .primy-home-v18__steps {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .primy-home-v18__game-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .primy-core-spotlight--android-flow {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0,1fr);
+    gap: .65rem;
+    padding: .75rem;
+  }
+
+  .primy-core-spotlight--android-flow .primy-core-learn--compact {
+    grid-column: 1 / -1;
+    width: 100% !important;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 599px) {
+  :root {
+    --primy-v18-nav-height: 4.75rem;
+    --primy-v18-floating-gap: .45rem;
+  }
+
+  .primy-home-v18 {
+    gap: .8rem;
+  }
+
+  .primy-home-v18__hero-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+
+  .primy-home-v18__hero-actions .ds-button {
+    width: 100%;
+  }
+
+  .primy-home-v18__core {
+    border-radius: 1.25rem;
+    padding: .9rem;
+  }
+
+  .primy-home-v18__core-icon {
+    width: 3rem;
+    height: 3rem;
+  }
+
+  .primy-home-v18__core-signals {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .primy-home-v18__core-signals span {
+    text-align: center;
+  }
+
+  .primy-home-v18__process,
+  .primy-home-v18__games {
+    border-radius: 1.2rem;
+    padding: .9rem;
+  }
+
+  .primy-home-v18__steps {
+    grid-template-columns: 1fr;
+    gap: .55rem;
+  }
+
+  .primy-home-v18__step {
+    min-height: 4.6rem;
+  }
+
+  .primy-home-v18__game-grid {
+    grid-template-columns: 1fr;
+    gap: .55rem;
+  }
+
+  .primy-home-v18__game-card {
+    min-height: 4.8rem;
+  }
+
+  .primy-home-v18__section-heading {
+    align-items: flex-start;
+  }
+
+  .primy-home-v18__section-badge {
+    display: none;
+  }
+
+  .primy-generator__action-bar[data-android-sticky-action='true'] {
+    margin-inline: 0;
+    border-radius: 1rem;
+  }
+}
+
+/* Short Android landscape viewports and open virtual keyboards must never trap controls. */
+@media (max-width: 1199px) and (max-height: 640px) {
+  .primy-generator__action-bar[data-android-sticky-action='true'] {
+    position: static !important;
+    bottom: auto !important;
+    margin-top: 1rem;
+  }
+
+  .primy-main-content[data-view='generate'] {
+    padding-bottom: calc(var(--primy-v18-nav-height) + .75rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+@media (min-width: 600px) and (max-width: 1199px) {
+  :root {
+    --primy-v18-nav-height: 5.45rem;
+    --primy-v18-floating-gap: .7rem;
+  }
+
+  .primy-home-v18__steps {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .primy-home-v18__game-grid {
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (min-width: 900px) {
+  .primy-home-v18__hero {
+    grid-template-columns: minmax(0,1.35fr) minmax(18rem,.65fr);
+  }
+}
+
+html[data-theme='dark'] .primy-home-v18__hero {
+  background:
+    radial-gradient(circle at 92% 8%, rgb(250 210 98 / .12), transparent 17rem),
+    radial-gradient(circle at 4% 100%, rgb(61 194 134 / .12), transparent 19rem),
+    linear-gradient(145deg, rgb(18 40 31), rgb(var(--c-surface)) 60%);
+}
+
+html[data-theme='dark'] .primy-home-v18__step,
+html[data-theme='dark'] .primy-home-v18__game-card {
+  background: rgb(var(--c-surface));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .primy-home-v18__game-card,
+  .primy-home-v18__core {
+    transition: none !important;
+    transform: none !important;
+  }
+}

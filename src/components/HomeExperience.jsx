@@ -1,56 +1,133 @@
 import React, { memo } from 'react';
 import { formatDrawDate, formatDrawTime, formatSyncTime } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
-import { EditIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
+import { ArrowRightIcon, EditIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
 import { ArchiveCreativeIcon, CalendarCreativeIcon, GamesCreativeIcon } from './CreativeUiIcon.jsx';
 import { ActionCard, Button, Card, Eyebrow, PrimaryButton, SecondaryButton, SectionHeader, StatusNotice } from './DesignSystem.jsx';
+import GameIdentity from './GameIdentity.jsx';
 import { PrimyMascot } from './PrimyMascot.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const shortDate = new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short' });
 
-export const HomeHero = memo(function HomeHero({ nextDraw, dailyLine, displayName = '', onGenerate, onAddExternal, onOpenCore }) {
+const HOME_STEPS = [
+  { id: 'game', title: 'Elige el juego', copy: 'Selecciona el sorteo que quieres preparar.' },
+  { id: 'core', title: 'Primy Core analiza', copy: 'IA, estadística y Monte Carlo trabajan en segundo plano.' },
+  { id: 'ticket', title: 'Crea las combinaciones', copy: 'Ajusta columnas, coste y límites antes de continuar.' },
+  { id: 'save', title: 'Guarda tu jugada', copy: 'Conserva el borrador o registra el boleto comprado.' },
+];
+
+const FEATURED_GAME_IDS = ['primitiva', 'euromillones', 'bonoloto', 'gordoprimitiva'];
+
+export const HomeHero = memo(function HomeHero({
+  nextDraw,
+  dailyLine,
+  displayName = '',
+  onGenerate,
+  onAddExternal,
+  onOpenCore,
+  onExplore,
+}) {
   return (
-    <Card tone="feature" padding="none" className="primy-home-v16__hero primy-page-enter" aria-labelledby="home-hero-title">
-      <div className="primy-home-v16__hero-copy">
-        <Eyebrow>{displayName ? `Hola, ${displayName}` : 'Tu espacio Primy'}</Eyebrow>
-        <h1 id="home-hero-title" className="primy-home-v16__title">Prepara tu próxima jugada con claridad.</h1>
-        <p className="primy-home-v16__lead">{dailyLine}</p>
+    <div className="primy-home-v18 primy-page-enter">
+      <Card tone="feature" padding="none" className="primy-home-v16__hero primy-home-v18__hero" aria-labelledby="home-hero-title">
+        <div className="primy-home-v16__hero-copy primy-home-v18__hero-copy">
+          <Eyebrow>{displayName ? `Hola, ${displayName}` : 'Tu espacio Primy'}</Eyebrow>
+          <h1 id="home-hero-title" className="primy-home-v16__title primy-home-v18__title">Tu próxima jugada empieza aquí</h1>
+          <p className="primy-home-v16__lead primy-home-v18__lead">{dailyLine}</p>
 
-        {nextDraw && (
-          <div className="primy-home-v16__next" aria-label="Próximo sorteo de La Primitiva">
-            <span className="primy-home-v16__next-icon" aria-hidden="true"><CalendarCreativeIcon /></span>
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[.12em] text-secondary">Próximo sorteo</p>
-              <p className="mt-1 text-sm font-semibold text-primary">
-                <span className="capitalize">{formatDrawDate(nextDraw.drawDateTimeISO, { includeYear: false })}</span>
-                {' · '}{formatDrawTime(nextDraw.drawDateTimeISO)}
-              </p>
+          {nextDraw && (
+            <div className="primy-home-v16__next primy-home-v18__next" aria-label="Próximo sorteo de La Primitiva">
+              <span className="primy-home-v16__next-icon" aria-hidden="true"><CalendarCreativeIcon /></span>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[.12em] text-secondary">Próximo sorteo</p>
+                <p className="mt-1 text-sm font-semibold text-primary">
+                  <span className="capitalize">{formatDrawDate(nextDraw.drawDateTimeISO, { includeYear: false })}</span>
+                  {' · '}{formatDrawTime(nextDraw.drawDateTimeISO)}
+                </p>
+              </div>
             </div>
+          )}
+
+          <div className="primy-home-v16__actions primy-home-v18__hero-actions">
+            <PrimaryButton onClick={() => onGenerate('primitiva')} icon={SparklesIcon}>Preparar una jugada</PrimaryButton>
+            <SecondaryButton onClick={onAddExternal} icon={EditIcon}>Registrar boleto</SecondaryButton>
           </div>
-        )}
 
-        <button type="button" className="primy-home-core-feature" onClick={onOpenCore} aria-haspopup="dialog" aria-controls="primy-core-info-dialog">
-          <span className="primy-home-core-feature__icon" aria-hidden="true"><SparklesIcon width="24" height="24"/></span>
-          <span className="primy-home-core-feature__copy">
-            <strong>Descubre Primy Core</strong>
-            <small>Inteligencia artificial, estadística, simulaciones Monte Carlo y validación de reglas.</small>
-          </span>
-          <span className="primy-home-core-feature__action">Cómo funciona</span>
-        </button>
-
-        <div className="primy-home-v16__actions">
-          <PrimaryButton onClick={() => onGenerate('primitiva')} icon={SparklesIcon}>Preparar una jugada</PrimaryButton>
-          <SecondaryButton onClick={onAddExternal} icon={EditIcon}>Registrar boleto</SecondaryButton>
+          <p className="primy-home-v16__note">Primy prepara y organiza tus jugadas. No vende boletos ni garantiza premios.</p>
         </div>
 
-        <p className="primy-home-v16__note">Primy prepara y organiza tus jugadas. No vende boletos ni garantiza premios.</p>
-      </div>
+        <div className="primy-home-v16__mascot primy-home-v18__mascot">
+          <PrimyMascot role="welcome" size="hero" caption="¿Empezamos?" showCaption={false} />
+        </div>
+      </Card>
 
-      <div className="primy-home-v16__mascot">
-        <PrimyMascot role="welcome" size="hero" caption="¿Empezamos?" showCaption={false} />
-      </div>
-    </Card>
+      <button
+        type="button"
+        className="primy-home-core-feature primy-home-v18__core"
+        onClick={onOpenCore}
+        aria-haspopup="dialog"
+        aria-controls="primy-core-info-dialog"
+      >
+        <span className="primy-home-core-feature__icon primy-home-v18__core-icon" aria-hidden="true"><SparklesIcon width="26" height="26"/></span>
+        <span className="primy-home-core-feature__copy primy-home-v18__core-copy">
+          <span className="primy-home-v18__core-kicker">Tecnología de análisis</span>
+          <strong>Descubre Primy Core</strong>
+          <small>Inteligencia artificial, modelos estadísticos, simulaciones Monte Carlo y validación automática de reglas.</small>
+          <span className="primy-home-v18__core-signals" aria-hidden="true">
+            <span>IA</span><span>Estadística</span><span>Monte Carlo</span><span>Reglas</span>
+          </span>
+        </span>
+        <span className="primy-home-core-feature__action primy-home-v18__core-action">Ver cómo trabaja <ArrowRightIcon width="17" height="17"/></span>
+      </button>
+
+      <section className="primy-home-v18__process" aria-labelledby="home-process-title">
+        <div className="primy-home-v18__section-heading">
+          <div>
+            <Eyebrow>Así de fácil</Eyebrow>
+            <h2 id="home-process-title">De la elección al boleto, paso a paso</h2>
+          </div>
+          <span className="primy-home-v18__section-badge">4 pasos</span>
+        </div>
+        <ol className="primy-home-v18__steps">
+          {HOME_STEPS.map((step, index) => (
+            <li key={step.id} className="primy-home-v18__step">
+              <span className="primy-home-v18__step-number" aria-hidden="true">{index + 1}</span>
+              <span className="primy-home-v18__step-copy">
+                <strong>{step.title}</strong>
+                <small>{step.copy}</small>
+              </span>
+              {index < HOME_STEPS.length - 1 && <span className="primy-home-v18__step-line" aria-hidden="true" />}
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className="primy-home-v18__games" aria-labelledby="home-games-title">
+        <div className="primy-home-v18__section-heading">
+          <div>
+            <Eyebrow>Empieza ahora</Eyebrow>
+            <h2 id="home-games-title">Elige tu juego</h2>
+          </div>
+          <button type="button" className="primy-home-v18__all-games" onClick={onExplore}>Ver todos <ArrowRightIcon width="17" height="17"/></button>
+        </div>
+        <div className="primy-home-v18__game-grid">
+          {FEATURED_GAME_IDS.map(gameId => {
+            const game = getGameConfig(gameId);
+            return (
+              <button key={gameId} type="button" className="primy-home-v18__game-card" onClick={() => onGenerate(gameId)}>
+                <GameIdentity gameId={gameId} size="sm" label={false}/>
+                <span className="primy-home-v18__game-copy">
+                  <strong>{game.shortName}</strong>
+                  <small>{euro.format(game.price)} por apuesta</small>
+                </span>
+                <span className="primy-home-v18__game-arrow" aria-hidden="true"><ArrowRightIcon width="18" height="18"/></span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    </div>
   );
 });
 

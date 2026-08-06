@@ -9,7 +9,7 @@ const css = fs.readFileSync(new URL('../src/index.css', import.meta.url), 'utf8'
 
 test('Primy Core mantiene una explicación compartida y accesible en el contexto de creación', () => {
   assert.match(generator, /primy-core-spotlight/);
-  assert.match(generator, /Descubre más sobre Primy Core/);
+  assert.match(generator, /Cómo trabaja Primy Core/);
   assert.match(generator, /aria-haspopup="dialog"/);
   assert.match(generator, /<PrimyCoreDialog open=\{coreInfoOpen\}/);
   assert.match(dialog, /id="primy-core-dialog-title"/);

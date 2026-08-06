@@ -1,3 +1,12 @@
+# Primy v18.0.0 — Android-first Home & Mobile Visibility
+
+- Nuova Home ispirata al mockup approvato, con hero più chiaro, mascotte integrata e accessi primari immediati.
+- Primy Core diventa protagonista e comunica esplicitamente IA, statistica, simulazioni Monte Carlo e validazione delle regole.
+- Nuovo percorso visuale in quattro passaggi e accesso diretto ai principali giochi.
+- La schermata Preparar usa un solo livello sticky: il pulsante Primy Core torna nel flusso della pagina e non compete più con la CTA o con la bottom navigation.
+- Safe area, viewport dinamica, smartphone Android, tablet Android, landscape e tastiera virtuale gestiti con regole responsive dedicate.
+- Versione applicativa aggiornata a 18.0.0 con test di regressione Android-first.
+
 # Primy v17.1.1 — Manual Entry Input Hotfix
 
 - Replaces keyboard-dependent comma-separated number entry with an accessible visual number picker.

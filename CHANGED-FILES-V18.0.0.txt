@@ -1,0 +1,24 @@
+PRIMY v18.0.0 — Android-first Home & Mobile Visibility
+
+MODIFIED
+CHANGELOG.md
+package.json
+public/offline.html
+src/components/DashboardView.jsx
+src/components/GeneratorPanel.jsx
+src/components/HomeExperience.jsx
+src/main.jsx
+src/utils/release.js
+tests/manualEntryHotfixV17_1_1.test.js
+tests/primyCoreExperience.test.js
+tests/productionHardeningV17_0_1.test.js
+tests/profileLegalMotion.test.js
+tests/routingAvailabilityHotfixV17_0_2.test.js
+tests/universalSportsHorseVerificationV17_1.test.js
+
+NEW
+DEPLOY-HANDOFF-V18.0.0.md
+FINAL-VALIDATION-V18.0.0.md
+src/primy-v18.css
+tests/androidHomeV18.test.js
+CHANGED-FILES-V18.0.0.txt

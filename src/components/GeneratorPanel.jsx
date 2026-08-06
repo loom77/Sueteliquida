@@ -60,11 +60,11 @@ export default function GeneratorPanel({
       data-game={activeGame}
       data-legacy-action={LEGACY_GAME_ACTIONS[activeGame] || theme.legacyActionClass}
     >
-      <div className="primy-core-spotlight primy-core-spotlight--compact">
+      <div className="primy-core-spotlight primy-core-spotlight--compact primy-core-spotlight--android-flow">
         <span className="primy-core-spotlight__icon" aria-hidden="true"><SparklesIcon width="20" height="20"/></span>
         <div className="min-w-0 flex-1">
-          <p className="primy-core-spotlight__title">Primy Core prepara y valida tu boleto</p>
-          <p className="primy-core-spotlight__copy">Reglas, coste y límites reunidos en un único proceso.</p>
+          <p className="primy-core-spotlight__title">Primy Core analiza y valida tu boleto</p>
+          <p className="primy-core-spotlight__copy">IA, estadística, coste y reglas reunidos en un proceso claro.</p>
         </div>
         <button
           type="button"
@@ -74,7 +74,7 @@ export default function GeneratorPanel({
           aria-controls="primy-core-info-dialog"
         >
           <InfoIcon width="17" height="17"/>
-          <span>Descubre más sobre Primy Core</span>
+          <span>Cómo trabaja Primy Core</span>
         </button>
       </div>
 
@@ -146,10 +146,13 @@ export default function GeneratorPanel({
         {isGordo && <p className="primy-generator__rule-note">Cada apuesta incluye cinco números y una clave del 0 al 9.</p>}
       </div>
 
+      {exceedsLimit && <div className="primy-generator__error" role="alert"><AlertIcon width="20" height="20"/><p>Esta jugada superaría tu límite mensual de <strong>{euro.format(monthlyLimit)}</strong>. Reduce el número de apuestas.</p></div>}
+      {generationError && <div className="primy-generator__error" role="alert"><AlertIcon width="20" height="20"/><p>{generationError}</p></div>}
+
       {busy ? (
         <ThinkingProgress activeStep={activeStep} progress={progress * 100} onCancel={onCancel}/>
       ) : (
-        <div className="primy-generator__action-bar">
+        <div className="primy-generator__action-bar" data-android-sticky-action="true">
           <div className="primy-generator__action-copy"><strong>Todo listo</strong><span>Preparar no guarda ni compra el boleto.</span></div>
           <button
             type="button"
@@ -163,9 +166,6 @@ export default function GeneratorPanel({
           </button>
         </div>
       )}
-
-      {exceedsLimit && <div className="primy-generator__error" role="alert"><AlertIcon width="20" height="20"/><p>Esta jugada superaría tu límite mensual de <strong>{euro.format(monthlyLimit)}</strong>. Reduce el número de apuestas.</p></div>}
-      {generationError && <div className="primy-generator__error" role="alert"><AlertIcon width="20" height="20"/><p>{generationError}</p></div>}
 
       <PrimyCoreDialog open={coreInfoOpen} onClose={() => setCoreInfoOpen(false)} />
     </section>
