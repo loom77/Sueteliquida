@@ -10,10 +10,11 @@ const history = [
     gameId: 'primitiva',
     purchased: true,
     purchasedAt: '2026-07-12T10:00:00.000Z',
+    drawDateISO: '2026-07-15T20:00:00.000Z',
     computedStatus: 'awaiting_check',
     status: 'checked',
-    columns: [{ officialPrize: 5 }, { officialPrize: 0 }],
-    receiptPrize: { officialAmount: 1 },
+    columns: [{ prizeCategory: '5.ª categoría', officialPrize: 5, prizeSource: 'official-verification' }, { officialPrize: 0 }],
+    receiptPrize: { category: 'Reintegro del resguardo', officialAmount: 1, prizeSource: 'official-verification' },
   },
   {
     id: 'b',
@@ -44,7 +45,12 @@ test('resume las jugadas pendientes por juego', () => {
 
 test('calcula el gasto y los premios del mes de Madrid', () => {
   const stats = getMonthlyStats(history, now);
-  assert.deepEqual(stats, { spent: 7, won: 6, plays: 2 });
+  assert.equal(stats.spent, 7);
+  assert.equal(stats.won, 6);
+  assert.equal(stats.net, -1);
+  assert.equal(stats.plays, 2);
+  assert.equal(stats.spentCents, 700);
+  assert.equal(stats.wonCents, 600);
 });
 
 test('cuenta únicamente jugadas compradas y sus columnas', () => {

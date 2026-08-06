@@ -1,3 +1,4 @@
+import { playKnownPrize, toMoneyCents } from '../utils/playModel.js';
 import { calculatePlayPayout } from '../utils/payout.js';
 import { getGameConfig } from '../utils/gameConfig.js';
 import { officialQuinielaResultFromScores, scoreQuinielaColumn } from '../sports/quinielaRules.js';
@@ -27,6 +28,12 @@ function normalizeLabel(value) {
     .trim();
 }
 
+function categoryOrdinal(value) {
+  const normalized = normalizeLabel(value);
+  const match = normalized.match(/(?:^|\s)(\d{1,2})\s*a?\s+categoria(?:\s|$)/);
+  return match ? Number(match[1]) : null;
+}
+
 function categoryRows(payload) {
   const candidates = [
     payload?.prizeCategories,
@@ -42,14 +49,19 @@ function findCategoryRow(payload, keys) {
   const normalizedKeys = keys.map(normalizeLabel).filter(Boolean);
   let best = null;
   for (const row of categoryRows(payload)) {
-    const source = normalizeLabel(row?.category || row?.label || row?.name || row?.match);
+    const sourceRaw = row?.category || row?.label || row?.name || row?.match;
+    const source = normalizeLabel(sourceRaw);
+    const sourceOrdinal = categoryOrdinal(sourceRaw);
     const sourceTokens = new Set(source.split(/\s+/).filter(Boolean));
     let score = -1;
     for (const key of normalizedKeys) {
+      const keyOrdinal = categoryOrdinal(key);
+      if (keyOrdinal && sourceOrdinal && keyOrdinal !== sourceOrdinal) continue;
       const tokens = key.split(/\s+/).filter(Boolean);
+      const containsNumericToken = tokens.some(token => /\d/.test(token));
       if (source === key) score = Math.max(score, 1200 + key.length);
       else if (tokens.length && tokens.every(token => sourceTokens.has(token))) score = Math.max(score, 900 + tokens.length * 20);
-      else if (key.length >= 4 && source.includes(key)) score = Math.max(score, 200 + key.length);
+      else if (!containsNumericToken && key.length >= 4 && source.includes(key)) score = Math.max(score, 200 + key.length);
     }
     if (score > (best?.score ?? -1)) best = { row, score };
   }
@@ -390,6 +402,19 @@ export function applyVerificationSettlement(play, officialData, settlement, { ch
       payoutType: payout.payoutType,
       prizeDisplay: payout.displayText,
       officialPrize: payout.officialAmount,
+      prizeCents: toMoneyCents(payout.officialAmount),
+      prizeStatus: payout.category && Number(payout.officialAmount) > 0 ? 'confirmed' : 'no-prize',
+      ...(payout.category && Number(payout.officialAmount) > 0 ? {
+        prizeSource: 'official-verification',
+        prizeConfirmedAt: checkedAt,
+        verifiedAt: checkedAt,
+        verificationId: `official:${officialData?.sourceHash || officialData?.source_hash || play.id}:${column.id || index}`,
+      } : {
+        prizeSource: undefined,
+        prizeConfirmedAt: undefined,
+        verifiedAt: undefined,
+        verificationId: undefined,
+      }),
       extraMatch: Boolean(payout.extraMatch),
       complementaryMatch: Boolean(payout.complementaryMatch),
       breakdown: payout.breakdown || undefined,
@@ -406,10 +431,20 @@ export function applyVerificationSettlement(play, officialData, settlement, { ch
     checkedAt,
     result: officialData,
     columns,
-    receiptPrize: settlement.receiptPrize || undefined,
+    receiptPrize: settlement.receiptPrize && Number(settlement.receiptPrize.officialAmount) > 0
+      ? {
+          ...settlement.receiptPrize,
+          prizeCents: toMoneyCents(settlement.receiptPrize.officialAmount),
+          prizeStatus: 'confirmed',
+          prizeSource: 'official-verification',
+          prizeConfirmedAt: checkedAt,
+          verifiedAt: checkedAt,
+          verificationId: `official:${officialData?.sourceHash || officialData?.source_hash || play.id}:receipt`,
+        }
+      : undefined,
     metadata: {
       ...(play.metadata || {}),
-      verificationEngine: 'unified-v3',
+      verificationEngine: 'unified-v5-monthly-finance-integrity',
       verificationFamily: verificationFamilyForGame(play.gameId),
       verifiedAt: checkedAt,
       officialSourceHash: officialData?.sourceHash || officialData?.source_hash || null,
@@ -418,8 +453,7 @@ export function applyVerificationSettlement(play, officialData, settlement, { ch
 }
 
 export function verificationResultSummary(play) {
-  const total = (play?.columns || []).reduce((sum, column) => sum + (Number(column?.officialPrize) || 0), 0)
-    + (Number(play?.receiptPrize?.officialAmount) || 0);
+  const total = playKnownPrize(play);
   const awarded = (play?.columns || []).reduce((sum, column) => {
     if (column?.breakdown && typeof column.breakdown === 'object') return sum + Object.values(column.breakdown).reduce((inner, count) => inner + Number(count || 0), 0);
     return sum + (column?.prizeCategory ? 1 : 0);

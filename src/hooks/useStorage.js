@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { applyVerificationSettlement, settlePlayAgainstOfficialData, verificationLookupForPlay } from '../verification/verificationEngine.js';
 import { GAMES } from '../utils/gameConfig.js';
 import { isCheckable, toLocalDateKey } from '../utils/drawSchedule.js';
-import { playBetCount, playCost, playKnownPrize, playUnknownPrizeCount, sanitizePlay, sanitizePlays } from '../utils/playModel.js';
+import { FINANCE_SCHEMA_VERSION, playBetCount, playCost, playCostCents, playKnownPrize, playUnknownPrizeCount, sanitizePlay, sanitizePlays, toMoneyCents } from '../utils/playModel.js';
 import { supabase } from '../lib/supabase.js';
 
 const STORAGE_KEY = 'primy_plays_v11';
@@ -45,7 +45,7 @@ function loadLegacyPlays() {
 
 function writeUserCache(userId, plays, pending) {
   if (!userId) return;
-  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '17.1.1', plays, pending }));
+  localStorage.setItem(userStorageKey(userId), JSON.stringify({ version: '18.0.2', plays, pending }));
 }
 
 function mergePlays(...collections) {
@@ -64,6 +64,7 @@ function asStoredPlay(play, purchased) {
     ...play,
     purchased,
     purchasedAt,
+    ...(purchased ? { costCents: playCostCents(play), purchaseDateISO: purchasedAt } : {}),
     status: play.status === 'checked' ? 'checked' : purchased ? 'scheduled' : 'draft',
     columns: (play.columns || []).map(column => ({
       ...column,
@@ -209,7 +210,16 @@ export function useGameHistory(user) {
         if (error) throw error;
         if (cancelled) return;
 
-        const remote = sanitizePlays((data || []).map(row => row.data));
+        const normalizedRows = (data || []).map(row => ({ raw: row.data, play: sanitizePlay(row.data) })).filter(item => item.play);
+        const remote = normalizedRows.map(item => item.play);
+        const financeMigrations = normalizedRows.filter(item => item.raw?.financeSchemaVersion !== FINANCE_SCHEMA_VERSION).map(item => item.play);
+        if (financeMigrations.length) {
+          try {
+            await remoteUpsert(financeMigrations);
+          } catch {
+            // La migración financiera es best-effort: nunca debe bloquear la carga del archivo.
+          }
+        }
         historyRef.current = remote;
         setHistory(remote);
         pendingRef.current = [];
@@ -350,6 +360,7 @@ export function useGameHistory(user) {
 
   const setOfficialPrize = useCallback((playId, columnId, value) => {
     let updated = null;
+    const confirmedAt = new Date().toISOString();
     applyUpdate(current => current.map(play => {
       if (play.id !== playId) return play;
       updated = {
@@ -357,7 +368,12 @@ export function useGameHistory(user) {
         columns: play.columns.map(column => column.id === columnId ? {
           ...column,
           officialPrize: Math.max(0, Number(value) || 0),
+          prizeCents: toMoneyCents(value),
+          prizeStatus: 'confirmed',
           prizeSource: 'manual',
+          prizeConfirmedAt: confirmedAt,
+          verifiedAt: confirmedAt,
+          verificationId: `manual:${playId}:${columnId}:${confirmedAt}`,
         } : column),
       };
       return updated;

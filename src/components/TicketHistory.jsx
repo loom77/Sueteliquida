@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { formatDrawDate } from '../utils/drawSchedule.js';
+import { getMonthlyFinance } from '../utils/financeIntegrity.js';
 import { GAMES, getGameConfig } from '../utils/gameConfig.js';
-import { playBetCount, playCost, playKnownPrize } from '../utils/playModel.js';
+import { isConfirmedColumnPrize, isConfirmedReceiptPrize, playBetCount, playCost, playKnownPrize } from '../utils/playModel.js';
 import { getPlayDeleteDescription } from '../utils/playDeletion.js';
 import { NumberBall, TicketStatus } from './TicketUI.jsx';
 import { ChevronDownIcon, CopyIcon, RefreshIcon, RepeatIcon, SearchIcon, StarIcon, TrashIcon } from './Icons.jsx';
@@ -13,6 +14,20 @@ import { HorseVerificationReveal, SportsVerificationReveal } from './Verificatio
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
 const priority = { awaiting_check: 0, scheduled: 1, draft: 2, checked: 3 };
+
+function hasStoredUnconfirmedPrize(play) {
+  const columnAmount = (play?.columns || []).some(column => (
+    Number(column?.officialPrize) > 0 && !isConfirmedColumnPrize(column)
+  ));
+  const receiptAmount = Number(play?.receiptPrize?.officialAmount) > 0
+    && !isConfirmedReceiptPrize(play?.receiptPrize);
+  return columnAmount || receiptAmount;
+}
+
+function confirmedAwardCount(play) {
+  return (play?.columns || []).filter(isConfirmedColumnPrize).length
+    + (isConfirmedReceiptPrize(play?.receiptPrize) ? 1 : 0);
+}
 
 function CheckNowButton({ play, onCheckPlay, checkingPlayId, checkingGame, compact = false, className = '' }) {
   if (play.computedStatus !== 'awaiting_check' || typeof onCheckPlay !== 'function') return null;
@@ -44,18 +59,29 @@ function ResultSummary({ play }) {
   const pending = play.columns.some(column => String(column.payoutType || '').startsWith('pending-official'))
     || String(play.receiptPrize?.payoutType || '').startsWith('pending-official');
   const confirmed = knownPrize > 0;
-  const tone = confirmed ? 'is-confirmed' : awarded > 0 ? 'is-pending' : 'is-empty';
-  const eyebrow = confirmed ? 'Premio confirmado' : awarded > 0 ? 'Categoría confirmada' : 'Resultado comprobado';
+  const unconfirmedStoredAmount = hasStoredUnconfirmedPrize(play);
+  const tone = confirmed ? 'is-confirmed' : (unconfirmedStoredAmount || awarded > 0) ? 'is-pending' : 'is-empty';
+  const eyebrow = confirmed
+    ? 'Premio confirmado'
+    : unconfirmedStoredAmount
+      ? 'Importe no confirmado'
+      : awarded > 0
+        ? 'Categoría pendiente de importe'
+        : 'Resultado comprobado';
   const title = confirmed
     ? euro.format(knownPrize)
-    : awarded > 0
-      ? `${awarded} ${awarded === 1 ? 'resultado con categoría' : 'resultados con categoría'}`
-      : 'Sin premio';
+    : unconfirmedStoredAmount
+      ? 'Revisión necesaria'
+      : awarded > 0
+        ? `${awarded} ${awarded === 1 ? 'resultado con categoría' : 'resultados con categoría'}`
+        : 'Sin premio';
   const description = confirmed
     ? 'Importe total del resguardo calculado con el escrutinio oficial archivado.'
-    : pending
-      ? 'La coincidencia o categoría está confirmada, pero el importe oficial todavía no está disponible.'
-      : 'La jugada se ha comparado con el resultado oficial guardado y no alcanza una categoría premiada.';
+    : unconfirmedStoredAmount
+      ? 'Primy ha detectado un importe guardado por una versión anterior sin fuente verificable. No se incluye en el total de premios.'
+      : pending
+        ? 'La coincidencia o categoría está confirmada, pero el importe oficial todavía no está disponible.'
+        : 'La jugada se ha comparado con el resultado oficial guardado y no alcanza una categoría premiada.';
   return (
     <section className={`primy-result-summary ${tone}`} aria-label="Resumen del resultado">
       <div>
@@ -172,7 +198,8 @@ function NationalPlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, on
         <div className={`mt-5 rounded-2xl border p-4 ${column.prizeCategory ? 'border-emerald-200 bg-emerald-50' : 'border-slate-200 bg-slate-50'}`}>
           <p className="font-semibold text-primary">{column.prizeCategory || 'Sin premio confirmado'}</p>
           <p className="mt-1 text-sm text-secondary">{column.prizeDisplay}</p>
-          {column.officialPrize != null && <p className="mt-2 text-xl font-bold text-emerald-800">{euro.format(column.officialPrize)}</p>}
+          {isConfirmedColumnPrize(column) && <p className="mt-2 text-xl font-bold text-emerald-800">{euro.format(column.officialPrize)}</p>}
+          {Number(column.officialPrize) > 0 && !isConfirmedColumnPrize(column) && <p className="mt-2 rounded-xl bg-amber-100 px-3 py-2 text-sm font-bold text-amber-900">Importe heredado no confirmado. No se suma a tus premios.</p>}
           {column.prizeCategory && column.officialPrize == null && <label className="mt-3 block text-sm font-bold text-primary">Premio oficial (€)<input type="number" min="0" step="0.01" className="mt-2 min-h-11 w-full rounded-xl border border-default bg-surface px-3 font-normal" onBlur={event => event.target.value && onSetPrize(play.id, column.id, event.target.value)}/></label>}
           {column.specialVerificationPending && <p className="mt-3 text-sm font-semibold text-amber-900">No se puede confirmar el Premio Especial sin serie y fracción.</p>}
         </div>
@@ -450,7 +477,8 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
               {column.status === 'checked' && (
                 <div className="mt-4 border-t border-default pt-3 text-sm leading-6 text-primary">
                   <p>{column.prizeDisplay}</p>
-                  {column.officialPrize != null && <p className="mt-1 font-bold tabular-nums text-emerald-800">Premio oficial: {euro.format(Number(column.officialPrize) || 0)}</p>}
+                  {isConfirmedColumnPrize(column) && <p className="mt-1 font-bold tabular-nums text-emerald-800">Premio confirmado: {euro.format(Number(column.officialPrize) || 0)}</p>}
+                  {Number(column.officialPrize) > 0 && !isConfirmedColumnPrize(column) && <p className="mt-2 rounded-xl bg-amber-100 px-3 py-2 font-bold text-amber-900">Importe de una versión anterior sin confirmación válida. No se incluye en el total.</p>}
                   {column.prizeCategory && column.officialPrize == null && (
                     <label className="mt-3 block font-bold">
                       Premio oficial (€)
@@ -501,23 +529,73 @@ function PlayDetails({ play, onPurchase, onRequestRemove, onSetPrize, onFavorite
   );
 }
 
+function MonthlyFinancePanel({ plays, now }) {
+  const finance = useMemo(() => getMonthlyFinance(plays, now), [plays, now]);
+  const [activeDetail, setActiveDetail] = useState(null);
+  const netTone = finance.netCents > 0 ? 'positive' : finance.netCents < 0 ? 'negative' : 'neutral';
+  const metrics = [
+    { id: 'expenses', label: 'Gastado', value: euro.format(finance.spent), tone: 'spent' },
+    { id: 'winnings', label: 'Premios confirmados', value: euro.format(finance.won), tone: 'won' },
+    { id: 'net', label: 'Resultado neto', value: euro.format(finance.net), tone: netTone },
+  ];
+  const toggleDetail = id => setActiveDetail(current => current === id ? null : id);
+  const activeEntries = activeDetail === 'expenses' ? finance.details.expenses : activeDetail === 'winnings' ? finance.details.winnings : [];
+
+  return (
+    <section className="primy-monthly-finance" aria-labelledby="monthly-finance-title">
+      <div className="primy-monthly-finance__header">
+        <div><p>Balance mensual verificable</p><h2 id="monthly-finance-title">{finance.monthLabel}</h2></div>
+        <span>Europe/Madrid</span>
+      </div>
+      <div className="primy-monthly-finance__metrics">
+        {metrics.map(metric => (
+          <button type="button" key={metric.id} data-tone={metric.tone} aria-expanded={activeDetail === metric.id} onClick={() => toggleDetail(metric.id)}>
+            <span>{metric.label}</span><strong>{metric.value}</strong><small>{activeDetail === metric.id ? 'Ocultar detalle' : 'Ver cálculo'}</small>
+          </button>
+        ))}
+      </div>
+
+      {activeDetail === 'net' && (
+        <div className="primy-monthly-finance__formula" role="region" aria-label="Cálculo del resultado neto">
+          <span>{euro.format(finance.won)} premios</span><strong>−</strong><span>{euro.format(finance.spent)} gastado</span><strong>=</strong><span>{euro.format(finance.net)} neto</span>
+        </div>
+      )}
+
+      {(activeDetail === 'expenses' || activeDetail === 'winnings') && (
+        <div className="primy-monthly-finance__detail" role="region" aria-live="polite">
+          {activeEntries.length ? activeEntries.map(entry => (
+            <div key={entry.key} className="primy-monthly-finance__entry">
+              <GameIdentity gameId={entry.gameId} size="sm" label={false}/>
+              <div><strong>{getGameConfig(entry.gameId).shortName}</strong><span>{formatDrawDate(entry.date, { short: true })}{entry.category ? ` · ${entry.category}` : ''}</span></div>
+              <b>{euro.format(entry.amount)}</b>
+            </div>
+          )) : <p className="primy-monthly-finance__empty">No hay movimientos confirmados en este apartado.</p>}
+        </div>
+      )}
+
+      {finance.excluded.unconfirmedPrizeEntries > 0 && (
+        <p className="primy-monthly-finance__warning">{finance.excluded.unconfirmedPrizeEntries} {finance.excluded.unconfirmedPrizeEntries === 1 ? 'importe antiguo no confirmado queda' : 'importes antiguos no confirmados quedan'} fuera del total.</p>
+      )}
+      <p className="primy-monthly-finance__legal">El gasto usa la fecha de compra o registro. Las victorias usan la fecha del sorteo y solo se incluyen con fuente confirmada.</p>
+    </section>
+  );
+}
+
 function ArchiveSummary({ plays }) {
   const purchased = plays.filter(play => play.purchased).length;
   const awaiting = plays.filter(play => play.computedStatus === 'awaiting_check').length;
   const checked = plays.filter(play => play.computedStatus === 'checked').length;
-  const won = plays.reduce((sum, play) => sum + playKnownPrize(play), 0);
   return (
     <div className="primy-archive-summary" aria-label="Resumen del archivo">
       <span><strong>{plays.length}</strong> guardadas</span>
       <span><strong>{purchased}</strong> jugadas</span>
       <span data-attention={awaiting > 0 ? 'true' : 'false'}><strong>{awaiting}</strong> por comprobar</span>
       <span><strong>{checked}</strong> comprobadas</span>
-      <span data-prize={won > 0 ? 'true' : 'false'}><strong>{euro.format(won)}</strong> premios</span>
     </div>
   );
 }
 
-export default function TicketHistory({ plays, checkingGame, checkingPlayId, onCheckPlay, onCreate, onAddExternal, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
+export default function TicketHistory({ now, plays, checkingGame, checkingPlayId, onCheckPlay, onCreate, onAddExternal, onPurchase, onRemove, onSetPrize, onFavorite, onRepeat, onVariant }) {
   const [gameFilter, setGameFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sort, setSort] = useState('action');
@@ -569,6 +647,7 @@ export default function TicketHistory({ plays, checkingGame, checkingPlayId, onC
 
   return (
     <section className="space-y-5">
+      <MonthlyFinancePanel plays={plays} now={now}/>
       <ArchiveSummary plays={plays}/>
 
       <div className="primy-archive-status-nav" aria-label="Filtros rápidos por estado">
@@ -636,7 +715,13 @@ export default function TicketHistory({ plays, checkingGame, checkingPlayId, onC
                       <CheckNowButton play={play} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame} className="mt-4 w-full"/>
                     )}
                     <div className="mt-4 flex items-center gap-2 border-t border-default pt-3">
-                      <p className="min-w-0 flex-1 text-sm font-semibold text-primary">{play.status === 'checked' ? `${awarded} con premio · ${euro.format(playKnownPrize(play))}` : euro.format(playCost(play))}</p>
+                      <p className="min-w-0 flex-1 text-sm font-semibold text-primary">{play.status === 'checked'
+                        ? playKnownPrize(play) > 0
+                          ? `${confirmedAwardCount(play)} con premio confirmado · ${euro.format(playKnownPrize(play))}`
+                          : hasStoredUnconfirmedPrize(play)
+                            ? 'Importe anterior no confirmado · 0,00 € contabilizados'
+                            : 'Sin premio confirmado'
+                        : euro.format(playCost(play))}</p>
                       <button type="button" onClick={() => requestRemove(play)} className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-xl text-rose-700 hover:bg-rose-50" aria-label={`Eliminar ${game.name} del ${formatDrawDate(play.drawDateISO)}`} title="Eliminar jugada">
                         <TrashIcon width="18" height="18"/>
                       </button>
@@ -665,7 +750,7 @@ export default function TicketHistory({ plays, checkingGame, checkingPlayId, onC
                         <td className="px-5 py-4"><div className="flex items-center gap-2 font-semibold text-primary"><GameIdentity gameId={play.gameId} size="sm" label={false}/>{game.name}{play.favorite && <StarIcon width="15" height="15" className="fill-amber-400 text-amber-500"/>}</div></td>
                         <td className="px-5 py-4 text-secondary">{playBetCount(play)}</td>
                         <td className="px-5 py-4 font-bold text-primary">{euro.format(playCost(play))}</td>
-                        <td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios: {euro.format(playKnownPrize(play))}</p>}</td>
+                        <td className="px-5 py-4"><TicketStatus status={play.computedStatus}/>{play.status === 'checked' && <p className="mt-1 text-xs text-secondary">Premios confirmados: {euro.format(playKnownPrize(play))}</p>}</td>
                         <td className="px-5 py-4 text-right">
                           <div className="flex items-center justify-end gap-1">
                             <CheckNowButton play={play} onCheckPlay={onCheckPlay} checkingPlayId={checkingPlayId} checkingGame={checkingGame} compact/>

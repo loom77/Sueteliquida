@@ -248,6 +248,7 @@ export function useAppController(auth) {
       onClearVariant: () => setVariantContext(null),
     },
     plays: {
+      now,
       plays: history,
       dueByGame,
       verificationError: historyStore.verificationError,

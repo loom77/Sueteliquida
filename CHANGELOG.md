@@ -1,3 +1,24 @@
+# Primy v18.0.2 — Monthly Finance Integrity
+
+- Separa la fecha contable del gasto (compra/registro) de la fecha contable del premio (sorteo).
+- Muestra gasto, premios confirmados y resultado neto del mes corriente.
+- Calcula todos los importes en céntimos enteros.
+- Congela `costCents` al registrar la compra para preservar el coste histórico.
+- Añade `prizeCents`, `prizeStatus`, `prizeSource`, `verifiedAt` y `verificationId`.
+- Migra importes heredados sin fuente válida a `unconfirmed` y los excluye del total.
+- Deduplica registros externos cuando comparten una referencia explícita.
+- Añade desglose verificable en Home y Archivo.
+- Incorpora pruebas para cambios de mes en Europe/Madrid, duplicados, borradores y el falso premio de 1.359,59 €.
+
+# Primy v18.0.1 — Prize Integrity Hotfix
+
+- Corretto il riepilogo dell’Archivio: vengono sommati soltanto premi con categoria e provenienza esplicitamente confermate.
+- Gli importi residui o ereditati senza conferma non vengono più presentati come vincite reali.
+- Aggiunta tracciabilità della fonte del premio (`manual` oppure `official-verification`) e della data di conferma.
+- Corretto il matching delle categorie numerate per impedire collisioni come 2.ª/12.ª o 3.ª/13.ª categoria.
+- Il riepilogo usa ora la dicitura “premios confirmados”.
+- Aggiunti test di regressione sul caso anomalo da 1.359,59 € e sulla persistenza delle fonti confermate.
+
 # Primy v18.0.0 — Android-first Home & Mobile Visibility
 
 - Nuova Home ispirata al mockup approvato, con hero più chiaro, mascotte integrata e accessi primari immediati.

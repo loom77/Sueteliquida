@@ -149,22 +149,28 @@ export const PendingDraws = memo(function PendingDraws({ dueTotal, checking, onC
   );
 });
 
-export const HomeOverview = memo(function HomeOverview({ monthlyStats, totals }) {
+export const HomeOverview = memo(function HomeOverview({ monthlyStats, onOpenPlays }) {
+  const net = Number(monthlyStats?.net || 0);
   const metrics = [
-    { label: 'Gasto este mes', value: euro.format(monthlyStats.spent || 0) },
-    { label: 'Premios registrados', value: euro.format(monthlyStats.won || 0) },
-    { label: 'Jugadas en archivo', value: totals.plays || 0 },
+    { id: 'spent', label: 'Gastado este mes', value: euro.format(monthlyStats?.spent || 0), tone: 'spent' },
+    { id: 'won', label: 'Premios confirmados', value: euro.format(monthlyStats?.won || 0), tone: 'won' },
+    { id: 'net', label: 'Resultado neto', value: euro.format(net), tone: net > 0 ? 'positive' : net < 0 ? 'negative' : 'neutral' },
   ];
   return (
-    <Card tone="inset" padding="sm" className="mt-5" aria-label="Resumen de tu actividad">
-      <div className="grid gap-2 sm:grid-cols-3">
+    <Card tone="inset" padding="sm" className="primy-monthly-home mt-5" aria-label={`Resumen económico de ${monthlyStats?.monthLabel || 'este mes'}`}>
+      <div className="primy-monthly-home__heading">
+        <div><p>Control mensual</p><strong>{monthlyStats?.monthLabel || 'Mes actual'}</strong></div>
+        <button type="button" onClick={onOpenPlays}>Ver detalle <ArrowRightIcon width="16" height="16"/></button>
+      </div>
+      <div className="primy-monthly-home__metrics">
         {metrics.map(metric => (
-          <div key={metric.label} className="primy-home-v16__metric">
-            <p className="text-xs font-semibold text-secondary">{metric.label}</p>
-            <p className="mt-1 font-display text-lg font-semibold text-primary">{metric.value}</p>
-          </div>
+          <button type="button" key={metric.id} className="primy-monthly-home__metric" data-tone={metric.tone} onClick={onOpenPlays}>
+            <span>{metric.label}</span>
+            <strong>{metric.value}</strong>
+          </button>
         ))}
       </div>
+      <p className="primy-monthly-home__note">Solo incluye boletos comprados y premios confirmados. Toca una cifra para ver cómo se calcula.</p>
     </Card>
   );
 });

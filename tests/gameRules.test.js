@@ -51,7 +51,17 @@ test('La migración corrige jugadas antiguas de La Primitiva con reintegros dist
 });
 
 test('El total de premios incluye el reintegro del resguardo sin duplicarlo por columna', () => {
-  const play = { columns: [{ officialPrize: 8 }, { officialPrize: 0 }], receiptPrize: { officialAmount: 2 } };
+  const play = {
+    columns: [
+      { prizeCategory: '5.ª categoría', officialPrize: 8, prizeSource: 'official-verification' },
+      { officialPrize: 0 },
+    ],
+    receiptPrize: {
+      category: 'Reintegro del resguardo',
+      officialAmount: 2,
+      prizeSource: 'official-verification',
+    },
+  };
   assert.equal(playKnownPrize(play), 10);
 });
 

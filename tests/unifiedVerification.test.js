@@ -31,7 +31,7 @@ test('la comprobación unificada conserva 8 euros para tres aciertos de La Primi
   assert.equal(settlement.columns[0].officialAmount, 8);
   const updated = applyVerificationSettlement(play, draw, settlement, { checkedAt: '2026-08-01T22:00:00Z' });
   assert.equal(updated.status, 'checked');
-  assert.equal(updated.metadata.verificationEngine, 'unified-v3');
+  assert.equal(updated.metadata.verificationEngine, 'unified-v5-monthly-finance-integrity');
 });
 
 test('La Quiniela confirma aciertos y deja el importe pendiente si falta el escrutinio', () => {

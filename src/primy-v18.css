@@ -580,3 +580,57 @@ html[data-theme='dark'] .primy-home-v18__game-card {
     transform: none !important;
   }
 }
+
+
+/* Primy v18.0.2 — monthly finance integrity */
+.primy-monthly-home {
+  overflow: hidden;
+  border-color: rgb(18 160 92 / .2);
+  background: linear-gradient(145deg, rgb(255 255 255 / .98), rgb(242 250 246 / .98));
+}
+.primy-monthly-home__heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.35rem .45rem .8rem; }
+.primy-monthly-home__heading p { color:#0b7a49; font-size:.67rem; font-weight:850; letter-spacing:.12em; text-transform:uppercase; }
+.primy-monthly-home__heading strong { display:block; margin-top:.15rem; color:rgb(var(--c-text-primary)); font-size:.95rem; text-transform:capitalize; }
+.primy-monthly-home__heading button { display:inline-flex; min-height:2.75rem; align-items:center; gap:.35rem; border-radius:999px; padding:.55rem .75rem; color:#0b7a49; font-size:.74rem; font-weight:850; }
+.primy-monthly-home__metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.55rem; }
+.primy-monthly-home__metric { min-width:0; border:1px solid rgb(var(--c-border)); border-radius:1rem; background:rgb(var(--c-surface)); padding:.85rem; text-align:left; transition:transform .18s ease,box-shadow .18s ease; }
+.primy-monthly-home__metric:hover { transform:translateY(-1px); box-shadow:0 10px 22px rgb(19 34 56 / .08); }
+.primy-monthly-home__metric span { display:block; color:rgb(var(--c-text-secondary)); font-size:.68rem; font-weight:750; }
+.primy-monthly-home__metric strong { display:block; margin-top:.3rem; color:rgb(var(--c-text-primary)); font-family:var(--font-display); font-size:1.18rem; font-weight:800; font-variant-numeric:tabular-nums; }
+.primy-monthly-home__metric[data-tone='won'] strong,.primy-monthly-home__metric[data-tone='positive'] strong { color:#087347; }
+.primy-monthly-home__metric[data-tone='negative'] strong { color:#b4233d; }
+.primy-monthly-home__note { margin:.75rem .45rem .2rem; color:rgb(var(--c-text-secondary)); font-size:.66rem; line-height:1.45; }
+
+.primy-monthly-finance { overflow:hidden; border:1px solid rgb(18 160 92 / .24); border-radius:1.45rem; background:linear-gradient(145deg,#fff,#f1faf5); box-shadow:0 16px 40px rgb(19 34 56 / .07); }
+.primy-monthly-finance__header { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding:1rem 1.1rem .7rem; }
+.primy-monthly-finance__header p { color:#087347; font-size:.67rem; font-weight:850; letter-spacing:.13em; text-transform:uppercase; }
+.primy-monthly-finance__header h2 { margin-top:.2rem; color:rgb(var(--c-text-primary)); font-size:1.12rem; font-weight:800; text-transform:capitalize; }
+.primy-monthly-finance__header > span { border-radius:999px; background:#e7f7ee; padding:.38rem .55rem; color:#087347; font-size:.62rem; font-weight:800; }
+.primy-monthly-finance__metrics { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.65rem; padding:.4rem 1.1rem 1rem; }
+.primy-monthly-finance__metrics button { min-width:0; min-height:6.1rem; border:1px solid rgb(var(--c-border)); border-radius:1.05rem; background:rgb(var(--c-surface)); padding:.85rem; text-align:left; box-shadow:0 7px 18px rgb(19 34 56 / .035); }
+.primy-monthly-finance__metrics button[aria-expanded='true'] { border-color:rgb(18 160 92 / .5); box-shadow:0 0 0 3px rgb(18 160 92 / .1); }
+.primy-monthly-finance__metrics span,.primy-monthly-finance__metrics small { display:block; color:rgb(var(--c-text-secondary)); font-size:.67rem; font-weight:720; }
+.primy-monthly-finance__metrics strong { display:block; margin:.3rem 0; color:rgb(var(--c-text-primary)); font-size:1.28rem; font-weight:850; font-variant-numeric:tabular-nums; }
+.primy-monthly-finance__metrics [data-tone='won'] strong,.primy-monthly-finance__metrics [data-tone='positive'] strong { color:#087347; }
+.primy-monthly-finance__metrics [data-tone='negative'] strong { color:#b4233d; }
+.primy-monthly-finance__formula { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:.55rem; margin:0 1.1rem 1rem; border-radius:1rem; background:#f3f6f5; padding:.85rem; color:rgb(var(--c-text-secondary)); font-size:.78rem; }
+.primy-monthly-finance__formula strong { color:rgb(var(--c-text-primary)); }
+.primy-monthly-finance__detail { display:grid; gap:.45rem; margin:0 1.1rem 1rem; }
+.primy-monthly-finance__entry { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.7rem; border:1px solid rgb(var(--c-border)); border-radius:1rem; background:rgb(var(--c-surface)); padding:.7rem .8rem; }
+.primy-monthly-finance__entry div { min-width:0; }
+.primy-monthly-finance__entry strong,.primy-monthly-finance__entry span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.primy-monthly-finance__entry strong { color:rgb(var(--c-text-primary)); font-size:.78rem; }
+.primy-monthly-finance__entry span { margin-top:.1rem; color:rgb(var(--c-text-secondary)); font-size:.66rem; }
+.primy-monthly-finance__entry b { color:rgb(var(--c-text-primary)); font-size:.84rem; font-variant-numeric:tabular-nums; }
+.primy-monthly-finance__empty { border-radius:1rem; background:rgb(var(--c-muted)); padding:.85rem; color:rgb(var(--c-text-secondary)); font-size:.75rem; text-align:center; }
+.primy-monthly-finance__warning { margin:0 1.1rem .75rem; border-radius:.85rem; background:#fff4d5; padding:.7rem .8rem; color:#755200; font-size:.7rem; font-weight:750; }
+.primy-monthly-finance__legal { border-top:1px solid rgb(var(--c-border)); padding:.75rem 1.1rem; color:rgb(var(--c-text-secondary)); font-size:.65rem; line-height:1.45; }
+
+@media (max-width:599px) {
+  .primy-monthly-home__metrics,.primy-monthly-finance__metrics { grid-template-columns:1fr; }
+  .primy-monthly-home__metric,.primy-monthly-finance__metrics button { min-height:4.65rem; }
+  .primy-monthly-finance__header > span { display:none; }
+  .primy-monthly-finance__formula { align-items:flex-start; flex-direction:column; }
+}
+
+html[data-theme='dark'] .primy-monthly-home,html[data-theme='dark'] .primy-monthly-finance { background:linear-gradient(145deg,rgb(24 48 36),rgb(var(--c-surface))); }

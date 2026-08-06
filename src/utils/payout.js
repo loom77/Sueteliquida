@@ -26,6 +26,12 @@ function tokenizeCategory(value) {
     .filter(Boolean);
 }
 
+function categoryOrdinal(value) {
+  const normalized = normalizeCategory(value);
+  const match = normalized.match(/^(\d{1,2})acategoria/);
+  return match ? Number(match[1]) : null;
+}
+
 function findOfficialPrize(results, keys = []) {
   const tiers = Array.isArray(results.prizes) ? results.prizes : [];
   const normalized = keys.map(normalizeCategory).filter(key => key && key.length >= 2);
@@ -34,15 +40,19 @@ function findOfficialPrize(results, keys = []) {
   for (const candidate of tiers) {
     const haystackSource = [candidate.category, candidate.match, candidate.name, candidate.label].filter(Boolean).join(' ');
     const haystack = normalizeCategory(haystackSource);
+    const haystackOrdinal = categoryOrdinal(haystackSource);
     const haystackTokens = new Set(tokenizeCategory(haystackSource));
     let score = -1;
     for (const key of normalized) {
+      const keyOrdinal = categoryOrdinal(key);
+      if (keyOrdinal && haystackOrdinal && keyOrdinal !== haystackOrdinal) continue;
       const keyTokens = tokenizeCategory(key);
+      const containsNumericToken = keyTokens.some(token => /\d/.test(token));
       const tokensContained = keyTokens.length && keyTokens.every(token => haystackTokens.has(token));
       if (haystack === key) score = Math.max(score, 1200 + key.length);
       else if (tokensContained) score = Math.max(score, 1000 + keyTokens.length * 20 + key.length);
       else if (haystack.startsWith(key)) score = Math.max(score, 700 + key.length);
-      else if (key.length >= 4 && haystack.includes(key)) score = Math.max(score, 200 + key.length);
+      else if (!containsNumericToken && key.length >= 4 && haystack.includes(key)) score = Math.max(score, 200 + key.length);
     }
     if (score > (best?.score ?? -1)) best = { candidate, score };
   }

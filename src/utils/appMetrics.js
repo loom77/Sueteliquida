@@ -1,6 +1,6 @@
 import { GAMES } from './gameConfig.js';
-import { monthKeyMadrid } from './drawSchedule.js';
-import { playBetCount, playCost, playKnownPrize } from './playModel.js';
+import { getMonthlyFinance } from './financeIntegrity.js';
+import { playBetCount } from './playModel.js';
 
 export function getDueByGame(history = []) {
   return Object.keys(GAMES).reduce((output, gameId) => {
@@ -14,15 +14,21 @@ export function getDueTotal(dueByGame = {}) {
 }
 
 export function getMonthlyStats(history = [], now = new Date()) {
-  const key = monthKeyMadrid(now);
-  return history.reduce((output, play) => {
-    const purchasedAt = play.purchasedAt || play.createdAt;
-    if (!play.purchased || monthKeyMadrid(purchasedAt) !== key) return output;
-    output.plays += 1;
-    output.spent += playCost(play);
-    if (play.status === 'checked') output.won += playKnownPrize(play);
-    return output;
-  }, { spent: 0, won: 0, plays: 0 });
+  const finance = getMonthlyFinance(history, now);
+  return {
+    spent: finance.spent,
+    won: finance.won,
+    net: finance.net,
+    plays: finance.purchasedPlays,
+    winningPlays: finance.winningPlays,
+    spentCents: finance.spentCents,
+    wonCents: finance.wonCents,
+    netCents: finance.netCents,
+    monthKey: finance.monthKey,
+    monthLabel: finance.monthLabel,
+    details: finance.details,
+    excluded: finance.excluded,
+  };
 }
 
 export function getPurchasedTotals(history = []) {

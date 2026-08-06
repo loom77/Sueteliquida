@@ -1,0 +1,24 @@
+PRIMY v18.0.1 — Prize Integrity Hotfix
+
+CHANGELOG.md
+DEPLOY-HANDOFF-V18.0.1.md
+FINAL-VALIDATION-V18.0.1.md
+CHANGED-FILES-V18.0.1.txt
+package.json
+public/offline.html
+src/components/TicketHistory.jsx
+src/hooks/useStorage.js
+src/utils/payout.js
+src/utils/playModel.js
+src/utils/release.js
+src/verification/verificationEngine.js
+tests/androidHomeV18.test.js
+tests/appMetrics.test.js
+tests/gameRules.test.js
+tests/manualEntryHotfixV17_1_1.test.js
+tests/prizeIntegrityV18_0_1.test.js
+tests/productionHardeningV17_0_1.test.js
+tests/profileLegalMotion.test.js
+tests/routingAvailabilityHotfixV17_0_2.test.js
+tests/unifiedVerification.test.js
+tests/universalSportsHorseVerificationV17_1.test.js

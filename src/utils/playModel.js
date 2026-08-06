@@ -7,6 +7,114 @@ import { sanitizeQuinielaPlay } from '../sports/quinielaPlay.js';
 import { sanitizeQuinigolPlay } from '../sports/quinigolPlay.js';
 import { sanitizeHorsePlay } from '../horse/plays.js';
 
+const CONFIRMED_PRIZE_SOURCES = new Set(['manual', 'official-verification']);
+export const FINANCE_SCHEMA_VERSION = '18.0.2';
+
+function normalizedPrizeSource(value) {
+  const source = String(value || '').trim();
+  return CONFIRMED_PRIZE_SOURCES.has(source) ? source : undefined;
+}
+
+export function toMoneyCents(value) {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? Math.max(0, Math.round((amount + Number.EPSILON) * 100)) : 0;
+}
+
+export function fromMoneyCents(value) {
+  const cents = Number(value);
+  return Number.isFinite(cents) ? Math.round(cents) / 100 : 0;
+}
+
+function storedPrizeCents(record, centsField, amountField) {
+  const stored = Number(record?.[centsField]);
+  return Number.isInteger(stored) && stored >= 0 ? stored : toMoneyCents(record?.[amountField]);
+}
+
+export function isConfirmedColumnPrize(column) {
+  const amountCents = storedPrizeCents(column, 'prizeCents', 'officialPrize');
+  return Boolean(
+    column?.prizeStatus !== 'unconfirmed'
+    && column?.prizeCategory
+    && normalizedPrizeSource(column?.prizeSource)
+    && amountCents > 0
+  );
+}
+
+export function isConfirmedReceiptPrize(receiptPrize) {
+  const amountCents = storedPrizeCents(receiptPrize, 'prizeCents', 'officialAmount');
+  return Boolean(
+    receiptPrize?.prizeStatus !== 'unconfirmed'
+    && receiptPrize?.category
+    && normalizedPrizeSource(receiptPrize?.prizeSource)
+    && amountCents > 0
+  );
+}
+
+function normalizeColumnFinance(column, playId, index) {
+  const amountCents = storedPrizeCents(column, 'prizeCents', 'officialPrize');
+  const source = normalizedPrizeSource(column?.prizeSource);
+  const confirmed = Boolean(column?.prizeCategory && source && amountCents > 0);
+  const verifiedAt = column?.verifiedAt || column?.prizeConfirmedAt;
+  const prizeStatus = confirmed
+    ? 'confirmed'
+    : amountCents > 0
+      ? 'unconfirmed'
+      : column?.status === 'checked'
+        ? 'no-prize'
+        : 'pending';
+  return {
+    ...column,
+    prizeStatus,
+    ...(amountCents > 0 ? { prizeCents: amountCents, officialPrize: fromMoneyCents(amountCents) } : {}),
+    ...(source ? { prizeSource: source } : { prizeSource: undefined }),
+    ...(confirmed ? {
+      verifiedAt: verifiedAt || undefined,
+      prizeConfirmedAt: verifiedAt || undefined,
+      verificationId: column?.verificationId || `${source}:${playId}:${column?.id || index}:${verifiedAt || 'confirmed'}`,
+    } : {
+      verifiedAt: undefined,
+      verificationId: undefined,
+    }),
+  };
+}
+
+function normalizeReceiptFinance(receiptPrize, playId) {
+  if (!receiptPrize || typeof receiptPrize !== 'object') return receiptPrize;
+  const amountCents = storedPrizeCents(receiptPrize, 'prizeCents', 'officialAmount');
+  const source = normalizedPrizeSource(receiptPrize?.prizeSource);
+  const confirmed = Boolean(receiptPrize?.category && source && amountCents > 0);
+  const verifiedAt = receiptPrize?.verifiedAt || receiptPrize?.prizeConfirmedAt;
+  return {
+    ...receiptPrize,
+    prizeStatus: confirmed ? 'confirmed' : amountCents > 0 ? 'unconfirmed' : 'no-prize',
+    ...(amountCents > 0 ? { prizeCents: amountCents, officialAmount: fromMoneyCents(amountCents) } : {}),
+    ...(source ? { prizeSource: source } : { prizeSource: undefined }),
+    ...(confirmed ? {
+      verifiedAt: verifiedAt || undefined,
+      prizeConfirmedAt: verifiedAt || undefined,
+      verificationId: receiptPrize?.verificationId || `${source}:${playId}:receipt:${verifiedAt || 'confirmed'}`,
+    } : {
+      verifiedAt: undefined,
+      verificationId: undefined,
+    }),
+  };
+}
+
+function normalizeFinancePlay(play) {
+  if (!play) return null;
+  const columns = (play.columns || []).map((column, index) => normalizeColumnFinance(column, play.id, index));
+  return {
+    ...play,
+    columns,
+    ...(play.receiptPrize ? { receiptPrize: normalizeReceiptFinance(play.receiptPrize, play.id) } : {}),
+    ...(play.purchased ? {
+      costCents: playCostCents(play),
+      purchaseDateISO: play.purchasedAt || play.createdAt,
+    } : {}),
+    financeSchemaVersion: FINANCE_SCHEMA_VERSION,
+  };
+}
+
 function sanitizeSecondaryNumbers(game, column) {
   if (!game.secondary) return null;
   const source = column.secondaryNumbers || column.stars || column.extras;
@@ -60,6 +168,8 @@ export function sanitizeColumn(gameId, column, fallbackIndex = 1, { system = fal
     ...supplement,
     ...(system ? { isSystem: true } : {}),
     status: column.status === 'checked' ? 'checked' : 'draft',
+    ...(normalizedPrizeSource(column.prizeSource) ? { prizeSource: normalizedPrizeSource(column.prizeSource) } : {}),
+    ...(column.prizeConfirmedAt ? { prizeConfirmedAt: column.prizeConfirmedAt } : {}),
   };
 }
 
@@ -112,6 +222,8 @@ export function migrateLegacyTicket(ticket) {
     payoutType: ticket.payoutType,
     prizeDisplay: ticket.prizeDisplay,
     officialPrize: ticket.officialPrize,
+    prizeSource: ticket.prizeSource,
+    prizeConfirmedAt: ticket.prizeConfirmedAt,
     extraMatch: ticket.extraMatch,
     complementaryMatch: ticket.complementaryMatch,
   });
@@ -142,7 +254,7 @@ export function migrateLegacyTicket(ticket) {
   };
 }
 
-export function sanitizePlay(play) {
+function sanitizePlayBase(play) {
   if (!play || typeof play !== 'object' || !GAMES[play.gameId]) return null;
   if (play.gameId === 'loteria-nacional') return sanitizeNationalPlay(play);
   if (play.gameId === 'quiniela') return sanitizeQuinielaPlay(play);
@@ -236,6 +348,10 @@ export function sanitizePlay(play) {
   };
 }
 
+export function sanitizePlay(play) {
+  return normalizeFinancePlay(sanitizePlayBase(play));
+}
+
 export function sanitizePlays(raw) {
   const source = Array.isArray(raw) ? raw : Array.isArray(raw?.plays) ? raw.plays : Array.isArray(raw?.tickets) ? raw.tickets : [];
   return source.map(sanitizePlay).filter(Boolean).slice(0, 500);
@@ -250,15 +366,33 @@ export function playBetCount(play) {
     : (play?.columns?.length || 0);
 }
 
-export function playCost(play) {
+function calculatedPlayCost(play) {
   if (play?.gameId === 'loteria-nacional') return Math.max(0, Number(play.pricePerDecimo) || 0) * playBetCount(play);
   return getGameConfig(play.gameId).price * playBetCount(play) * Math.max(1, Number(play.drawCount) || 1);
 }
 
-export function playKnownPrize(play) {
-  const columnPrizes = (play.columns || []).reduce((sum, column) => sum + (typeof column.officialPrize === 'number' ? column.officialPrize : 0), 0);
-  const receiptPrize = typeof play.receiptPrize?.officialAmount === 'number' ? play.receiptPrize.officialAmount : 0;
+export function playCostCents(play) {
+  const stored = Number(play?.costCents);
+  if (Number.isInteger(stored) && stored >= 0) return stored;
+  return toMoneyCents(calculatedPlayCost(play));
+}
+
+export function playCost(play) {
+  return fromMoneyCents(playCostCents(play));
+}
+
+export function playKnownPrizeCents(play) {
+  const columnPrizes = (play?.columns || []).reduce((sum, column) => (
+    sum + (isConfirmedColumnPrize(column) ? storedPrizeCents(column, 'prizeCents', 'officialPrize') : 0)
+  ), 0);
+  const receiptPrize = isConfirmedReceiptPrize(play?.receiptPrize)
+    ? storedPrizeCents(play.receiptPrize, 'prizeCents', 'officialAmount')
+    : 0;
   return columnPrizes + receiptPrize;
+}
+
+export function playKnownPrize(play) {
+  return fromMoneyCents(playKnownPrizeCents(play));
 }
 
 export function playUnknownPrizeCount(play) {

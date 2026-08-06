@@ -52,7 +52,9 @@ test('sidebar y home eliminan duplicaciones y usan una jerarquía más corta', (
   assert.doesNotMatch(shell, /Todo lo que necesitas para vivir cada sorteo/);
   assert.match(shell, /label: 'Preparar'/);
   assert.match(shell, /primy-sidebar/);
-  assert.doesNotMatch(dashboard, /HomeOverview/);
+  assert.match(dashboard, /HomeOverview/);
+  assert.match(home, /Resultado neto/);
+  assert.match(home, /Premios confirmados/);
   assert.match(home, /Última actividad/);
   assert.match(home, /Accesos rápidos/);
   assert.match(css, /\.primy-home-v16__hero/);

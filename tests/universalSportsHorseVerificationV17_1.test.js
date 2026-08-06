@@ -4,9 +4,9 @@ import fs from 'node:fs';
 
 const read = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('la release universal es 18.0.0', () => {
-  assert.equal(JSON.parse(read('../package.json')).version, '18.0.0');
-  assert.match(read('../src/utils/release.js'), /APP_VERSION = '18\.0\.0'/);
+test('la release universal es 18.0.2', () => {
+  assert.equal(JSON.parse(read('../package.json')).version, '18.0.2');
+  assert.match(read('../src/utils/release.js'), /APP_VERSION = '18\.0\.2'/);
 });
 
 test('el archivo muestra un reveal accesible para deportes e hípica', () => {
@@ -16,7 +16,7 @@ test('el archivo muestra un reveal accesible para deportes e hípica', () => {
   assert.match(component, /SportsVerificationReveal/);
   assert.match(component, /HorseVerificationReveal/);
   assert.match(component, /Comprobación oficial/);
-  assert.match(history, /Categoría confirmada/);
+  assert.match(history, /Categoría pendiente de importe|Categoría confirmada/);
   assert.match(history, /Importe pendiente/);
   assert.match(css, /primy-verification-reveal__row\.is-hit/);
   assert.match(css, /prefers-reduced-motion/);
