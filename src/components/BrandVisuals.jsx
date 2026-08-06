@@ -42,42 +42,42 @@ export function PrimyWordmark({ compact = false, className = '' }) {
 
 const MASCOT_VARIANTS = {
   welcome: {
-    src: '/mascot/primy-welcome.webp',
+    src: '/mascot/primy-official-v18.png',
     label: 'Primy te da la bienvenida',
     motion: 'primy-mascot-float',
     surface: 'from-primy-50 via-ivory to-cream',
     accent: 'bg-gold',
   },
   helper: {
-    src: '/mascot/primy-helper.webp',
+    src: '/mascot/primy-official-v18.png',
     label: 'Primy te guía paso a paso',
     motion: 'primy-mascot-helper',
     surface: 'from-sky/60 via-ivory to-primy-50',
     accent: 'bg-sky',
   },
   thinking: {
-    src: '/mascot/primy-thinking.webp',
+    src: '/mascot/primy-official-v18.png',
     label: 'Primy está preparando la jugada',
     motion: 'primy-mascot-thinking',
     surface: 'from-lavender via-ivory to-primy-50',
     accent: 'bg-lavender',
   },
   celebration: {
-    src: '/mascot/primy-celebration.webp',
+    src: '/mascot/primy-official-v18.png',
     label: 'Primy celebra contigo',
     motion: 'primy-mascot-celebration',
     surface: 'from-amber-50 via-ivory to-peach/50',
     accent: 'bg-gold',
   },
   empty: {
-    src: '/mascot/primy-empty.webp',
+    src: '/mascot/primy-official-v18.png',
     label: 'Primy busca tus jugadas',
     motion: 'primy-mascot-empty',
     surface: 'from-sky/40 via-ivory to-primy-50',
     accent: 'bg-sky',
   },
   responsible: {
-    src: '/mascot/primy-responsible.webp',
+    src: '/mascot/primy-official-v18.png',
     label: 'Primy te recuerda tus límites',
     motion: 'primy-mascot-responsible',
     surface: 'from-sky/50 via-ivory to-primy-50',

@@ -4,9 +4,9 @@ import fs from 'node:fs';
 
 const read = path => fs.readFileSync(new URL(path, import.meta.url), 'utf8');
 
-test('la release universal es 18.0.3', () => {
-  assert.equal(JSON.parse(read('../package.json')).version, '18.0.3');
-  assert.match(read('../src/utils/release.js'), /APP_VERSION = '18\.0\.3'/);
+test('la release universal es 18.1.1', () => {
+  assert.equal(JSON.parse(read('../package.json')).version, '18.1.1');
+  assert.match(read('../src/utils/release.js'), /APP_VERSION = '18\.1\.1'/);
 });
 
 test('el archivo muestra un reveal accesible para deportes e hípica', () => {
