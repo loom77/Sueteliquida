@@ -1,0 +1,382 @@
+/* Primy v17.1.4 — Yuma mobile visual and Core-access hotfix */
+@media (max-width: 899px) {
+  html { scroll-padding-top: calc(4.75rem + env(safe-area-inset-top)); }
+  .primy-main-content { padding-bottom: calc(7rem + env(safe-area-inset-bottom)) !important; }
+  .primy-main-content[data-view='generate'] { padding-bottom: calc(13rem + env(safe-area-inset-bottom)) !important; }
+
+  .primy-mobile-header {
+    min-height: 4.25rem;
+    border-bottom-color: rgb(18 160 92 / .2);
+    background: radial-gradient(circle at 18% 0, rgb(228 247 236 / .95), transparent 9rem), rgb(var(--c-surface) / .98);
+    box-shadow: 0 8px 24px rgb(19 34 56 / .08);
+  }
+  .primy-mobile-nav {
+    min-height: 4.65rem;
+    border-top-color: rgb(18 160 92 / .22);
+    background: rgb(var(--c-surface) / .99);
+    box-shadow: 0 -10px 28px rgb(19 34 56 / .11);
+  }
+  .primy-mobile-nav__item { color: rgb(66 83 74); font-size: .64rem; font-weight: 780; }
+  .primy-mobile-nav__item[data-active='true'] { color: #075438; }
+  .primy-mobile-header svg,
+  .primy-mobile-nav__icon,
+  .primy-mobile-nav__icon svg {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  .primy-mobile-nav__icon svg {
+    display: block !important;
+    width: 1.38rem !important;
+    height: 1.38rem !important;
+    flex: 0 0 auto;
+    stroke-width: 2.2;
+  }
+  .primy-mobile-nav__item:nth-child(2) .primy-mobile-nav__icon svg {
+    width: 1.55rem !important;
+    height: 1.55rem !important;
+  }
+
+  /* Yuma had hidden the owl on mobile. Restore it as a product element. */
+  .primy-home-v16__hero { grid-template-columns: minmax(0, 1fr) !important; gap: 0; }
+  .primy-home-v16__hero-copy { position: relative; z-index: 2; }
+  .primy-home-v16__mascot {
+    display: flex !important;
+    position: relative;
+    z-index: 1;
+    padding: 0 1rem 1.15rem;
+  }
+  .primy-home-v16__mascot .primy-mascot-role { width: min(100%, 15rem); }
+  .primy-home-v16__mascot [role='img'] {
+    width: 100%;
+    border-color: rgb(18 160 92 / .2);
+    border-radius: 1.4rem;
+    padding: .55rem;
+    box-shadow: 0 14px 30px rgb(11 122 73 / .12);
+  }
+  .primy-home-v16__mascot img { max-height: 10.5rem; object-fit: contain; }
+  .primy-profile-hero__mascot { display: flex !important; padding: 0 1rem 1rem; }
+  .primy-profile-hero__mascot .primy-mascot-role { width: min(100%, 13.5rem); }
+  .primy-profile-hero__mascot img { max-height: 9.5rem; object-fit: contain; }
+
+  /* Primy Core must dominate the first-page explanation. */
+  .primy-home-core-feature {
+    position: relative;
+    overflow: hidden;
+    border: 2px solid rgb(220 174 38 / .72);
+    border-radius: 1.35rem;
+    background: radial-gradient(circle at 100% 0, rgb(244 200 74 / .3), transparent 11rem), linear-gradient(145deg, #fffaf0, #eef9f3 72%);
+    box-shadow: 0 16px 36px rgb(75 58 0 / .12), inset 0 1px 0 rgb(255 255 255 / .9);
+  }
+  .primy-home-core-feature__icon {
+    display: grid !important;
+    width: 2.85rem;
+    height: 2.85rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid rgb(255 255 255 / .86);
+    background: linear-gradient(145deg, #075438, #12a05c);
+    color: white;
+    box-shadow: 0 8px 18px rgb(11 122 73 / .22);
+  }
+  .primy-home-core-feature__signals {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .45rem;
+  }
+  .primy-home-core-feature__signals span {
+    min-height: 2.6rem;
+    justify-content: center;
+    gap: .32rem;
+    border: 1px solid rgb(18 160 92 / .18);
+    background: rgb(255 255 255 / .82);
+    padding: .48rem .35rem;
+    color: #075438;
+    font-size: .61rem;
+    font-weight: 830;
+    line-height: 1.15;
+    text-align: center;
+  }
+  .primy-home-core-feature__cta {
+    width: 100%;
+    min-height: 3.75rem;
+    justify-content: center;
+    border: 1px solid #075438;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #075438, #12a05c);
+    color: white;
+    font-size: .84rem;
+    font-weight: 850;
+    box-shadow: 0 13px 27px rgb(11 122 73 / .24);
+  }
+
+  /* Show the owl in the generator guide and keep Core access permanently visible. */
+  .primy-core-spotlight--mobile-guide {
+    position: relative !important;
+    top: auto !important;
+    z-index: 2;
+    grid-template-columns: 3.4rem minmax(0, 1fr) !important;
+    gap: .75rem;
+    margin: 0 !important;
+    overflow: visible;
+    border: 1.5px solid rgb(18 160 92 / .28);
+    border-radius: 1.2rem;
+    background: radial-gradient(circle at 0 0, rgb(228 247 236 / .95), transparent 8rem), rgb(var(--c-surface));
+    padding: .82rem;
+    box-shadow: 0 12px 28px rgb(19 34 56 / .09);
+  }
+  .primy-core-spotlight--mobile-guide .primy-core-spotlight__icon {
+    display: block !important;
+    width: 3.4rem;
+    height: 3.4rem;
+    border: 2px solid white;
+    border-radius: 1rem;
+    background: url('/mascot/primy-avatar.webp') center / contain no-repeat, linear-gradient(145deg, #e4f7ec, #fff8dc);
+    box-shadow: 0 0 0 1px rgb(18 160 92 / .18), 0 8px 18px rgb(11 122 73 / .14);
+  }
+  .primy-core-spotlight--mobile-guide .primy-core-spotlight__icon svg { display: none !important; }
+  .primy-core-spotlight--mobile-guide .primy-core-spotlight__title {
+    color: #102139;
+    font-size: .82rem;
+    font-weight: 850;
+    line-height: 1.3;
+  }
+  .primy-core-spotlight--mobile-guide .primy-core-spotlight__copy {
+    margin-top: .22rem;
+    color: rgb(67 83 74);
+    font-size: .69rem;
+    line-height: 1.45;
+  }
+  .primy-core-spotlight--mobile-guide .primy-core-learn--compact {
+    position: fixed !important;
+    right: 1rem;
+    bottom: calc(9.45rem + env(safe-area-inset-bottom));
+    z-index: 46;
+    display: inline-flex !important;
+    width: auto !important;
+    max-width: calc(100vw - 2rem);
+    min-height: 3.3rem;
+    align-items: center;
+    justify-content: center;
+    gap: .48rem;
+    border: 2px solid white;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #075438, #12a05c);
+    padding: .7rem 1rem;
+    color: white;
+    box-shadow: 0 0 0 1px rgb(7 84 56 / .24), 0 14px 34px rgb(7 84 56 / .34);
+    font-size: .73rem;
+    font-weight: 850;
+    line-height: 1.15;
+    text-align: center;
+  }
+  .primy-core-spotlight--mobile-guide .primy-core-learn--compact span {
+    position: static !important;
+    display: block !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+    clip: auto !important;
+    white-space: normal;
+  }
+  .primy-generator { overflow: visible; padding-bottom: 7.75rem; }
+  .primy-generator__action-bar {
+    z-index: 42;
+    bottom: calc(4.85rem + env(safe-area-inset-bottom)) !important;
+    border: 1px solid rgb(18 160 92 / .2);
+    box-shadow: 0 -2px 0 rgb(255 255 255 / .74), 0 12px 32px rgb(19 34 56 / .16);
+  }
+
+  /* Restore every navigation, game and creative icon hidden or collapsed by Yuma. */
+  .primy-home-core-feature svg,
+  .primy-core-learn--compact svg,
+  .primy-generator__primary-action svg,
+  .primy-game-identity__mark,
+  .primy-game-identity__mark img,
+  .primy-game-picker__check,
+  .primy-game-picker__check svg,
+  .primy-creative-icon {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+  .primy-home-core-feature svg,
+  .primy-core-learn--compact svg,
+  .primy-generator__primary-action svg,
+  .primy-game-picker__check svg { display: block !important; flex: 0 0 auto; }
+  .primy-game-identity__mark { display: grid !important; place-items: center; }
+  .primy-game-identity__mark img,
+  .primy-creative-icon {
+    display: block !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain;
+  }
+
+  .primy-core-dialog {
+    max-height: calc(100dvh - .5rem) !important;
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom)) !important;
+    scroll-padding-bottom: 5rem;
+  }
+  .primy-core-dialog__mascot { display: grid !important; }
+  .primy-core-dialog__mascot-art { display: block !important; width: min(100%, 12.5rem); margin-inline: auto; }
+  .primy-core-dialog__mascot-art img { max-height: 10rem; object-fit: contain; }
+}
+
+@media (max-width: 390px) {
+  .primy-home-core-feature__signals { grid-template-columns: 1fr; }
+  .primy-home-core-feature__signals span { justify-content: flex-start; padding-inline: .7rem; text-align: left; }
+  .primy-core-spotlight--mobile-guide .primy-core-learn--compact {
+    right: .65rem;
+    max-width: calc(100vw - 1.3rem);
+    padding-inline: .82rem;
+    font-size: .68rem;
+  }
+}
+
+@media (max-width: 899px) and (max-height: 570px) and (orientation: landscape) {
+  .primy-core-spotlight--mobile-guide .primy-core-learn--compact {
+    right: .65rem;
+    bottom: calc(5.15rem + env(safe-area-inset-bottom));
+    max-width: 15rem;
+    min-height: 2.85rem;
+    padding: .55rem .8rem;
+    font-size: .66rem;
+  }
+  .primy-generator__action-bar { position: static !important; margin-top: 1rem; }
+}
+
+html[data-theme='dark'] .primy-home-core-feature {
+  border-color: rgb(244 200 74 / .48);
+  background: radial-gradient(circle at 100% 0, rgb(244 200 74 / .13), transparent 11rem), linear-gradient(145deg, rgb(28 54 41), rgb(18 42 31));
+}
+html[data-theme='dark'] .primy-core-spotlight--mobile-guide {
+  border-color: rgb(53 194 123 / .32);
+  background: radial-gradient(circle at 0 0, rgb(28 61 43 / .88), transparent 8rem), rgb(var(--c-surface));
+}
+html[data-theme='dark'] .primy-core-spotlight--mobile-guide .primy-core-spotlight__title { color: rgb(var(--c-text-primary)); }
+
+
+/* v17.1.4 — Show every recent unresolved play in the archive. */
+.primy-pending-recent {
+  display: grid;
+  gap: .85rem;
+  border: 1px solid rgb(18 160 92 / .2);
+  border-radius: 1.35rem;
+  background: linear-gradient(145deg, rgb(239 250 244), rgb(var(--c-surface)) 72%);
+  padding: 1rem;
+  box-shadow: 0 14px 34px rgb(19 34 56 / .08);
+}
+.primy-pending-recent__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.primy-pending-recent__header p {
+  margin: 0;
+  color: #075438;
+  font-size: .7rem;
+  font-weight: 850;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.primy-pending-recent__header h2 {
+  margin: .18rem 0 0;
+  color: rgb(var(--c-text-primary));
+  font-size: 1.08rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+.primy-pending-recent__count {
+  display: grid;
+  min-width: 2.55rem;
+  min-height: 2.55rem;
+  place-items: center;
+  border: 1px solid rgb(18 160 92 / .22);
+  border-radius: 999px;
+  background: white;
+  color: #075438;
+  font-size: .95rem;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgb(11 122 73 / .1);
+}
+.primy-pending-recent__list {
+  display: grid;
+  gap: .65rem;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.primy-pending-recent__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: .75rem;
+  min-width: 0;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 1rem;
+  background: rgb(var(--c-surface));
+  padding: .78rem;
+}
+.primy-pending-recent__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: .65rem;
+}
+.primy-pending-recent__identity > div:last-child { min-width: 0; }
+.primy-pending-recent__identity strong,
+.primy-pending-recent__identity span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.primy-pending-recent__identity strong {
+  color: rgb(var(--c-text-primary));
+  font-size: .82rem;
+  font-weight: 830;
+}
+.primy-pending-recent__identity span {
+  margin-top: .12rem;
+  color: rgb(var(--c-text-secondary));
+  font-size: .69rem;
+  font-weight: 650;
+}
+.primy-pending-recent__check {
+  display: inline-flex;
+  min-height: 2.65rem;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  border: 1px solid #075438;
+  border-radius: .85rem;
+  background: #075438;
+  padding: .55rem .75rem;
+  color: white;
+  font-size: .7rem;
+  font-weight: 820;
+}
+.primy-pending-recent__check:disabled { cursor: wait; opacity: .68; }
+
+@media (max-width: 639px) {
+  .primy-pending-recent { padding: .82rem; }
+  .primy-pending-recent__item {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .62rem;
+  }
+  .primy-pending-recent__item > .primy-pending-recent__check {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+  .primy-pending-recent__identity strong { font-size: .78rem; }
+  .primy-pending-recent__identity span { white-space: normal; }
+}
+
+html[data-theme='dark'] .primy-pending-recent {
+  border-color: rgb(53 194 123 / .25);
+  background: linear-gradient(145deg, rgb(19 54 38), rgb(var(--c-surface)) 72%);
+}
+html[data-theme='dark'] .primy-pending-recent__count {
+  border-color: rgb(53 194 123 / .3);
+  background: rgb(var(--c-surface));
+  color: rgb(112 228 164);
+}

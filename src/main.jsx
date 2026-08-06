@@ -4,6 +4,7 @@ import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import './styles/design-tokens.css'
 import './index.css'
+import './mobile-yuma-hotfix.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
