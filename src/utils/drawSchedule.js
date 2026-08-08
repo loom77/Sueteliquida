@@ -76,6 +76,7 @@ export function drawInfoForDate(gameId, dateKey) {
   if (!game.drawTime) {
     const provisional = madridDateFromParts({ ...calendarDate, hour: 12, minute: 0 });
     return {
+      gameId,
       drawDateISO: provisional.toISOString(),
       drawDateTimeISO: provisional.toISOString(),
       drawDateKey: dateKeyFromParts(calendarDate),
@@ -95,6 +96,7 @@ export function drawInfoForDate(gameId, dateKey) {
   const publication = instantForDateAndTime(calendarDate, publicationTime);
   const checkable = publication > draw ? publication : new Date(draw.getTime() + (game.resultDelayMinutes || 20) * 60_000);
   return {
+    gameId,
     drawDateISO: draw.toISOString(),
     drawDateTimeISO: draw.toISOString(),
     drawDateKey: dateKeyFromParts(calendarDate),
@@ -119,6 +121,37 @@ export function getNextDrawInfo(gameId, from = new Date()) {
     } while (!game.drawDays.includes(weekdayForCalendarDate(calendarDate)));
     candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));
   }
+  return candidate;
+}
+
+
+
+export function isPreparationOpen(drawInfo, now = new Date()) {
+  if (!drawInfo) return false;
+  const cutoff = new Date(drawInfo.salesCloseISO || drawInfo.drawDateTimeISO || drawInfo.drawDateISO);
+  return Number.isFinite(cutoff.getTime()) && now < cutoff;
+}
+
+// Returns the next draw that can still be prepared in Primy. This is deliberately
+// different from getNextDrawInfo(), which remains chronological for result checks,
+// archive logic and manual entry. Preparation closes at the configured sales cutoff.
+export function getNextPlayableDrawInfo(gameId, from = new Date()) {
+  const game = getGameConfig(gameId);
+  const local = zonedParts(from);
+  if (!game.drawDays?.length) return getNextDrawInfo(gameId, from);
+  if (!local) return getNextDrawInfo(gameId, from);
+
+  let calendarDate = { year: local.year, month: local.month, day: local.day };
+  let candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));
+  const todayIsDrawDay = game.drawDays.includes(local.weekday);
+
+  if (!(todayIsDrawDay && isPreparationOpen(candidate, from))) {
+    do {
+      calendarDate = shiftCalendarDate(calendarDate, 1);
+    } while (!game.drawDays.includes(weekdayForCalendarDate(calendarDate)));
+    candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));
+  }
+
   return candidate;
 }
 

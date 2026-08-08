@@ -6,6 +6,8 @@ import './styles/design-tokens.css'
 import './index.css'
 import './mobile-yuma-hotfix.css'
 import './primy-v18.css'
+import './styles/android-design-system.css'
+import './styles/core-journey-v18-3.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

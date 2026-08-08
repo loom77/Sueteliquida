@@ -241,3 +241,118 @@ export function ActionCard({ title, description, icon: Icon, onClick, badge }) {
     </button>
   );
 }
+
+export function IconButton({
+  icon: Icon,
+  label,
+  selected = false,
+  className = '',
+  type = 'button',
+  ...props
+}) {
+  if (!Icon) return null;
+  return (
+    <button
+      type={type}
+      className={cx('ds-icon-button', className)}
+      aria-label={label}
+      aria-pressed={selected || undefined}
+      data-selected={selected ? 'true' : 'false'}
+      {...props}
+    >
+      <Icon width="21" height="21" aria-hidden="true" />
+    </button>
+  );
+}
+
+export function Chip({
+  children,
+  icon: Icon,
+  selected = false,
+  tone = 'neutral',
+  className = '',
+  as: Tag = 'span',
+  ...props
+}) {
+  return (
+    <Tag
+      className={cx('ds-chip', tone !== 'neutral' && `ds-chip--${tone}`, className)}
+      data-selected={selected ? 'true' : 'false'}
+      {...props}
+    >
+      {Icon && <Icon width="16" height="16" aria-hidden="true" />}
+      <span>{children}</span>
+    </Tag>
+  );
+}
+
+export function MetricCard({
+  label,
+  value,
+  detail,
+  tone = 'neutral',
+  icon: Icon,
+  onClick,
+  className = '',
+  ...props
+}) {
+  const Tag = onClick ? 'button' : 'div';
+  return (
+    <Tag
+      type={onClick ? 'button' : undefined}
+      className={cx('ds-metric-card', className)}
+      data-tone={tone}
+      onClick={onClick}
+      {...props}
+    >
+      <span className="min-w-0">
+        <span className="ds-metric-card__label">{label}</span>
+        <strong className="ds-metric-card__value">{value}</strong>
+        {detail && <span className="ds-metric-card__detail">{detail}</span>}
+      </span>
+      {Icon && <span className="ds-metric-card__icon" aria-hidden="true"><Icon width="22" height="22" /></span>}
+    </Tag>
+  );
+}
+
+export function AdaptiveGrid({
+  children,
+  compact = 1,
+  medium = 2,
+  expanded = 3,
+  gap = '1rem',
+  className = '',
+  ...props
+}) {
+  return (
+    <div
+      {...props}
+      className={cx('ds-adaptive-grid', className)}
+      style={{
+        '--ds-grid-compact': compact,
+        '--ds-grid-medium': medium,
+        '--ds-grid-expanded': expanded,
+        '--ds-grid-gap': gap,
+        ...props.style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function ProgressSteps({ steps, current = 0, className = '' }) {
+  return (
+    <ol className={cx('ds-progress-steps', className)} style={{ '--ds-step-count': steps.length }} aria-label="Progreso">
+      {steps.map((step, index) => {
+        const state = index < current ? 'complete' : index === current ? 'active' : 'upcoming';
+        return (
+          <li key={step.id || step.label} className="ds-progress-steps__item" data-state={state} aria-current={state === 'active' ? 'step' : undefined}>
+            <span className="ds-progress-steps__marker" aria-hidden="true">{index + 1}</span>
+            <span className="ds-progress-steps__label">{step.label}</span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}

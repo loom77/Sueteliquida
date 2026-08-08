@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { getNextDrawInfo } from '../utils/drawSchedule.js';
+import { getNextPlayableDrawInfo } from '../utils/drawSchedule.js';
 import { HomeFooter, HomeHero, HomeOverview, HomeQuickActions, PendingDraws, RecentPlays } from './HomeExperience.jsx';
 import PrimyCoreDialog from './PrimyCoreDialog.jsx';
 
@@ -12,7 +12,7 @@ const DAILY_LINES = [
 
 export default function DashboardView({ now, history, monthlyStats, totals, dueByGame, drawOverview, onGenerate, onAddExternal, onOpenPlays, onExplore, onCheckAll, checking, displayName = '' }) {
   const dueTotal = Object.values(dueByGame).reduce((sum, count) => sum + count, 0);
-  const nextDraw = useMemo(() => getNextDrawInfo('primitiva', now), [now]);
+  const nextDraw = useMemo(() => getNextPlayableDrawInfo('primitiva', now), [now]);
   const dailyLine = DAILY_LINES[new Date(now).getDate() % DAILY_LINES.length];
   const [coreOpen, setCoreOpen] = useState(false);
 

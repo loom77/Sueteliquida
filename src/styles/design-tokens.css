@@ -1,65 +1,150 @@
-/* Primy v16 — visual foundation tokens
-   These variables are the single source of truth for brand, surfaces,
-   spacing, radii, shadows and motion. Existing v15 variables remain mapped
-   for backwards compatibility while the interface is progressively migrated. */
+/* PRIMY v18.2 — Android-first design tokens.
+   Shared by the web implementation and the future Jetpack Compose theme. */
 
 :root {
+  /* Brand */
   --ds-brand-950: #042d1d;
   --ds-brand-900: #075438;
   --ds-brand-800: #09623c;
   --ds-brand-700: #0b7a49;
   --ds-brand-600: #0d8d50;
   --ds-brand-500: #18a566;
+  --ds-brand-300: #86d7aa;
   --ds-brand-200: #bfe9cf;
   --ds-brand-100: #ddf7e8;
   --ds-brand-50: #eaf7f1;
   --ds-accent: #ffd052;
+  --ds-accent-container: #fff1b8;
   --ds-ivory: #fffdf7;
   --ds-cream: #fbf8ef;
   --ds-ink: #132238;
   --ds-ink-soft: #4f6058;
+  --ds-error: #b4233d;
+  --ds-error-container: #ffe9ed;
+  --ds-success: #087347;
+  --ds-success-container: #daf5e6;
+  --ds-warning: #805f00;
+  --ds-warning-container: #fff2c4;
 
-  --ds-surface-page: rgb(var(--c-app));
-  --ds-surface-section: rgb(var(--c-surface));
-  --ds-surface-inset: rgb(var(--c-muted));
-  --ds-surface-brand: var(--ds-brand-700);
+  /* Material 3 semantic aliases for Compose parity */
+  --md-sys-color-primary: var(--ds-brand-700);
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: var(--ds-brand-100);
+  --md-sys-color-on-primary-container: var(--ds-brand-950);
+  --md-sys-color-secondary: #52645b;
+  --md-sys-color-on-secondary: #ffffff;
+  --md-sys-color-secondary-container: #dce9e1;
+  --md-sys-color-on-secondary-container: #11231a;
+  --md-sys-color-tertiary: #745b00;
+  --md-sys-color-on-tertiary: #ffffff;
+  --md-sys-color-tertiary-container: var(--ds-accent-container);
+  --md-sys-color-on-tertiary-container: #241a00;
+  --md-sys-color-error: var(--ds-error);
+  --md-sys-color-error-container: var(--ds-error-container);
+  --md-sys-color-background: rgb(var(--c-app));
+  --md-sys-color-on-background: rgb(var(--c-text-primary));
+  --md-sys-color-surface: rgb(var(--c-surface));
+  --md-sys-color-on-surface: rgb(var(--c-text-primary));
+  --md-sys-color-surface-variant: rgb(var(--c-muted));
+  --md-sys-color-on-surface-variant: rgb(var(--c-text-secondary));
+  --md-sys-color-outline: rgb(var(--c-border));
+  --md-sys-color-outline-variant: rgb(var(--c-border) / .7);
 
+  /* Surfaces */
+  --ds-surface-page: var(--md-sys-color-background);
+  --ds-surface-section: var(--md-sys-color-surface);
+  --ds-surface-inset: var(--md-sys-color-surface-variant);
+  --ds-surface-brand: var(--md-sys-color-primary);
+  --ds-surface-raised: color-mix(in srgb, var(--md-sys-color-surface) 96%, white);
+
+  /* 4dp spacing grid */
   --ds-space-1: .25rem;
   --ds-space-2: .5rem;
   --ds-space-3: .75rem;
   --ds-space-4: 1rem;
   --ds-space-5: 1.25rem;
   --ds-space-6: 1.5rem;
+  --ds-space-7: 1.75rem;
   --ds-space-8: 2rem;
   --ds-space-10: 2.5rem;
   --ds-space-12: 3rem;
+  --ds-space-16: 4rem;
 
-  --ds-radius-control: .75rem;
-  --ds-radius-card: 1rem;
-  --ds-radius-feature: 1.5rem;
+  /* Shape system */
+  --ds-radius-xs: .5rem;
+  --ds-radius-control: .875rem;
+  --ds-radius-card: 1.125rem;
+  --ds-radius-feature: 1.75rem;
+  --ds-radius-modal: 1.75rem;
   --ds-radius-pill: 999px;
 
-  --ds-shadow-soft: 0 10px 30px rgb(7 84 56 / .07);
-  --ds-shadow-lift: 0 18px 48px rgb(7 84 56 / .11);
-  --ds-shadow-focus: 0 0 0 4px rgb(24 165 102 / .18);
+  /* Elevation */
+  --ds-shadow-level-0: none;
+  --ds-shadow-level-1: 0 2px 8px rgb(19 34 56 / .06);
+  --ds-shadow-level-2: 0 10px 28px rgb(7 84 56 / .08);
+  --ds-shadow-level-3: 0 18px 44px rgb(7 84 56 / .12);
+  --ds-shadow-soft: var(--ds-shadow-level-2);
+  --ds-shadow-lift: var(--ds-shadow-level-3);
+  --ds-shadow-focus: 0 0 0 4px rgb(24 165 102 / .22);
 
-  --ds-motion-fast: 140ms;
-  --ds-motion-state: 200ms;
-  --ds-motion-panel: 260ms;
-  --ds-motion-page: 240ms;
-  --ds-motion-celebration: 900ms;
-  --ds-ease-standard: cubic-bezier(.2, .8, .2, 1);
-  --ds-ease-emphasized: cubic-bezier(.16, 1, .3, 1);
+  /* Motion */
+  --ds-motion-fast: 120ms;
+  --ds-motion-state: 180ms;
+  --ds-motion-panel: 240ms;
+  --ds-motion-page: 220ms;
+  --ds-motion-celebration: 800ms;
+  --ds-ease-standard: cubic-bezier(.2, 0, 0, 1);
+  --ds-ease-emphasized: cubic-bezier(.2, .8, .2, 1);
 
-  --ds-control-height-sm: 2.5rem;
-  --ds-control-height-md: 2.875rem;
-  --ds-control-height-lg: 3.25rem;
+  /* Android touch and layout */
+  --ds-touch-target: 3rem;
+  --ds-control-height-sm: 3rem;
+  --ds-control-height-md: 3rem;
+  --ds-control-height-lg: 3.5rem;
+  --ds-content-compact: 37.5rem;
+  --ds-content-medium: 52.5rem;
+  --ds-content-expanded: 75rem;
+  --ds-nav-height: 5rem;
+
+  /* Typography */
+  --ds-type-display-large: clamp(2.25rem, 7vw, 4rem);
+  --ds-type-headline-large: clamp(1.75rem, 4vw, 2.5rem);
+  --ds-type-headline-medium: clamp(1.35rem, 3vw, 1.75rem);
+  --ds-type-title-large: 1.25rem;
+  --ds-type-title-medium: 1rem;
+  --ds-type-body-large: 1rem;
+  --ds-type-body-medium: .875rem;
+  --ds-type-label-large: .875rem;
+  --ds-type-label-medium: .75rem;
 }
 
 html[data-theme='dark'] {
-  --ds-surface-page: rgb(var(--c-app));
-  --ds-surface-section: rgb(var(--c-surface));
-  --ds-surface-inset: rgb(var(--c-muted));
-  --ds-shadow-soft: 0 12px 34px rgb(0 0 0 / .20);
-  --ds-shadow-lift: 0 22px 54px rgb(0 0 0 / .28);
+  --md-sys-color-primary: #62d696;
+  --md-sys-color-on-primary: #003920;
+  --md-sys-color-primary-container: #075438;
+  --md-sys-color-on-primary-container: #d9f8e7;
+  --md-sys-color-secondary: #bdd0c3;
+  --md-sys-color-on-secondary: #283a30;
+  --md-sys-color-secondary-container: #3e5146;
+  --md-sys-color-on-secondary-container: #d9ede0;
+  --md-sys-color-tertiary: #e8c54f;
+  --md-sys-color-on-tertiary: #3c2f00;
+  --md-sys-color-tertiary-container: #574500;
+  --md-sys-color-on-tertiary-container: #ffe488;
+  --md-sys-color-background: rgb(var(--c-app));
+  --md-sys-color-on-background: rgb(var(--c-text-primary));
+  --md-sys-color-surface: rgb(var(--c-surface));
+  --md-sys-color-on-surface: rgb(var(--c-text-primary));
+  --md-sys-color-surface-variant: rgb(var(--c-muted));
+  --md-sys-color-on-surface-variant: rgb(var(--c-text-secondary));
+  --md-sys-color-outline: rgb(var(--c-border));
+  --ds-surface-page: var(--md-sys-color-background);
+  --ds-surface-section: var(--md-sys-color-surface);
+  --ds-surface-inset: var(--md-sys-color-surface-variant);
+  --ds-surface-raised: rgb(var(--c-surface));
+  --ds-shadow-level-1: 0 3px 10px rgb(0 0 0 / .18);
+  --ds-shadow-level-2: 0 12px 34px rgb(0 0 0 / .22);
+  --ds-shadow-level-3: 0 22px 54px rgb(0 0 0 / .30);
+  --ds-shadow-soft: var(--ds-shadow-level-2);
+  --ds-shadow-lift: var(--ds-shadow-level-3);
 }

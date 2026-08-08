@@ -1,5 +1,5 @@
 import { getGameConfig } from './gameConfig.js';
-import { getNextDrawInfo } from './drawSchedule.js';
+import { getNextPlayableDrawInfo } from './drawSchedule.js';
 import { coverageMetrics } from './portfolioOptimizer.js';
 import { bonolotoEquivalentBets, isBonolotoSystemSize } from './bonoloto.js';
 import { gordoEquivalentBets, isGordoSystemSize } from './gordoPrimitiva.js';
@@ -262,7 +262,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     const valid = isBonoloto ? isBonolotoSystemSize(systemSize) : isGordoSystemSize(systemSize);
     if (!valid) throw new Error(`Selecciona una múltiple válida de ${game.name}.`);
     const numbers = randomSelection(game, systemSize, rng);
-    const draw = getNextDrawInfo(gameId);
+    const draw = getNextPlayableDrawInfo(gameId);
     const equivalentBets = isBonoloto ? bonolotoEquivalentBets(systemSize) : gordoEquivalentBets(systemSize);
     const extra = isBonoloto ? null : rng.int(game.extra.min, game.extra.max);
     return {
@@ -323,7 +323,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
   const extras = game.extra?.scope === 'receipt'
     ? Array(selected.length).fill(receiptExtra)
     : distributeExtras(game, selected.length, rng);
-  const draw = getNextDrawInfo(gameId);
+  const draw = getNextPlayableDrawInfo(gameId);
   const playId = crypto.randomUUID();
   const metrics = coverageMetrics(gameId, selected);
   const columns = selected.map((candidate, index) => ({

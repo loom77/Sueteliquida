@@ -1,0 +1,15 @@
+component,web_implementation,compose_target,status,priority
+Primary action,Button primary,Button,Implemented,P0
+Secondary action,Button secondary,OutlinedButton,Implemented,P0
+Text action,Button ghost,TextButton,Implemented,P0
+Icon action,IconButton,IconButton/FilledTonalIconButton,Implemented,P0
+Surface,Card,Card/ElevatedCard,Implemented,P0
+Filter/status,Chip,FilterChip/AssistChip,Implemented,P0
+Monthly KPI,MetricCard,Custom accessible Card,Implemented,P0
+Adaptive content,AdaptiveGrid,LazyVerticalGrid/Adaptive panes,Implemented,P0
+Creation progress,ProgressSteps,Custom stepper,Implemented,P0
+Single selection,SegmentedControl,SingleChoiceSegmentedButtonRow,Existing,P1
+Notices,StatusNotice,Semantic banner/Card,Existing,P0
+Overflow actions,ActionMenu,DropdownMenu,Existing,P1
+Empty state,EmptyState,Custom empty state,Existing,P1
+Bottom navigation,AppShell mobile nav,NavigationBar,Implemented,P0

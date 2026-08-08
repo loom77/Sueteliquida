@@ -1,0 +1,264 @@
+/* PRIMY v18.2 — concrete Android-first component layer.
+   Loaded last so it can normalise legacy web styles without destructive rewrites. */
+
+html {
+  accent-color: var(--md-sys-color-primary);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
+}
+
+button,
+a,
+input,
+select,
+textarea,
+summary {
+  touch-action: manipulation;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-shadow-focus);
+}
+
+.ds-button {
+  min-height: var(--ds-touch-target);
+  border-radius: var(--ds-radius-control);
+  padding-inline: 1.1rem;
+  font-size: var(--ds-type-label-large);
+  font-weight: 760;
+  letter-spacing: .005em;
+}
+
+.ds-button--sm,
+.ds-button--md { min-height: var(--ds-touch-target); }
+.ds-button--lg { min-height: var(--ds-control-height-lg); }
+.ds-button--primary { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.ds-button--secondary { border-color: var(--md-sys-color-outline); background: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); }
+.ds-button--ghost { color: var(--md-sys-color-primary); }
+
+.ds-icon-button {
+  display: inline-grid;
+  width: var(--ds-touch-target);
+  height: var(--ds-touch-target);
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--ds-radius-pill);
+  color: var(--md-sys-color-on-surface-variant);
+  transition: background-color var(--ds-motion-state) var(--ds-ease-standard), color var(--ds-motion-state) var(--ds-ease-standard), transform var(--ds-motion-fast) var(--ds-ease-standard);
+}
+.ds-icon-button:hover { background: var(--md-sys-color-surface-variant); color: var(--md-sys-color-primary); }
+.ds-icon-button:active { transform: scale(.96); }
+.ds-icon-button[data-selected='true'] { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+
+.ds-card {
+  border-color: var(--md-sys-color-outline-variant);
+  border-radius: var(--ds-radius-card);
+  background: var(--md-sys-color-surface);
+  box-shadow: var(--ds-shadow-level-1);
+}
+.ds-card--feature { border-radius: var(--ds-radius-feature); box-shadow: var(--ds-shadow-level-3); }
+.ds-card--inset { background: var(--md-sys-color-surface-variant); }
+.ds-card--interactive:hover { box-shadow: var(--ds-shadow-level-2); }
+
+.ds-chip {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  border: 1px solid var(--md-sys-color-outline);
+  border-radius: var(--ds-radius-pill);
+  background: var(--md-sys-color-surface);
+  padding: .35rem .75rem;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: var(--ds-type-label-medium);
+  font-weight: 750;
+}
+.ds-chip[data-selected='true'] { border-color: transparent; background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+.ds-chip--accent { border-color: transparent; background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
+.ds-chip--success { border-color: transparent; background: var(--ds-success-container); color: var(--ds-success); }
+.ds-chip--error { border-color: transparent; background: var(--ds-error-container); color: var(--ds-error); }
+
+.ds-metric-card {
+  display: grid;
+  min-height: 6rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .75rem;
+  width: 100%;
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--ds-radius-card);
+  background: var(--md-sys-color-surface);
+  padding: 1rem;
+  color: var(--md-sys-color-on-surface);
+  text-align: left;
+  box-shadow: var(--ds-shadow-level-1);
+  transition: transform var(--ds-motion-fast) var(--ds-ease-standard), box-shadow var(--ds-motion-state) var(--ds-ease-standard), border-color var(--ds-motion-state) var(--ds-ease-standard);
+}
+.ds-metric-card:hover { transform: translateY(-1px); border-color: var(--ds-brand-200); box-shadow: var(--ds-shadow-level-2); }
+.ds-metric-card__label { display: block; color: var(--md-sys-color-on-surface-variant); font-size: var(--ds-type-label-medium); font-weight: 720; }
+.ds-metric-card__value { display: block; margin-top: .35rem; font-family: var(--font-display); font-size: clamp(1.15rem, 3vw, 1.45rem); font-weight: 820; font-variant-numeric: tabular-nums; letter-spacing: -.025em; }
+.ds-metric-card__detail { display: block; margin-top: .25rem; color: var(--md-sys-color-on-surface-variant); font-size: .7rem; line-height: 1.4; }
+.ds-metric-card__icon { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border-radius: 1rem; background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+.ds-metric-card[data-tone='positive'] .ds-metric-card__value,
+.ds-metric-card[data-tone='won'] .ds-metric-card__value { color: var(--ds-success); }
+.ds-metric-card[data-tone='negative'] .ds-metric-card__value { color: var(--ds-error); }
+.ds-metric-card[data-tone='spent'] .ds-metric-card__icon { background: var(--md-sys-color-tertiary-container); color: var(--md-sys-color-on-tertiary-container); }
+.ds-metric-card[data-tone='negative'] .ds-metric-card__icon { background: var(--ds-error-container); color: var(--ds-error); }
+
+.ds-adaptive-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--ds-grid-compact, 1), minmax(0, 1fr));
+  gap: var(--ds-grid-gap, 1rem);
+}
+
+.ds-progress-steps {
+  display: grid;
+  grid-template-columns: repeat(var(--ds-step-count, 4), minmax(0, 1fr));
+  gap: .5rem;
+  padding: 0;
+  list-style: none;
+}
+.ds-progress-steps__item { min-width: 0; }
+.ds-progress-steps__marker {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  border-radius: var(--ds-radius-pill);
+  background: var(--md-sys-color-surface-variant);
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: .75rem;
+  font-weight: 820;
+}
+.ds-progress-steps__item[data-state='active'] .ds-progress-steps__marker,
+.ds-progress-steps__item[data-state='complete'] .ds-progress-steps__marker { background: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+.ds-progress-steps__label { display: block; margin-top: .4rem; overflow: hidden; color: var(--md-sys-color-on-surface-variant); font-size: .68rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.ds-progress-steps__item[data-state='active'] .ds-progress-steps__label { color: var(--md-sys-color-on-surface); }
+
+.primy-mobile-header {
+  min-height: 4.5rem;
+  border-bottom-color: var(--md-sys-color-outline-variant);
+  background: color-mix(in srgb, var(--md-sys-color-surface) 94%, transparent);
+  padding-inline: max(1rem, env(safe-area-inset-left)) max(1rem, env(safe-area-inset-right));
+  backdrop-filter: blur(20px);
+}
+
+.primy-mobile-nav {
+  min-height: calc(var(--ds-nav-height) + env(safe-area-inset-bottom));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-top-color: var(--md-sys-color-outline-variant);
+  background: color-mix(in srgb, var(--md-sys-color-surface) 96%, transparent);
+  padding: .35rem max(.35rem, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(.35rem, env(safe-area-inset-left));
+  box-shadow: 0 -8px 28px rgb(19 34 56 / .08);
+  backdrop-filter: blur(20px);
+}
+.primy-mobile-nav__item {
+  min-height: 4.25rem;
+  border-radius: 1rem;
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: .69rem;
+  font-weight: 720;
+}
+.primy-mobile-nav__icon { width: 3rem; height: 2rem; border-radius: var(--ds-radius-pill); }
+.primy-mobile-nav__item[data-active='true'] { color: var(--md-sys-color-on-surface); }
+.primy-mobile-nav__item[data-active='true'] .primy-mobile-nav__icon { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+.primy-mobile-nav__badge { top: .2rem; background: var(--md-sys-color-error); color: white; }
+
+.primy-sidebar {
+  border-right-color: var(--md-sys-color-outline-variant);
+  background: var(--md-sys-color-surface);
+}
+.primy-nav-item { min-height: var(--ds-touch-target); border-radius: var(--ds-radius-control); }
+.primy-nav-item[data-active='true'] { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); }
+
+.primy-home-v18__hero {
+  border-radius: var(--ds-radius-feature);
+  background:
+    radial-gradient(circle at 92% 8%, rgb(255 208 82 / .28), transparent 17rem),
+    radial-gradient(circle at 4% 100%, rgb(24 165 102 / .16), transparent 19rem),
+    linear-gradient(145deg, var(--ds-ivory) 0%, #f2fbf6 58%, #fff8df 100%);
+}
+.primy-home-v18__title { font-size: var(--ds-type-display-large); }
+.primy-home-v18__mascot img { border-radius: 1.5rem; }
+.primy-home-v18__process,
+.primy-home-v18__games { border-radius: var(--ds-radius-feature); }
+.primy-home-v18__game-card { min-height: var(--ds-control-height-lg); border-radius: var(--ds-radius-card); }
+.primy-home-v18__all-games,
+.primy-home-v18__section-badge { min-height: var(--ds-touch-target); }
+
+.primy-monthly-home__metric { display: none; }
+.primy-monthly-home__metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+@media (max-width: 599px) {
+  .ds-section-header,
+  .ds-page-header { flex-direction: column; }
+  .ds-section-header__action,
+  .ds-page-header__action { width: 100%; }
+  .ds-section-header__action .ds-button,
+  .ds-page-header__action .ds-button { width: 100%; }
+  .ds-adaptive-grid { grid-template-columns: repeat(var(--ds-grid-compact, 1), minmax(0, 1fr)); }
+  .ds-progress-steps { overflow-x: auto; grid-template-columns: repeat(var(--ds-step-count, 4), minmax(7rem, 1fr)); padding-bottom: .25rem; scrollbar-width: none; }
+  .ds-progress-steps::-webkit-scrollbar { display: none; }
+  .primy-main-content { padding-bottom: calc(var(--ds-nav-height) + 1.5rem + env(safe-area-inset-bottom)) !important; }
+  .primy-home-v18__hero { min-height: auto; }
+  .primy-home-v18__mascot img { max-height: 15rem; }
+  .primy-monthly-home__metrics { grid-template-columns: 1fr; }
+}
+
+@media (min-width: 600px) {
+  .ds-adaptive-grid { grid-template-columns: repeat(var(--ds-grid-medium, 2), minmax(0, 1fr)); }
+  .primy-monthly-home__metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 840px) {
+  .ds-adaptive-grid { grid-template-columns: repeat(var(--ds-grid-expanded, 3), minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+  .primy-main-content { margin-left: 16rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-button,
+  .ds-card--interactive,
+  .ds-icon-button,
+  .ds-metric-card,
+  .primy-mobile-nav__item { transition-duration: 1ms !important; }
+}
+
+.primy-journey-rail--v18 {
+  width: min(100%, 25rem);
+  flex: 0 1 25rem;
+}
+.primy-journey-rail--v18 .ds-progress-steps__item {
+  position: relative;
+}
+.primy-journey-rail--v18 .ds-progress-steps__item:not(:last-child)::after {
+  position: absolute;
+  top: 1rem;
+  left: 2.35rem;
+  width: calc(100% - 2.1rem);
+  height: 2px;
+  background: var(--md-sys-color-outline-variant);
+  content: '';
+}
+.primy-journey-rail--v18 .ds-progress-steps__item[data-state='complete']:not(:last-child)::after {
+  background: var(--md-sys-color-primary);
+}
+
+@media (max-width: 599px) {
+  .primy-journey-header { gap: 1.25rem; }
+  .primy-journey-rail--v18 { width: 100%; flex-basis: auto; }
+  .primy-journey-rail--v18 .ds-progress-steps__item:not(:last-child)::after { display: none; }
+}
