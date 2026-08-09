@@ -57,7 +57,7 @@ test('the official owl is the cross-platform mascot source', () => {
   assert.ok(fs.existsSync(new URL('../public/mascot/primy-official-v18.png', import.meta.url)));
 });
 
-test('release is v18.7.0', () => {
-  assert.equal(pkg.version, '18.7.0');
-  assert.match(read('../src/utils/release.js'), /18\.7\.0/);
+test('release is v18.7.1', () => {
+  assert.equal(pkg.version, '18.7.1');
+  assert.match(read('../src/utils/release.js'), /18\.7\.1/);
 });

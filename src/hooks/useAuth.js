@@ -6,6 +6,7 @@ function redirectUrl(path) {
 }
 
 const WEB_TEST_EMAIL = String(import.meta.env.VITE_WEB_TEST_EMAIL || '').trim().toLowerCase();
+const AUTH_BOOTSTRAP_TIMEOUT_MS = 8_000;
 
 function cleanDisplayName(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 60);
@@ -76,8 +77,21 @@ export function useAuth() {
     }
 
     let active = true;
-    supabase.auth.getSession().then(({ data, error }) => {
+    let bootstrapTimer;
+    const bootstrapTimeout = new Promise(resolve => {
+      bootstrapTimer = window.setTimeout(() => resolve({ timedOut: true }), AUTH_BOOTSTRAP_TIMEOUT_MS);
+    });
+
+    Promise.race([supabase.auth.getSession(), bootstrapTimeout]).then(result => {
       if (!active) return;
+      window.clearTimeout(bootstrapTimer);
+      if (result?.timedOut) {
+        setNotice('No se ha podido recuperar la sesión guardada. Vuelve a iniciar sesión.');
+        setRecoveryMode(false);
+        setLoading(false);
+        return;
+      }
+      const { data, error } = result;
       if (!error) {
         setSession(data.session || null);
         if (data.session?.user) hydrateProfile(data.session.user);
@@ -102,6 +116,7 @@ export function useAuth() {
 
     return () => {
       active = false;
+      window.clearTimeout(bootstrapTimer);
       subscription.subscription.unsubscribe();
     };
   }, [hydrateProfile]);

@@ -131,5 +131,5 @@ test('web signup remains closed while the Android bridge advances', () => {
   const auth = read('../src/components/AuthScreen.jsx');
   assert.match(auth, /Registro web temporalmente cerrado/);
   assert.doesNotMatch(auth, /onSignUp/);
-  assert.equal(JSON.parse(read('../package.json')).version, '18.7.0');
+  assert.equal(JSON.parse(read('../package.json')).version, '18.7.1');
 });

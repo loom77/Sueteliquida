@@ -6,10 +6,12 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'prompt',
+      registerType: 'autoUpdate',
       injectRegister: null,
       includeAssets: ['icon-192x192.png', 'icon-512x512.png', 'apple-touch-icon.png', 'favicon.svg', 'primy-mark.svg', 'primy-logo.svg', 'offline.html', 'mascot/*.webp', 'game-icons/*.png'],
       workbox: {
+        skipWaiting: true,
+        clientsClaim: true,
         cleanupOutdatedCaches: true,
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//],

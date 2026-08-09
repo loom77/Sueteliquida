@@ -90,6 +90,12 @@ export default function AuthScreen({ auth, initialMode = 'signin' }) {
             <h2 className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-primary sm:text-[2.55rem]">{title}</h2>
             <p className="mt-3 max-w-lg text-sm leading-6 text-secondary">{subtitle}</p>
 
+            {auth.notice && (
+              <p role="status" className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold leading-6 text-amber-950">
+                {auth.notice}
+              </p>
+            )}
+
             {mode === 'signin' && (
               <div className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950" role="note">
                 <strong>Registro web temporalmente cerrado.</strong> No se pueden crear cuentas nuevas desde esta versión web de pruebas.

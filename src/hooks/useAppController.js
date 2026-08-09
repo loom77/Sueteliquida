@@ -7,7 +7,6 @@ import { useNow } from './useNow.js';
 import { usePreferences } from './usePreferences.js';
 import { useAppRouter } from './useAppRouter.js';
 import { useBootstrapData } from './useBootstrapData.js';
-import { usePwaUpdate } from './usePwaUpdate.js';
 import { useToast } from './useToast.js';
 import { useGenerationController } from './useGenerationController.js';
 import { usePlayActions } from './usePlayActions.js';
@@ -62,16 +61,6 @@ export function useAppController(auth) {
   const selectedDraw = useMemo(() => drawOptions.find(draw => draw.drawDateKey === selectedDrawKey) || drawOptions[0] || null, [drawOptions, selectedDrawKey]);
   const historyStore = useGameHistory(auth.user);
   const { history } = historyStore;
-
-  usePwaUpdate({
-    onNeedRefresh: update => showToast({
-      message: 'Hay una nueva versión de Primy disponible.',
-      actionLabel: 'Actualizar ahora',
-      action: update,
-      duration: 12_000,
-    }),
-    onOfflineReady: () => showToast('Primy está lista para funcionar sin conexión en las funciones locales.'),
-  });
 
   useEffect(() => {
     document.title = `${VIEW_TITLES[view] || 'Primy'} · Primy`;

@@ -1,3 +1,12 @@
+# PRIMY Web v18.7.1 — PWA Recovery Hotfix
+
+- Aggiornamento PWA automatico prima dell'autenticazione.
+- Attivazione immediata del nuovo service worker e pulizia delle cache obsolete.
+- Timeout sicuro del ripristino Supabase per evitare `Abriendo tu cuenta…` infinito.
+- Contratto dati Web/Android invariato a `18.7.0`.
+
+---
+
 # PRIMY Web v18.4.5 — Android Bonoloto Bridge
 
 - Release bumped to 18.4.5.

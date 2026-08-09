@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from './hooks/useAuth.js';
+import { usePwaUpdate } from './hooks/usePwaUpdate.js';
 import { useAppController } from './hooks/useAppController.js';
 import AppShell from './components/AppShell.jsx';
 import AuthScreen from './components/AuthScreen.jsx';
@@ -38,6 +39,7 @@ function AuthLoadingScreen() {
 }
 
 export default function App() {
+  usePwaUpdate();
   const auth = useAuth();
   if (auth.loading) return <AuthLoadingScreen/>;
   if (auth.recoveryMode) return <AuthScreen auth={auth} initialMode="update-password"/>;
