@@ -1,9 +1,9 @@
 import React, { memo } from 'react';
-import { formatDrawDate, formatDrawTime, formatSyncTime } from '../utils/drawSchedule.js';
+import { formatSyncTime } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
-import { ArrowRightIcon, EditIcon, RefreshIcon, SparklesIcon } from './Icons.jsx';
-import { ArchiveCreativeIcon, CalendarCreativeIcon, GamesCreativeIcon } from './CreativeUiIcon.jsx';
-import { ActionCard, Button, Card, Eyebrow, PrimaryButton, SecondaryButton, SectionHeader, StatusNotice } from './DesignSystem.jsx';
+import { ArrowRightIcon, ChartIcon, EditIcon, RefreshIcon, SparklesIcon, WalletIcon } from './Icons.jsx';
+import { ArchiveCreativeIcon, GamesCreativeIcon } from './CreativeUiIcon.jsx';
+import { ActionCard, Button, Card, Eyebrow, MetricCard, PrimaryButton, SecondaryButton, SectionHeader, StatusNotice } from './DesignSystem.jsx';
 import GameIdentity from './GameIdentity.jsx';
 import { PrimyMascot } from './PrimyMascot.jsx';
 
@@ -20,7 +20,6 @@ const HOME_STEPS = [
 const FEATURED_GAME_IDS = ['primitiva', 'euromillones', 'bonoloto', 'gordoprimitiva'];
 
 export const HomeHero = memo(function HomeHero({
-  nextDraw,
   dailyLine,
   displayName = '',
   onGenerate,
@@ -36,21 +35,8 @@ export const HomeHero = memo(function HomeHero({
           <h1 id="home-hero-title" className="primy-home-v16__title primy-home-v18__title">Tu próxima jugada empieza aquí</h1>
           <p className="primy-home-v16__lead primy-home-v18__lead">{dailyLine}</p>
 
-          {nextDraw && (
-            <div className="primy-home-v16__next primy-home-v18__next" aria-label="Próximo sorteo de La Primitiva">
-              <span className="primy-home-v16__next-icon" aria-hidden="true"><CalendarCreativeIcon /></span>
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[.12em] text-secondary">Próximo sorteo</p>
-                <p className="mt-1 text-sm font-semibold text-primary">
-                  <span className="capitalize">{formatDrawDate(nextDraw.drawDateTimeISO, { includeYear: false })}</span>
-                  {' · '}{formatDrawTime(nextDraw.drawDateTimeISO)}
-                </p>
-              </div>
-            </div>
-          )}
-
           <div className="primy-home-v16__actions primy-home-v18__hero-actions">
-            <PrimaryButton onClick={() => onGenerate('primitiva')} icon={SparklesIcon}>Preparar una jugada</PrimaryButton>
+            <PrimaryButton onClick={onExplore} icon={SparklesIcon}>Elegir juego</PrimaryButton>
             <SecondaryButton onClick={onAddExternal} icon={EditIcon}>Registrar boleto</SecondaryButton>
           </div>
 
@@ -152,9 +138,9 @@ export const PendingDraws = memo(function PendingDraws({ dueTotal, checking, onC
 export const HomeOverview = memo(function HomeOverview({ monthlyStats, onOpenPlays }) {
   const net = Number(monthlyStats?.net || 0);
   const metrics = [
-    { id: 'spent', label: 'Gastado este mes', value: euro.format(monthlyStats?.spent || 0), tone: 'spent' },
-    { id: 'won', label: 'Premios confirmados', value: euro.format(monthlyStats?.won || 0), tone: 'won' },
-    { id: 'net', label: 'Resultado neto', value: euro.format(net), tone: net > 0 ? 'positive' : net < 0 ? 'negative' : 'neutral' },
+    { id: 'spent', label: 'Gastado este mes', value: euro.format(monthlyStats?.spent || 0), tone: 'spent', icon: WalletIcon, detail: 'Solo boletos registrados como comprados' },
+    { id: 'won', label: 'Premios confirmados', value: euro.format(monthlyStats?.won || 0), tone: 'won', icon: SparklesIcon, detail: 'Verificados o confirmados manualmente' },
+    { id: 'net', label: 'Resultado neto', value: euro.format(net), tone: net > 0 ? 'positive' : net < 0 ? 'negative' : 'neutral', icon: ChartIcon, detail: 'Premios menos gasto del mes' },
   ];
   return (
     <Card tone="inset" padding="sm" className="primy-monthly-home mt-5" aria-label={`Resumen económico de ${monthlyStats?.monthLabel || 'este mes'}`}>
@@ -164,10 +150,16 @@ export const HomeOverview = memo(function HomeOverview({ monthlyStats, onOpenPla
       </div>
       <div className="primy-monthly-home__metrics">
         {metrics.map(metric => (
-          <button type="button" key={metric.id} className="primy-monthly-home__metric" data-tone={metric.tone} onClick={onOpenPlays}>
-            <span>{metric.label}</span>
-            <strong>{metric.value}</strong>
-          </button>
+          <MetricCard
+            key={metric.id}
+            label={metric.label}
+            value={metric.value}
+            detail={metric.detail}
+            tone={metric.tone}
+            icon={metric.icon}
+            onClick={onOpenPlays}
+            aria-label={`${metric.label}: ${metric.value}. Abrir detalle del mes`}
+          />
         ))}
       </div>
       <p className="primy-monthly-home__note">Solo incluye boletos comprados y premios confirmados. Toca una cifra para ver cómo se calcula.</p>

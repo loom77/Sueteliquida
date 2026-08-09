@@ -1,5 +1,5 @@
 import { getGameConfig } from './gameConfig.js';
-import { getNextDrawInfo } from './drawSchedule.js';
+import { getNextPlayableDrawInfo } from './drawSchedule.js';
 import { scoreCombination, selectPortfolio } from './historyAnalytics.js';
 
 function secureRandom(min, max) {
@@ -38,7 +38,7 @@ function supplement(game) {
 
 function baseTicket(gameId, ticket, method, metadata = {}) {
   const game = getGameConfig(gameId);
-  const draw = getNextDrawInfo(game.id);
+  const draw = getNextPlayableDrawInfo(game.id);
   return {
     id: crypto.randomUUID(),
     gameId: game.id,

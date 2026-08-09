@@ -38,9 +38,9 @@ test('short Android viewports disable sticky action to avoid trapped content', (
   assert.match(css, /env\(safe-area-inset-bottom\)/);
 });
 
-test('release is v18.0.3', () => {
+test('release is v18.7.0', () => {
   const pkg = JSON.parse(read('package.json'));
   const release = read('src/utils/release.js');
-  assert.equal(pkg.version, '18.0.3');
-  assert.match(release, /18\.0\.3/);
+  assert.equal(pkg.version, '18.7.0');
+  assert.match(release, /18\.7\.0/);
 });

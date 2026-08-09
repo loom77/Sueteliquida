@@ -12,7 +12,7 @@ import { HorseCreativeIcon, NationalCreativeIcon, NumbersCreativeIcon, SportsCre
 import { Eyebrow, PrimaryButton, SecondaryButton } from './DesignSystem.jsx';
 import GameIdentity from './GameIdentity.jsx';
 import { gameThemeStyle } from '../utils/gameVisualTheme.js';
-import { formatDrawDate, formatDrawTime, getNextDrawInfo } from '../utils/drawSchedule.js';
+import { formatDrawDate, formatDrawTime, getUpcomingPlayableDraws } from '../utils/drawSchedule.js';
 import { gameRuleSummary, getGameConfig } from '../utils/gameConfig.js';
 import {
   ACTIVE_GAME_IDS,
@@ -47,7 +47,8 @@ const GameCard = memo(function GameCard({ game, now, onCreate, onRegister, onOpe
   const family = getCatalogFamily(game.familyId);
   const active = Boolean(game.capabilities.createCombination);
   const implementedGame = active ? getGameConfig(game.id) : null;
-  const draw = active && game.familyId !== 'sports' ? getNextDrawInfo(game.id, now) : null;
+  const upcomingDraws = active && game.familyId !== 'sports' && game.familyId !== 'horse' ? getUpcomingPlayableDraws(game.id, now, 2) : [];
+  const draw = upcomingDraws[0] || null;
 
   return (
     <article className="primy-game-card" style={gameThemeStyle(game.id)} data-game={game.id}>
@@ -68,7 +69,12 @@ const GameCard = memo(function GameCard({ game, now, onCreate, onRegister, onOpe
         {draw && (
           <div className="primy-game-card__draw">
             <CalendarIcon width="19" height="19" aria-hidden="true"/>
-            <div><span>Próximo sorteo</span><strong>{formatDrawDate(draw.drawDateTimeISO, { includeYear: false })}</strong><small>{formatDrawTime(draw.drawDateTimeISO)}</small></div>
+            <div>
+              <span>Próximos sorteos</span>
+              <strong>{formatDrawDate(draw.drawDateTimeISO, { includeYear: false })} · {formatDrawTime(draw.drawDateTimeISO)}</strong>
+              {upcomingDraws[1] && <small>Después: {formatDrawDate(upcomingDraws[1].drawDateTimeISO, { includeYear: false })} · {formatDrawTime(upcomingDraws[1].drawDateTimeISO)}</small>}
+              {!upcomingDraws[1] && <small>La fecha exacta se confirma al preparar.</small>}
+            </div>
           </div>
         )}
 

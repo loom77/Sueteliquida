@@ -46,7 +46,8 @@ function simpleOutcomes(raw = {}) {
 
 export function createSimpleQuinigolPlay({ round: rawRound, selection: rawSelection, createdAt = new Date().toISOString() } = {}) {
   const round = sanitizeSportsRound(rawRound || {}, { expectedMatches: 6 });
-  const availability = sportsRoundAvailability(round, { expectedMatches: 6 });
+  const preparationNow = new Date(createdAt);
+  const availability = sportsRoundAvailability(round, { expectedMatches: 6, now: Number.isNaN(preparationNow.getTime()) ? new Date() : preparationNow });
   if (!availability.operational) throw new RangeError(availability.message);
   if (round.gameId !== 'quinigol') throw new RangeError('La jornada no pertenece a El Quinigol.');
 

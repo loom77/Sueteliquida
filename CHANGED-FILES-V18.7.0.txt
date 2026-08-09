@@ -1,0 +1,12 @@
+package.json
+src/utils/release.js
+src/utils/playModel.js
+src/utils/mobileContract.js
+public/offline.html
+api/mobile-config.js
+tests/mobileReadinessV18_7.test.js
+.github/workflows/web-ci.yml
+CHANGELOG-V18.7.0.md
+MOBILE-READINESS-CONTRACT-V18.7.0.md
+FINAL-VALIDATION-V18.7.0.md
+DEPLOY-HANDOFF-V18.7.0.md

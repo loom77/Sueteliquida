@@ -447,10 +447,11 @@ export function useGameHistory(user) {
         const settlement = settlePlayAgainstOfficialData(play, event.payload);
         if (!settlement.complete) {
           pending += 1;
+          const identityMismatch = ['OFFICIAL_DATE_MISMATCH', 'OFFICIAL_ROUND_MISMATCH'].includes(settlement.reason);
           const awaiting = {
             ...play,
             status: 'awaiting_check',
-            result: event.payload,
+            ...(identityMismatch ? {} : { result: event.payload }),
             metadata: {
               ...(play.metadata || {}),
               verificationPendingReason: settlement.reason || 'OFFICIAL_DATA_INCOMPLETE',

@@ -15,6 +15,7 @@ import { useResultChecking } from './useResultChecking.js';
 import { GAMES, getGameConfig } from '../utils/gameConfig.js';
 import { getDueByGame, getDueTotal, getMonthlyStats, getPurchasedTotals } from '../utils/appMetrics.js';
 import { createNationalPlay } from '../utils/nationalLottery.js';
+import { getUpcomingPlayableDraws } from '../utils/drawSchedule.js';
 import { createSimpleQuinielaPlay } from '../sports/quinielaPlay.js';
 import { createSimpleQuinigolPlay } from '../sports/quinigolPlay.js';
 import { createLototurfPlay, createQuintuplePlusPlay } from '../horse/plays.js';
@@ -28,11 +29,18 @@ const VIEW_TITLES = {
 };
 
 export function useAppController(auth) {
-  const { view, navigate } = useAppRouter();
+  const unsavedNavigationRef = useRef(false);
+  const [pendingUnsavedAction, setPendingUnsavedAction] = useState(null);
+  const { view, navigate: routerNavigate } = useAppRouter({
+    shouldBlockNavigation: nextView => unsavedNavigationRef.current && nextView !== 'generate',
+    onBlockedNavigation: nextView => setPendingUnsavedAction({ type: 'navigate', nextView }),
+  });
+  const navigate = useCallback((nextView, options) => routerNavigate(nextView, options), [routerNavigate]);
   const [activeGame, setActiveGame] = useState('primitiva');
   const [columnCount, setColumnCount] = useState(1);
   const [betType, setBetType] = useState('simple');
   const [systemSize, setSystemSize] = useState(7);
+  const [selectedDrawKey, setSelectedDrawKey] = useState('');
   const [manualOpen, setManualOpen] = useState(false);
   const [variantContext, setVariantContext] = useState(null);
   const [clearConfirmOpen, setClearConfirmOpen] = useState(false);
@@ -40,11 +48,18 @@ export function useAppController(auth) {
   const now = useNow(30_000);
   const { toast, showToast, clearToast } = useToast();
   const generation = useGenerationController({ view });
+  const hasUnsavedGeneratedPlay = Boolean(generation.latest && generation.saveState === 'unsaved');
+  unsavedNavigationRef.current = view === 'generate' && hasUnsavedGeneratedPlay;
   const { providerStatus, drawOverview } = useBootstrapData();
   const installPrompt = useInstallPrompt();
   const historyData = useHistoryData(activeGame, { enabled: view === 'settings' });
   const { preferences, updatePreferences, error: preferenceError } = usePreferences(auth.user);
   const game = getGameConfig(activeGame);
+  const drawOptions = useMemo(() => {
+    if (!game.drawDays?.length || game.model === 'national-decimo') return [];
+    return getUpcomingPlayableDraws(activeGame, now, 4);
+  }, [activeGame, game.drawDays, game.model, now]);
+  const selectedDraw = useMemo(() => drawOptions.find(draw => draw.drawDateKey === selectedDrawKey) || drawOptions[0] || null, [drawOptions, selectedDrawKey]);
   const historyStore = useGameHistory(auth.user);
   const { history } = historyStore;
 
@@ -63,6 +78,16 @@ export function useAppController(auth) {
   }, [view]);
 
   useEffect(() => {
+    if (!hasUnsavedGeneratedPlay || view !== 'generate') return undefined;
+    const handleBeforeUnload = event => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedGeneratedPlay, view]);
+
+  useEffect(() => {
     if (!auth.notice) return;
     showToast(auth.notice);
     auth.clearNotice();
@@ -74,7 +99,15 @@ export function useAppController(auth) {
     setActiveGame(preferences.defaultGame);
   }, [preferences.defaultGame]);
 
-  const selectGame = useCallback(gameId => {
+  useEffect(() => {
+    if (!drawOptions.length) {
+      if (selectedDrawKey) setSelectedDrawKey('');
+      return;
+    }
+    if (!drawOptions.some(draw => draw.drawDateKey === selectedDrawKey)) setSelectedDrawKey(drawOptions[0].drawDateKey);
+  }, [drawOptions, selectedDrawKey]);
+
+  const selectGameImmediate = useCallback(gameId => {
     if (!GAMES[gameId]) return;
     generation.cancel({ announce: false });
     generation.resetResult();
@@ -82,9 +115,19 @@ export function useAppController(auth) {
     setActiveGame(gameId);
     setBetType('simple');
     setSystemSize(7);
+    setSelectedDrawKey('');
     setColumnCount(current => Math.max(selectedGame.minSimpleBets || 1, Math.min(current, selectedGame.maxSimpleBets || 1)));
     setVariantContext(current => current?.gameId === gameId ? current : null);
   }, [generation]);
+
+  const selectGame = useCallback(gameId => {
+    if (!GAMES[gameId]) return;
+    if (hasUnsavedGeneratedPlay && gameId !== activeGame) {
+      setPendingUnsavedAction({ type: 'game', gameId });
+      return;
+    }
+    selectGameImmediate(gameId);
+  }, [activeGame, hasUnsavedGeneratedPlay, selectGameImmediate]);
 
   const openGenerate = useCallback(gameId => {
     if (gameId) selectGame(gameId);
@@ -92,8 +135,8 @@ export function useAppController(auth) {
   }, [navigate, selectGame]);
 
   const generate = useCallback(() => {
-    generation.generate({ activeGame, columnCount, variantContext, betType, systemSize });
-  }, [generation, activeGame, columnCount, variantContext, betType, systemSize]);
+    generation.generate({ activeGame, columnCount, variantContext, betType, systemSize, drawInfo: selectedDraw });
+  }, [generation, activeGame, columnCount, variantContext, betType, systemSize, selectedDraw]);
 
   const cancelGeneration = useCallback(() => generation.cancel({ announce: true }), [generation]);
 
@@ -169,6 +212,47 @@ export function useAppController(auth) {
     setSystemSize,
   });
 
+  const requestDiscardLatest = useCallback(() => {
+    if (hasUnsavedGeneratedPlay) {
+      setPendingUnsavedAction({ type: 'discard' });
+      return;
+    }
+    playActions.discardLatest();
+  }, [hasUnsavedGeneratedPlay, playActions]);
+
+  const requestSignOut = useCallback(() => {
+    if (hasUnsavedGeneratedPlay && view === 'generate') {
+      setPendingUnsavedAction({ type: 'signout' });
+      return;
+    }
+    auth.signOut();
+  }, [auth, hasUnsavedGeneratedPlay, view]);
+
+  const closeUnsavedGenerationConfirm = useCallback(() => setPendingUnsavedAction(null), []);
+
+  const confirmUnsavedGenerationLoss = useCallback(() => {
+    const action = pendingUnsavedAction;
+    if (!action) return;
+    setPendingUnsavedAction(null);
+
+    if (action.type === 'discard') {
+      playActions.discardLatest();
+      return;
+    }
+    if (action.type === 'game') {
+      selectGameImmediate(action.gameId);
+      return;
+    }
+
+    generation.resetResult();
+    setVariantContext(null);
+    if (action.type === 'navigate') {
+      routerNavigate(action.nextView, { force: true });
+      return;
+    }
+    if (action.type === 'signout') auth.signOut();
+  }, [auth, generation, pendingUnsavedAction, playActions, routerNavigate, selectGameImmediate]);
+
   const dueByGame = useMemo(() => getDueByGame(history), [history]);
   const dueTotal = useMemo(() => getDueTotal(dueByGame), [dueByGame]);
   const monthlyStats = useMemo(() => getMonthlyStats(history, now), [history, now]);
@@ -225,6 +309,9 @@ export function useAppController(auth) {
       setBetType,
       systemSize,
       setSystemSize,
+      drawOptions,
+      selectedDrawKey: selectedDraw?.drawDateKey || '',
+      onDrawChange: setSelectedDrawKey,
       onGenerate: generate,
       onPrepareNational: prepareNational,
       onPrepareQuiniela: prepareQuiniela,
@@ -241,7 +328,7 @@ export function useAppController(auth) {
       saveState: generation.saveState,
       onSaveDraft: () => playActions.saveLatest(false),
       onPurchase: purchaseData => playActions.saveLatest(true, purchaseData),
-      onDiscard: playActions.discardLatest,
+      onDiscard: requestDiscardLatest,
       onOpenPlays: () => navigate('plays'),
       onToast: showToast,
       variantLabel: variantContext?.label || '',
@@ -283,7 +370,8 @@ export function useAppController(auth) {
       displayName: auth.displayName,
       profileLoading: auth.profileLoading,
       onUpdateDisplayName: auth.updateDisplayName,
-      onSignOut: auth.signOut,
+      onSignOut: requestSignOut,
+      onDeleteAccount: auth.deleteAccount,
       syncStatus: historyStore.syncStatus,
       lastSyncedAt: historyStore.lastSyncedAt,
       pendingSyncCount: historyStore.pendingSyncCount,
@@ -306,7 +394,7 @@ export function useAppController(auth) {
       dueCount: dueTotal,
       user: auth.user,
       displayName: auth.displayName,
-      onSignOut: auth.signOut,
+      onSignOut: requestSignOut,
       syncStatus: historyStore.syncStatus,
       lastSyncedAt: historyStore.lastSyncedAt,
       pendingSyncCount: historyStore.pendingSyncCount,
@@ -330,6 +418,16 @@ export function useAppController(auth) {
         title: 'Eliminar todas las jugadas',
         description: 'Esta acción eliminará definitivamente las jugadas y los borradores guardados en tu cuenta. No se puede deshacer.',
         confirmLabel: 'Sí, eliminar todo',
+      },
+      unsavedGenerationConfirm: {
+        open: Boolean(pendingUnsavedAction),
+        onClose: closeUnsavedGenerationConfirm,
+        onConfirm: confirmUnsavedGenerationLoss,
+        title: '¿Salir sin guardar esta jugada?',
+        description: 'Los números que Primy acaba de generar todavía no están guardados ni registrados. Si continúas, se perderán.',
+        confirmLabel: 'Salir y perder los números',
+        cancelLabel: 'Seguir revisando',
+        tone: 'danger',
       },
       migration: {
         count: historyStore.pendingLocalCount,

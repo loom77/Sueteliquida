@@ -13,12 +13,14 @@ test('v16.3 conserva iconos gráficos propios para los ocho juegos', () => {
   assert.match(read('../src/components/GameIdentity.jsx'), /theme\.icon/);
 });
 
-test('el registro pregunta el nombre y el perfil permite modificarlo en Supabase', () => {
+test('la web cierra el registro pero el perfil existente sigue siendo editable en Supabase', () => {
   const authScreen = read('../src/components/AuthScreen.jsx');
   const authHook = read('../src/hooks/useAuth.js');
   const settings = read('../src/components/SettingsView.jsx');
   const migration = read('../supabase/migrations/20260801_profile_name_trigger.sql');
-  assert.match(authScreen, /¿Cómo te llamas\?/);
+  assert.match(authScreen, /Registro web temporalmente cerrado/);
+  assert.doesNotMatch(authScreen, /¿Cómo te llamas\?/);
+  assert.doesNotMatch(authHook, /supabase\.auth\.signUp/);
   assert.match(authHook, /updateDisplayName/);
   assert.match(authHook, /from\('primy_profiles'\)\.upsert/);
   assert.match(settings, /Guardar nombre/);
@@ -46,9 +48,9 @@ test('la sección legal no promete premios y describe honestamente el almacenami
   assert.match(privacy, /no sería correcto afirmar que nunca se guarda ningún dato de jugada/);
 });
 
-test('todas las pantallas principales muestran la release 18.0.3', () => {
-  assert.match(read('../src/utils/release.js'), /18\.0\.3/);
+test('todas las pantallas principales muestran la release 18.7.0', () => {
+  assert.match(read('../src/utils/release.js'), /18\.7\.0/);
   assert.match(read('../src/components/AppShell.jsx'), /ReleaseStamp/);
   assert.match(read('../src/components/AuthScreen.jsx'), /ReleaseStamp/);
-  assert.equal(JSON.parse(read('../package.json')).version, '18.0.3');
+  assert.equal(JSON.parse(read('../package.json')).version, '18.7.0');
 });

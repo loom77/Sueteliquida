@@ -1,5 +1,5 @@
 import { getGameConfig } from './gameConfig.js';
-import { getNextDrawInfo } from './drawSchedule.js';
+import { canonicalPlayableDraw, getNextPlayableDrawInfo } from './drawSchedule.js';
 import { coverageMetrics } from './portfolioOptimizer.js';
 import { bonolotoEquivalentBets, isBonolotoSystemSize } from './bonoloto.js';
 import { gordoEquivalentBets, isGordoSystemSize } from './gordoPrimitiva.js';
@@ -239,6 +239,14 @@ function distributeExtras(game, count, rng) {
   return output;
 }
 
+
+function resolveGenerationDraw(gameId, options = {}) {
+  if (!options.drawInfo) return getNextPlayableDrawInfo(gameId);
+  const selected = canonicalPlayableDraw(gameId, options.drawInfo, options.now ? new Date(options.now) : new Date());
+  if (!selected) throw new Error('El sorteo seleccionado ya no admite preparaciones. Elige otro sorteo disponible.');
+  return selected;
+}
+
 function randomSecondaryNumbers(game, rng) {
   if (!game.secondary) return [];
   const pool = Array.from({ length: game.secondary.max - game.secondary.min + 1 }, (_, index) => game.secondary.min + index);
@@ -262,7 +270,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
     const valid = isBonoloto ? isBonolotoSystemSize(systemSize) : isGordoSystemSize(systemSize);
     if (!valid) throw new Error(`Selecciona una múltiple válida de ${game.name}.`);
     const numbers = randomSelection(game, systemSize, rng);
-    const draw = getNextDrawInfo(gameId);
+    const draw = resolveGenerationDraw(gameId, options);
     const equivalentBets = isBonoloto ? bonolotoEquivalentBets(systemSize) : gordoEquivalentBets(systemSize);
     const extra = isBonoloto ? null : rng.int(game.extra.min, game.extra.max);
     return {
@@ -290,6 +298,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
         history: { available: Boolean(analysis?.totalDraws), used: false, weight: 0, draws: analysis?.totalDraws || 0, through: analysis?.to || null },
         weights: { predictive: 0, historical: 0, portfolioCoverage: 0, structural: 0, antiShare: 0 },
         variantOf: options.variantOf || null,
+        scheduledDraw: { drawDateKey: draw.drawDateKey, selectionSource: options.drawInfo ? 'user-selection' : 'automatic-default' },
       },
     };
   }
@@ -323,7 +332,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
   const extras = game.extra?.scope === 'receipt'
     ? Array(selected.length).fill(receiptExtra)
     : distributeExtras(game, selected.length, rng);
-  const draw = getNextDrawInfo(gameId);
+  const draw = resolveGenerationDraw(gameId, options);
   const playId = crypto.randomUUID();
   const metrics = coverageMetrics(gameId, selected);
   const columns = selected.map((candidate, index) => ({
@@ -384,6 +393,7 @@ export function generateFusionPlay(gameId, analysis, columnCount = 1, options = 
         antiShare: 0,
       },
       variantOf: options.variantOf || null,
+      scheduledDraw: { drawDateKey: draw.drawDateKey, selectionSource: options.drawInfo ? 'user-selection' : 'automatic-default' },
     },
   };
 }

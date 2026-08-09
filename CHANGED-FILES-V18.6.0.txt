@@ -1,0 +1,10 @@
+package.json
+src/utils/release.js
+src/utils/playModel.js
+public/offline.html
+tests/androidSpecialGamesBridgeV18_6.test.js
+ANDROID-SPECIAL-GAMES-BRIDGE-V18.6.0.md
+CHANGELOG-V18.6.0.md
+FINAL-VALIDATION-V18.6.0.md
+
+Note: existing release-version assertions in the test suite were advanced from 18.5.0 to 18.6.0.

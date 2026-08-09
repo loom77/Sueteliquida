@@ -5,6 +5,8 @@ function redirectUrl(path) {
   return `${window.location.origin}${path}`;
 }
 
+const WEB_TEST_EMAIL = String(import.meta.env.VITE_WEB_TEST_EMAIL || '').trim().toLowerCase();
+
 function cleanDisplayName(value) {
   return String(value || '').replace(/\s+/g, ' ').trim().slice(0, 60);
 }
@@ -104,29 +106,14 @@ export function useAuth() {
     };
   }, [hydrateProfile]);
 
-  const signUp = useCallback(async ({ email, password, displayName, adultDeclaration }) => {
-    if (!supabase) return { error: 'Supabase no está configurado.' };
-    const normalizedName = cleanDisplayName(displayName);
-    if (normalizedName.length < 2) return { error: 'Indica cómo quieres que Primy te llame.' };
-    const { data, error } = await supabase.auth.signUp({
-      email: email.trim().toLowerCase(),
-      password,
-      options: {
-        emailRedirectTo: redirectUrl('/auth/confirm'),
-        data: {
-          display_name: normalizedName,
-          i18n: 'es',
-          adult_declaration_at: adultDeclaration ? new Date().toISOString() : null,
-        },
-      },
-    });
-    return error ? { error: translateAuthError(error) } : { data, needsConfirmation: !data.session };
-  }, []);
-
   const signIn = useCallback(async ({ email, password }) => {
     if (!supabase) return { error: 'Supabase no está configurado.' };
+    const normalizedEmail = email.trim().toLowerCase();
+    if (WEB_TEST_EMAIL && normalizedEmail !== WEB_TEST_EMAIL) {
+      return { error: 'El acceso web está reservado a la cuenta de pruebas autorizada.' };
+    }
     const { data, error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
+      email: normalizedEmail,
       password,
     });
     return error ? { error: translateAuthError(error) } : { data };
@@ -182,6 +169,14 @@ export function useAuth() {
     return { success: true, displayName };
   }, [session?.user]);
 
+  const deleteAccount = useCallback(async () => {
+    if (!supabase || !session?.user?.id) return { error: 'No hay una sesión activa.' };
+    const { error } = await supabase.functions.invoke('delete-account', { body: {} });
+    if (error) return { error: 'No se ha podido eliminar la cuenta. Comprueba que la función de eliminación esté desplegada e inténtalo de nuevo.' };
+    await supabase.auth.signOut({ scope: 'local' });
+    return { success: true };
+  }, [session?.user?.id]);
+
   const signOut = useCallback(async () => {
     if (!supabase) return;
     await supabase.auth.signOut();
@@ -203,9 +198,9 @@ export function useAuth() {
     recoveryMode,
     notice,
     clearNotice: () => setNotice(''),
-    signUp,
     signIn,
     signOut,
+    deleteAccount,
     resendConfirmation,
     requestPasswordReset,
     updatePassword,

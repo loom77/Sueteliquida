@@ -377,6 +377,19 @@ export function settlePlayAgainstOfficialData(play, officialData) {
   const family = verificationFamilyForGame(play?.gameId);
   if (!family) return { complete: false, reason: 'UNSUPPORTED_GAME' };
   if (!officialData) return { complete: false, reason: 'OFFICIAL_DATA_MISSING' };
+
+  // v18.4.5: the draw/round selected when the play was stored is immutable.
+  // Never settle a play against a different official event, even if a caller
+  // accidentally passes a newer result for the same game.
+  const lookup = verificationLookupForPlay(play);
+  const officialDate = String(officialData?.date || officialData?.roundDate || '').slice(0, 10);
+  const officialRoundId = String(officialData?.roundId || '');
+  if (lookup.date && officialDate && lookup.date !== officialDate) {
+    return { complete: false, reason: 'OFFICIAL_DATE_MISMATCH', expectedDate: lookup.date, officialDate };
+  }
+  if (lookup.roundId && officialRoundId && lookup.roundId !== officialRoundId) {
+    return { complete: false, reason: 'OFFICIAL_ROUND_MISMATCH', expectedRoundId: lookup.roundId, officialRoundId };
+  }
   if (family === VERIFICATION_FAMILIES.DRAW) {
     const settlement = calculatePlayPayout(play, officialData);
     return { complete: true, ...settlement };

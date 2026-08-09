@@ -9,6 +9,7 @@ import { sanitizeHorsePlay } from '../horse/plays.js';
 
 const CONFIRMED_PRIZE_SOURCES = new Set(['manual', 'official-verification']);
 export const FINANCE_SCHEMA_VERSION = '18.0.2';
+export const PLAY_DATA_CONTRACT_VERSION = '18.7.0';
 
 function normalizedPrizeSource(value) {
   const source = String(value || '').trim();
@@ -349,7 +350,8 @@ function sanitizePlayBase(play) {
 }
 
 export function sanitizePlay(play) {
-  return normalizeFinancePlay(sanitizePlayBase(play));
+  const normalized = normalizeFinancePlay(sanitizePlayBase(play));
+  return normalized ? { ...normalized, dataContractVersion: PLAY_DATA_CONTRACT_VERSION } : null;
 }
 
 export function sanitizePlays(raw) {

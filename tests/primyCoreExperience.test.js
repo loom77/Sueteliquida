@@ -18,7 +18,7 @@ test('Primy Core mantiene una explicación compartida y accesible en el contexto
 test('la home v16 elimina la repetición promocional de Primy Core y prioriza una sola acción', () => {
   assert.doesNotMatch(home, /Cómo funciona Primy Core/);
   assert.doesNotMatch(home, /primy-home-core-trigger/);
-  assert.match(home, /Preparar una jugada/);
+  assert.match(home, /Elegir juego/);
   assert.match(home, /PrimyMascot role="welcome"/);
 });
 

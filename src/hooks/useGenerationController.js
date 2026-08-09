@@ -64,7 +64,7 @@ export function useGenerationController({ view }) {
     return workerRef.current;
   }, []);
 
-  const generate = useCallback(({ activeGame, columnCount, variantContext, betType = 'simple', systemSize = 7 }) => {
+  const generate = useCallback(({ activeGame, columnCount, variantContext, betType = 'simple', systemSize = 7, drawInfo = null }) => {
     invalidateRequest();
     setBusy(true);
     setProgress(0.02);
@@ -132,6 +132,7 @@ export function useGenerationController({ view }) {
       variantOf: variantContext?.id || null,
       betType,
       systemSize,
+      drawInfo,
     });
   }, [clearPresentationTimers, clearSafetyTimeout, ensureWorker, invalidateRequest, terminateWorker]);
 

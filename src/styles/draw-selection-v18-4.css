@@ -1,0 +1,100 @@
+/* PRIMY v18.4.0 — explicit draw selection and verification-date integrity */
+.primy-draw-selector {
+  margin-top: 1rem;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: var(--md3-radius-lg, 1.35rem);
+  background: linear-gradient(145deg, rgb(var(--c-surface)), rgb(244 250 247));
+  padding: 1rem;
+  box-shadow: 0 12px 30px rgb(19 34 56 / .05);
+}
+.primy-draw-selector > legend {
+  padding-inline: .25rem;
+  color: rgb(var(--c-text-primary));
+  font-size: .92rem;
+  font-weight: 850;
+}
+.primy-draw-selector__intro {
+  margin-top: .25rem;
+  max-width: 48rem;
+  color: rgb(var(--c-text-secondary));
+  font-size: .75rem;
+  line-height: 1.55;
+}
+.primy-draw-selector__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .7rem;
+  margin-top: .9rem;
+}
+.primy-draw-selector__option {
+  min-height: 5.6rem;
+  border: 1px solid rgb(var(--c-border));
+  border-radius: 1.05rem;
+  background: rgb(var(--c-surface));
+  padding: .75rem .85rem;
+  text-align: left;
+  transition: border-color .16s ease, box-shadow .16s ease, transform .16s ease, background .16s ease;
+}
+.primy-draw-selector__option:hover { transform: translateY(-1px); }
+.primy-draw-selector__option[data-selected='true'] {
+  border-color: rgb(11 122 73 / .72);
+  background: linear-gradient(145deg, rgb(232 248 239), rgb(255 253 246));
+  box-shadow: 0 0 0 3px rgb(11 122 73 / .1), 0 10px 25px rgb(11 122 73 / .08);
+}
+.primy-draw-selector__position {
+  display: block;
+  color: #0b7a49;
+  font-size: .62rem;
+  font-weight: 850;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.primy-draw-selector__option strong {
+  display: block;
+  margin-top: .3rem;
+  color: rgb(var(--c-text-primary));
+  font-size: .85rem;
+  line-height: 1.35;
+  text-transform: capitalize;
+}
+.primy-draw-selector__option > span:last-child {
+  display: block;
+  margin-top: .25rem;
+  color: rgb(var(--c-text-secondary));
+  font-size: .68rem;
+  line-height: 1.35;
+}
+.primy-draw-selector__confirmation {
+  margin-top: .75rem;
+  border-radius: .85rem;
+  background: rgb(11 122 73 / .07);
+  padding: .65rem .75rem;
+  color: rgb(var(--c-text-secondary));
+  font-size: .7rem;
+  line-height: 1.45;
+}
+.primy-draw-selector__confirmation strong { color: #075438; }
+
+/* The Home no longer pretends a single game/draw is the user's next action. */
+.primy-home-v18__hero-copy { align-self: center; }
+
+@media (max-width: 599px) {
+  .primy-draw-selector { padding: .85rem; }
+  .primy-draw-selector__grid { grid-template-columns: 1fr; gap: .55rem; }
+  .primy-draw-selector__option { min-height: 4.9rem; }
+}
+
+@media (min-width: 600px) and (max-width: 899px) {
+  .primy-draw-selector__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 900px) {
+  .primy-draw-selector__grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+html[data-theme='dark'] .primy-draw-selector {
+  background: linear-gradient(145deg, rgb(var(--c-surface)), rgb(24 48 36));
+}
+html[data-theme='dark'] .primy-draw-selector__option[data-selected='true'] {
+  background: linear-gradient(145deg, rgb(25 63 43), rgb(39 52 43));
+}

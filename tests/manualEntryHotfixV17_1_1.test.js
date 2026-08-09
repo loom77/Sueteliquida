@@ -48,8 +48,8 @@ test('il dialogo usa griglie touch e non dipende dal tastierino numerico per lis
   assert.doesNotMatch(source, /Los \{game\.numbersToPick\} números<input/);
 });
 
-test('la release del hotfix manuale è 18.0.3', () => {
-  assert.equal(JSON.parse(read('../package.json')).version, '18.0.3');
-  assert.match(read('../src/utils/release.js'), /18\.0\.3/);
-  assert.match(read('../public/offline.html'), /v18\.0\.3/);
+test('la release del hotfix manuale è 18.7.0', () => {
+  assert.equal(JSON.parse(read('../package.json')).version, '18.7.0');
+  assert.match(read('../src/utils/release.js'), /18\.7\.0/);
+  assert.match(read('../public/offline.html'), /v18\.7\.0/);
 });

@@ -8,6 +8,7 @@ import { BONOLOTO_SYSTEM_SIZES, bonolotoEquivalentBets } from '../utils/bonoloto
 import { GORDO_SYSTEM_SIZES, gordoEquivalentBets } from '../utils/gordoPrimitiva.js';
 import { gameRuleSummary } from '../utils/gameConfig.js';
 import { gameThemeStyle, getGameVisualTheme } from '../utils/gameVisualTheme.js';
+import { formatDrawDate, formatDrawTime } from '../utils/drawSchedule.js';
 import PrimyCoreDialog from './PrimyCoreDialog.jsx';
 
 const euro = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' });
@@ -25,6 +26,7 @@ export default function GeneratorPanel({
   betType = 'simple', setBetType, systemSize = 7, setSystemSize,
   onGenerate, onCancel, busy, progress = 0, generationError,
   monthlySpent = 0, monthlyLimit = null, variantLabel = '', onClearVariant,
+  drawOptions = [], selectedDrawKey = '', onDrawChange,
 }) {
   const supportsMultiple = Boolean(game.supportsMultiple);
   const isGordo = activeGame === 'gordoprimitiva';
@@ -41,6 +43,9 @@ export default function GeneratorPanel({
   const limitRatio = hasLimit ? Math.min(1, (monthlySpent + totalCost) / monthlyLimit) : 0;
   const exceedsLimit = hasLimit && monthlySpent + totalCost > monthlyLimit;
   const theme = getGameVisualTheme(activeGame);
+  const selectedDraw = drawOptions.find(draw => draw.drawDateKey === selectedDrawKey) || drawOptions[0] || null;
+  const requiresDrawSelection = Boolean(game.drawDays?.length);
+  const drawSelectionMissing = requiresDrawSelection && !selectedDraw;
   const [coreInfoOpen, setCoreInfoOpen] = useState(false);
 
   useEffect(() => {
@@ -95,6 +100,38 @@ export default function GeneratorPanel({
         </div>
       </div>
 
+      {requiresDrawSelection && (
+        <fieldset className="primy-draw-selector" disabled={busy}>
+          <legend>Sorteo de esta jugada</legend>
+          <p className="primy-draw-selector__intro">Elige la fecha exacta. Primy guardará esta selección en el boleto y comprobará el resultado únicamente contra ese sorteo.</p>
+          <div className="primy-draw-selector__grid">
+            {drawOptions.map((draw, index) => {
+              const selected = draw.drawDateKey === selectedDraw?.drawDateKey;
+              return (
+                <button
+                  key={draw.drawDateKey}
+                  type="button"
+                  className="primy-draw-selector__option"
+                  data-selected={selected ? 'true' : 'false'}
+                  aria-pressed={selected}
+                  onClick={() => onDrawChange?.(draw.drawDateKey)}
+                  disabled={busy}
+                >
+                  <span className="primy-draw-selector__position">{index === 0 ? 'Próximo' : index === 1 ? 'Siguiente' : `Opción ${index + 1}`}</span>
+                  <strong>{formatDrawDate(draw.drawDateTimeISO, { includeYear: false })}</strong>
+                  <span>{formatDrawTime(draw.drawDateTimeISO)} · cierre {formatDrawTime(draw.salesCloseISO)}</span>
+                </button>
+              );
+            })}
+          </div>
+          {selectedDraw && (
+            <p className="primy-draw-selector__confirmation">
+              Seleccionado: <strong>{game.shortName} · {formatDrawDate(selectedDraw.drawDateTimeISO, { includeYear: false })} · {formatDrawTime(selectedDraw.drawDateTimeISO)}</strong>
+            </p>
+          )}
+        </fieldset>
+      )}
+
       {supportsMultiple && (
         <fieldset className="primy-generator__bet-type">
           <legend>Tipo de apuesta</legend>
@@ -146,6 +183,7 @@ export default function GeneratorPanel({
         {isGordo && <p className="primy-generator__rule-note">Cada apuesta incluye cinco números y una clave del 0 al 9.</p>}
       </div>
 
+      {drawSelectionMissing && <div className="primy-generator__error" role="alert"><AlertIcon width="20" height="20"/><p>No hay un sorteo disponible para preparar esta jugada. Elige otro juego o espera a la siguiente ventana.</p></div>}
       {exceedsLimit && <div className="primy-generator__error" role="alert"><AlertIcon width="20" height="20"/><p>Esta jugada superaría tu límite mensual de <strong>{euro.format(monthlyLimit)}</strong>. Reduce el número de apuestas.</p></div>}
       {generationError && <div className="primy-generator__error" role="alert"><AlertIcon width="20" height="20"/><p>{generationError}</p></div>}
 
@@ -153,11 +191,11 @@ export default function GeneratorPanel({
         <ThinkingProgress activeStep={activeStep} progress={progress * 100} onCancel={onCancel}/>
       ) : (
         <div className="primy-generator__action-bar" data-android-sticky-action="true">
-          <div className="primy-generator__action-copy"><strong>Todo listo</strong><span>Preparar no guarda ni compra el boleto.</span></div>
+          <div className="primy-generator__action-copy"><strong>{selectedDraw ? `Para ${formatDrawDate(selectedDraw.drawDateTimeISO, { includeYear: false })}` : 'Todo listo'}</strong><span>Preparar no guarda ni compra el boleto.</span></div>
           <button
             type="button"
             onClick={onGenerate}
-            disabled={exceedsLimit}
+            disabled={exceedsLimit || drawSelectionMissing}
             aria-label={`Preparar una jugada de ${game.name}`}
             data-game-action={activeGame}
             className="ds-button ds-button--primary ds-button--lg primy-generator__primary-action"

@@ -1,17 +1,20 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { GridIcon, HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
+import { HomeIcon, ListIcon, PlusIcon, SettingsIcon } from './Icons.jsx';
 import { PrimyWordmark } from './BrandVisuals.jsx';
 import { Button, Card, StatusNotice } from './DesignSystem.jsx';
 import { PrimyMascot } from './PrimyMascot.jsx';
 import ReleaseStamp from './ReleaseStamp.jsx';
 
 const NAV = [
-  { id: 'dashboard', label: 'Inicio', icon: HomeIcon },
-  { id: 'generate', label: 'Preparar', icon: PlusIcon },
-  { id: 'explore', label: 'Juegos', icon: GridIcon },
-  { id: 'plays', label: 'Archivo', icon: ListIcon },
-  { id: 'settings', label: 'Perfil', icon: SettingsIcon },
+  { id: 'dashboard', label: 'Inicio', icon: HomeIcon, matches: ['dashboard'] },
+  { id: 'generate', label: 'Preparar', icon: PlusIcon, matches: ['generate', 'explore'] },
+  { id: 'plays', label: 'Archivo', icon: ListIcon, matches: ['plays'] },
+  { id: 'settings', label: 'Perfil', icon: SettingsIcon, matches: ['settings'] },
 ];
+
+function isItemActive(item, view) {
+  return (item.matches || [item.id]).includes(view);
+}
 
 function NavButton({ item, active, onSelect, mobile = false, badge = 0 }) {
   const Icon = item.icon;
@@ -83,7 +86,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, display
             <NavButton
               key={item.id}
               item={item}
-              active={view === item.id}
+              active={isItemActive(item, view)}
               onSelect={onNavigate}
               badge={item.id === 'plays' ? dueCount : 0}
             />
@@ -132,7 +135,7 @@ export default function AppShell({ view, onNavigate, dueCount = 0, user, display
           <NavButton
             key={item.id}
             item={item}
-            active={view === item.id}
+            active={isItemActive(item, view)}
             onSelect={onNavigate}
             mobile
             badge={item.id === 'plays' ? dueCount : 0}

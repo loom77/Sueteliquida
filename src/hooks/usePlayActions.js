@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { getNextDrawInfo } from '../utils/drawSchedule.js';
+import { getNextPlayableDrawInfo } from '../utils/drawSchedule.js';
 import { getGameConfig } from '../utils/gameConfig.js';
 import { createId } from '../utils/createId.js';
 import { getUpcomingNationalDraws } from '../utils/nationalLottery.js';
@@ -98,7 +98,7 @@ export function usePlayActions({
       navigate('generate');
       return;
     }
-    const draw = getNextDrawInfo(play.gameId);
+    const draw = getNextPlayableDrawInfo(play.gameId);
     const game = getGameConfig(play.gameId);
     const officialReceiptExtra = game.extra?.assignment === 'official-receipt';
     const repeated = {

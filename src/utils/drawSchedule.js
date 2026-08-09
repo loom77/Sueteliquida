@@ -76,6 +76,7 @@ export function drawInfoForDate(gameId, dateKey) {
   if (!game.drawTime) {
     const provisional = madridDateFromParts({ ...calendarDate, hour: 12, minute: 0 });
     return {
+      gameId,
       drawDateISO: provisional.toISOString(),
       drawDateTimeISO: provisional.toISOString(),
       drawDateKey: dateKeyFromParts(calendarDate),
@@ -95,6 +96,7 @@ export function drawInfoForDate(gameId, dateKey) {
   const publication = instantForDateAndTime(calendarDate, publicationTime);
   const checkable = publication > draw ? publication : new Date(draw.getTime() + (game.resultDelayMinutes || 20) * 60_000);
   return {
+    gameId,
     drawDateISO: draw.toISOString(),
     drawDateTimeISO: draw.toISOString(),
     drawDateKey: dateKeyFromParts(calendarDate),
@@ -120,6 +122,72 @@ export function getNextDrawInfo(gameId, from = new Date()) {
     candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));
   }
   return candidate;
+}
+
+
+
+export function isPreparationOpen(drawInfo, now = new Date()) {
+  if (!drawInfo) return false;
+  const cutoff = new Date(drawInfo.salesCloseISO || drawInfo.drawDateTimeISO || drawInfo.drawDateISO);
+  return Number.isFinite(cutoff.getTime()) && now < cutoff;
+}
+
+// Returns the next draw that can still be prepared in Primy. This is deliberately
+// different from getNextDrawInfo(), which remains chronological for result checks,
+// archive logic and manual entry. Preparation closes at the configured sales cutoff.
+export function getNextPlayableDrawInfo(gameId, from = new Date()) {
+  const game = getGameConfig(gameId);
+  const local = zonedParts(from);
+  if (!game.drawDays?.length) return getNextDrawInfo(gameId, from);
+  if (!local) return getNextDrawInfo(gameId, from);
+
+  let calendarDate = { year: local.year, month: local.month, day: local.day };
+  let candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));
+  const todayIsDrawDay = game.drawDays.includes(local.weekday);
+
+  if (!(todayIsDrawDay && isPreparationOpen(candidate, from))) {
+    do {
+      calendarDate = shiftCalendarDate(calendarDate, 1);
+    } while (!game.drawDays.includes(weekdayForCalendarDate(calendarDate)));
+    candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));
+  }
+
+  return candidate;
+}
+
+// Returns several future draws that are still open for preparation. The chosen
+// draw is later persisted on the play itself, so verification always uses the
+// exact draw date selected by the user rather than recalculating a new one.
+export function getUpcomingPlayableDraws(gameId, from = new Date(), count = 4) {
+  const game = getGameConfig(gameId);
+  const limit = Math.max(1, Math.min(Number(count) || 4, 12));
+  if (!game.drawDays?.length) {
+    const single = getNextPlayableDrawInfo(gameId, from);
+    return single ? [single] : [];
+  }
+  const local = zonedParts(from);
+  if (!local) return [];
+
+  const draws = [];
+  let calendarDate = { year: local.year, month: local.month, day: local.day };
+  let scannedDays = 0;
+  while (draws.length < limit && scannedDays < 90) {
+    const weekday = weekdayForCalendarDate(calendarDate);
+    if (game.drawDays.includes(weekday)) {
+      const candidate = drawInfoForDate(gameId, dateKeyFromParts(calendarDate));
+      if (candidate && isPreparationOpen(candidate, from)) draws.push(candidate);
+    }
+    calendarDate = shiftCalendarDate(calendarDate, 1);
+    scannedDays += 1;
+  }
+  return draws;
+}
+
+export function canonicalPlayableDraw(gameId, drawInfo, now = new Date()) {
+  if (!drawInfo?.drawDateKey || drawInfo.gameId !== gameId) return null;
+  const canonical = drawInfoForDate(gameId, drawInfo.drawDateKey);
+  if (!canonical || !isPreparationOpen(canonical, now)) return null;
+  return canonical;
 }
 
 export function formatDrawDate(iso, options = {}) {

@@ -17,9 +17,9 @@ const css = read('../src/index.css');
 test('v16 centraliza color, superficies, radios, sombras y movimiento', () => {
   assert.match(tokens, /--ds-brand-700:\s*#0b7a49/);
   assert.match(tokens, /--ds-accent:\s*#ffd052/);
-  assert.match(tokens, /--ds-radius-control:\s*\.75rem/);
-  assert.match(tokens, /--ds-radius-card:\s*1rem/);
-  assert.match(tokens, /--ds-motion-page:\s*240ms/);
+  assert.match(tokens, /--ds-radius-control:\s*\.875rem/);
+  assert.match(tokens, /--ds-radius-card:\s*1\.125rem/);
+  assert.match(tokens, /--ds-motion-page:\s*220ms/);
   assert.match(main, /styles\/design-tokens\.css/);
 });
 

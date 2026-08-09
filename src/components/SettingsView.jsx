@@ -1,5 +1,6 @@
 import React, { memo, useEffect, useMemo, useRef, useState } from 'react';
 import GameSwitch from './GameSwitch.jsx';
+import ConfirmDialog from './ConfirmDialog.jsx';
 import HistoryLab from './HistoryLab.jsx';
 import { PrimyMascot } from './PrimyMascot.jsx';
 import { BellIcon, DatabaseIcon, DeviceIcon, DownloadIcon, InfoIcon, InstallIcon, MoonIcon, ShieldIcon, SunIcon, TrashIcon, UploadIcon } from './Icons.jsx';
@@ -42,6 +43,7 @@ export default function SettingsView({
   profileLoading = false,
   onUpdateDisplayName,
   onSignOut,
+  onDeleteAccount,
   syncStatus,
   lastSyncedAt,
   pendingSyncCount = 0,
@@ -54,6 +56,9 @@ export default function SettingsView({
   const [nameDraft, setNameDraft] = useState(displayName);
   const [nameBusy, setNameBusy] = useState(false);
   const [nameError, setNameError] = useState('');
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [deleteAccountBusy, setDeleteAccountBusy] = useState(false);
+  const [deleteAccountError, setDeleteAccountError] = useState('');
   const monthlyStats = useMemo(() => getMonthlyStats(history), [history]);
 
   useEffect(() => setLimitDraft(preferences.monthlyLimit ?? ''), [preferences.monthlyLimit]);
@@ -121,6 +126,20 @@ export default function SettingsView({
     anchor.download = `primy-backup-${new Date().toISOString().slice(0, 10)}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
+  };
+
+  const deleteAccount = async () => {
+    if (!onDeleteAccount || deleteAccountBusy) return;
+    setDeleteAccountBusy(true);
+    setDeleteAccountError('');
+    const result = await onDeleteAccount();
+    if (result?.error) {
+      setDeleteAccountError(result.error);
+      setDeleteAccountBusy(false);
+      return;
+    }
+    setDeleteAccountOpen(false);
+    setDeleteAccountBusy(false);
   };
 
   const importFile = async event => {
@@ -231,6 +250,7 @@ export default function SettingsView({
               <a href="/legal/terms.html">Condiciones de uso</a>
               <a href="/legal/privacy.html">Privacidad</a>
               <a href="/legal/responsible-play.html">Juego responsable</a>
+              <a href="/legal/account-deletion.html">Eliminar cuenta</a>
             </nav>
           </ProfileSection>
 
@@ -250,9 +270,21 @@ export default function SettingsView({
             <div className="primy-profile-provider"><div><h3>Fuente de datos</h3><p>{providerStatus.message || 'Resultados y archivo oficial.'}</p></div><button type="button" onClick={providerStatus.reload}>Volver a comprobar</button></div>
             <div><h3>Cómo funciona Primy Core</h3><p>Selecciona un juego para consultar sus estadísticas informativas. Ningún análisis garantiza resultados.</p><div className="mt-4"><GameSwitch active={activeGame} onChange={onGameChange} label="Juego que analizar"/></div><div className="mt-5"><HistoryLab historyState={historyState}/></div></div>
             <div className="primy-profile-danger"><div><h3>Eliminar las jugadas</h3><p>Borra definitivamente el archivo sincronizado de tu cuenta.</p></div><button type="button" onClick={onClear} disabled={!history.length}><TrashIcon width="18" height="18"/>Eliminar todo</button></div>
+            <div className="primy-profile-danger"><div><h3>Eliminar la cuenta</h3><p>Elimina definitivamente tu cuenta Primy y los datos privados asociados. Esta acción no se puede deshacer.</p>{deleteAccountError && <p role="alert" className="primy-profile-error">{deleteAccountError}</p>}</div><button type="button" onClick={() => setDeleteAccountOpen(true)} disabled={!onDeleteAccount || deleteAccountBusy}><TrashIcon width="18" height="18"/>Eliminar mi cuenta</button></div>
           </div>
         )}
       </section>
+      <ConfirmDialog
+        open={deleteAccountOpen}
+        onClose={() => { if (!deleteAccountBusy) setDeleteAccountOpen(false); }}
+        onConfirm={deleteAccount}
+        title="¿Eliminar definitivamente tu cuenta?"
+        description="Se eliminarán tu cuenta de acceso y los datos privados asociados a Primy. Esta acción no se puede deshacer."
+        confirmLabel="Sí, eliminar mi cuenta"
+        cancelLabel="Cancelar"
+        busy={deleteAccountBusy}
+        tone="danger"
+      />
     </div>
   );
 }

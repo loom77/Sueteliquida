@@ -6,7 +6,7 @@ import Toast from '../components/Toast.jsx';
 
 const ManualPlayDialog = lazy(() => import('../components/ManualPlayDialog.jsx'));
 
-export default function AppOverlays({ manual, onboarding, clearConfirm, migration, toast }) {
+export default function AppOverlays({ manual, onboarding, clearConfirm, unsavedGenerationConfirm, migration, toast }) {
   return (
     <>
       <Suspense fallback={null}>
@@ -14,6 +14,7 @@ export default function AppOverlays({ manual, onboarding, clearConfirm, migratio
       </Suspense>
       <OnboardingDialog {...onboarding}/>
       <ConfirmDialog {...clearConfirm}/>
+      <ConfirmDialog {...unsavedGenerationConfirm}/>
       <LocalDataMigrationDialog {...migration}/>
       <Toast {...toast}/>
     </>
